@@ -55,4 +55,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionSave => 'Save';
+
+  @override
+  String get actionEdit => 'Edit';
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
+  String get projectEditTitle => 'Edit project';
+
+  @override
+  String get projectNotesLabel => 'Notes';
+
+  @override
+  String get deleteProjectTitle => 'Delete project';
+
+  @override
+  String deleteProjectMessage(String name) {
+    return 'Delete $name and all its studies? This cannot be undone.';
+  }
+
+  @override
+  String get studiesSectionTitle => 'Studies';
+
+  @override
+  String get studiesEmpty => 'No studies yet. Create the first one.';
+
+  @override
+  String get studyNewTitle => 'New study';
+
+  @override
+  String get studyNameLabel => 'Study name';
+
+  @override
+  String get studyTypeLabel => 'Study type';
+
+  @override
+  String get studyTypeTime => 'Time Study';
+
+  @override
+  String get studyTypeSampling => 'Sampling Study';
+
+  @override
+  String get deleteStudyTitle => 'Delete study';
+
+  @override
+  String deleteStudyMessage(String name) {
+    return 'Delete $name? This cannot be undone.';
+  }
+
+  @override
+  String get studyFieldType => 'Type';
+
+  @override
+  String get studyFieldDate => 'Date';
+
+  @override
+  String get studyFieldAnalyst => 'Analyst';
+
+  @override
+  String get studyOperationsSection => 'Operations';
+
+  @override
+  String get studyOperationsPending =>
+      'Operations are added when you build the sequence.';
 }

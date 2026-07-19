@@ -42,5 +42,35 @@
   },
   "settingsUnitSeconds": "Seconds",
   "settingsUnitDecimalMinutes": "Decimal minutes",
-  "actionSave": "Save"
+  "actionSave": "Save",
+  "actionEdit": "Edit",
+  "actionDelete": "Delete",
+  "projectEditTitle": "Edit project",
+  "projectNotesLabel": "Notes",
+  "deleteProjectTitle": "Delete project",
+  "deleteProjectMessage": "Delete {name} and all its studies? This cannot be undone.",
+  "@deleteProjectMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "studiesSectionTitle": "Studies",
+  "studiesEmpty": "No studies yet. Create the first one.",
+  "studyNewTitle": "New study",
+  "studyNameLabel": "Study name",
+  "studyTypeLabel": "Study type",
+  "studyTypeTime": "Time Study",
+  "studyTypeSampling": "Sampling Study",
+  "deleteStudyTitle": "Delete study",
+  "deleteStudyMessage": "Delete {name}? This cannot be undone.",
+  "@deleteStudyMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "studyFieldType": "Type",
+  "studyFieldDate": "Date",
+  "studyFieldAnalyst": "Analyst",
+  "studyOperationsSection": "Operations",
+  "studyOperationsPending": "Operations are added when you build the sequence."
 }

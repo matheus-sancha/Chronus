@@ -1,8 +1,10 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/studies/presentation/study_detail_screen.dart';
 import 'app_shell.dart';
 
 part 'router.g.dart';
@@ -23,6 +25,23 @@ GoRouter router(Ref ref) {
               GoRoute(
                 path: '/projects',
                 builder: (context, state) => const ProjectsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':projectId',
+                    builder: (context, state) => ProjectDetailScreen(
+                      projectId: state.pathParameters['projectId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'studies/:studyId',
+                        builder: (context, state) => StudyDetailScreen(
+                          projectId: state.pathParameters['projectId']!,
+                          studyId: state.pathParameters['studyId']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

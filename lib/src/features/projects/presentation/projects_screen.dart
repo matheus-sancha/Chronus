@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../common/confirm_dialog.dart';
+import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../application/projects_providers.dart';
 
@@ -29,6 +32,24 @@ class ProjectsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.folder_outlined),
                 title: Text(project.name),
                 subtitle: project.notes == null ? null : Text(project.notes!),
+                onTap: () => context.push('/projects/${project.id}'),
+                trailing: PopupMenuButton<_ProjectAction>(
+                  onSelected: (action) => switch (action) {
+                    _ProjectAction.edit => _editProject(context, ref, project),
+                    _ProjectAction.delete =>
+                      _deleteProject(context, ref, project),
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _ProjectAction.edit,
+                      child: Text(l10n.actionEdit),
+                    ),
+                    PopupMenuItem(
+                      value: _ProjectAction.delete,
+                      child: Text(l10n.actionDelete),
+                    ),
+                  ],
+                ),
               );
             },
           );
@@ -43,52 +64,118 @@ class ProjectsScreen extends ConsumerWidget {
   }
 
   Future<void> _createProject(BuildContext context, WidgetRef ref) async {
-    final name = await showDialog<String>(
+    final l10n = AppLocalizations.of(context);
+    final result = await showDialog<(String, String?)>(
       context: context,
-      builder: (context) => const _NewProjectDialog(),
+      builder: (context) => _ProjectDialog(title: l10n.projectsNewTitle),
     );
-    if (name == null || name.trim().isEmpty) return;
-    await ref.read(projectRepositoryProvider).create(name: name.trim());
+    if (result == null || result.$1.isEmpty) return;
+    await ref
+        .read(projectRepositoryProvider)
+        .create(name: result.$1, notes: result.$2);
+  }
+
+  Future<void> _editProject(
+    BuildContext context,
+    WidgetRef ref,
+    Project project,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final result = await showDialog<(String, String?)>(
+      context: context,
+      builder: (context) => _ProjectDialog(
+        title: l10n.projectEditTitle,
+        initialName: project.name,
+        initialNotes: project.notes,
+      ),
+    );
+    if (result == null || result.$1.isEmpty) return;
+    await ref.read(projectRepositoryProvider).update(
+          id: project.id,
+          name: result.$1,
+          notes: result.$2,
+        );
+  }
+
+  Future<void> _deleteProject(
+    BuildContext context,
+    WidgetRef ref,
+    Project project,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await confirmDelete(
+      context,
+      title: l10n.deleteProjectTitle,
+      message: l10n.deleteProjectMessage(project.name),
+    );
+    if (!confirmed) return;
+    await ref.read(projectRepositoryProvider).delete(project.id);
   }
 }
 
-class _NewProjectDialog extends StatefulWidget {
-  const _NewProjectDialog();
+enum _ProjectAction { edit, delete }
+
+/// Create/edit dialog for a project. Returns (name, notes) or null if cancelled.
+class _ProjectDialog extends StatefulWidget {
+  const _ProjectDialog({
+    required this.title,
+    this.initialName = '',
+    this.initialNotes,
+  });
+
+  final String title;
+  final String initialName;
+  final String? initialNotes;
 
   @override
-  State<_NewProjectDialog> createState() => _NewProjectDialogState();
+  State<_ProjectDialog> createState() => _ProjectDialogState();
 }
 
-class _NewProjectDialogState extends State<_NewProjectDialog> {
-  final _controller = TextEditingController();
+class _ProjectDialogState extends State<_ProjectDialog> {
+  late final _nameController = TextEditingController(text: widget.initialName);
+  late final _notesController =
+      TextEditingController(text: widget.initialNotes ?? '');
 
   @override
   void dispose() {
-    _controller.dispose();
+    _nameController.dispose();
+    _notesController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    final name = _nameController.text.trim();
+    final notes = _notesController.text.trim();
+    Navigator.of(context).pop((name, notes.isEmpty ? null : notes));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text(l10n.projectsNewTitle),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        decoration: InputDecoration(labelText: l10n.projectNameLabel),
-        textInputAction: TextInputAction.done,
-        onSubmitted: (value) => Navigator.of(context).pop(value),
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _nameController,
+            autofocus: true,
+            decoration: InputDecoration(labelText: l10n.projectNameLabel),
+            textInputAction: TextInputAction.next,
+          ),
+          TextField(
+            controller: _notesController,
+            decoration: InputDecoration(labelText: l10n.projectNotesLabel),
+            maxLines: 2,
+          ),
+        ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.actionCancel),
         ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: Text(l10n.actionCreate),
-        ),
+        FilledButton(onPressed: _submit, child: Text(l10n.actionSave)),
       ],
     );
   }

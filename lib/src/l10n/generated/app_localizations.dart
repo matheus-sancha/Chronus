@@ -195,6 +195,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get actionSave;
+
+  /// No description provided for @actionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get actionEdit;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// No description provided for @projectEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit project'**
+  String get projectEditTitle;
+
+  /// No description provided for @projectNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get projectNotesLabel;
+
+  /// No description provided for @deleteProjectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete project'**
+  String get deleteProjectTitle;
+
+  /// No description provided for @deleteProjectMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name} and all its studies? This cannot be undone.'**
+  String deleteProjectMessage(String name);
+
+  /// No description provided for @studiesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Studies'**
+  String get studiesSectionTitle;
+
+  /// No description provided for @studiesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No studies yet. Create the first one.'**
+  String get studiesEmpty;
+
+  /// No description provided for @studyNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New study'**
+  String get studyNewTitle;
+
+  /// No description provided for @studyNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Study name'**
+  String get studyNameLabel;
+
+  /// No description provided for @studyTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Study type'**
+  String get studyTypeLabel;
+
+  /// No description provided for @studyTypeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Study'**
+  String get studyTypeTime;
+
+  /// No description provided for @studyTypeSampling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampling Study'**
+  String get studyTypeSampling;
+
+  /// No description provided for @deleteStudyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete study'**
+  String get deleteStudyTitle;
+
+  /// No description provided for @deleteStudyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String deleteStudyMessage(String name);
+
+  /// No description provided for @studyFieldType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get studyFieldType;
+
+  /// No description provided for @studyFieldDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get studyFieldDate;
+
+  /// No description provided for @studyFieldAnalyst.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyst'**
+  String get studyFieldAnalyst;
+
+  /// No description provided for @studyOperationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get studyOperationsSection;
+
+  /// No description provided for @studyOperationsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations are added when you build the sequence.'**
+  String get studyOperationsPending;
 }
 
 class _AppLocalizationsDelegate

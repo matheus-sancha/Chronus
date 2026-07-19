@@ -1,0 +1,28 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../data/database/database.dart';
+import '../../../data/database/database_providers.dart';
+import '../data/study_repository.dart';
+
+part 'studies_providers.g.dart';
+
+@riverpod
+StudyRepository studyRepository(Ref ref) {
+  return StudyRepository(ref.watch(appDatabaseProvider));
+}
+
+// Hand-written (not codegen) because these return Drift-generated types — see
+// projects_providers.dart for the why.
+
+/// Studies within a project.
+final studiesByProjectProvider =
+    StreamProvider.family<List<Study>, String>((ref, projectId) {
+  return ref.watch(studyRepositoryProvider).watchByProject(projectId);
+});
+
+/// A single study by id.
+final studyByIdProvider =
+    StreamProvider.family<Study, String>((ref, studyId) {
+  return ref.watch(studyRepositoryProvider).watchById(studyId);
+});

@@ -55,4 +55,69 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get actionSave => 'Guardar';
+
+  @override
+  String get actionEdit => 'Editar';
+
+  @override
+  String get actionDelete => 'Eliminar';
+
+  @override
+  String get projectEditTitle => 'Editar proyecto';
+
+  @override
+  String get projectNotesLabel => 'Notas';
+
+  @override
+  String get deleteProjectTitle => 'Eliminar proyecto';
+
+  @override
+  String deleteProjectMessage(String name) {
+    return '¿Eliminar $name y todos sus estudios? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get studiesSectionTitle => 'Estudios';
+
+  @override
+  String get studiesEmpty => 'Aún no hay estudios. Crea el primero.';
+
+  @override
+  String get studyNewTitle => 'Nuevo estudio';
+
+  @override
+  String get studyNameLabel => 'Nombre del estudio';
+
+  @override
+  String get studyTypeLabel => 'Tipo de estudio';
+
+  @override
+  String get studyTypeTime => 'Estudio de Tiempo';
+
+  @override
+  String get studyTypeSampling => 'Estudio por Muestreo';
+
+  @override
+  String get deleteStudyTitle => 'Eliminar estudio';
+
+  @override
+  String deleteStudyMessage(String name) {
+    return '¿Eliminar $name? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get studyFieldType => 'Tipo';
+
+  @override
+  String get studyFieldDate => 'Fecha';
+
+  @override
+  String get studyFieldAnalyst => 'Analista';
+
+  @override
+  String get studyOperationsSection => 'Operaciones';
+
+  @override
+  String get studyOperationsPending =>
+      'Las operaciones se agregan al construir la secuencia.';
 }
