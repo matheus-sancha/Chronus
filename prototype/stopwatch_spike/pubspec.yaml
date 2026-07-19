@@ -1,0 +1,17 @@
+name: stopwatch_spike
+description: "Chronus throwaway spike — validate the live time-study stopwatch feel on a real device."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
