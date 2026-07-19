@@ -165,6 +165,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default analyst'**
   String get settingsAnalyst;
+
+  /// No description provided for @settingsAnalystEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settingsAnalystEmpty;
+
+  /// Settings row for the entry/display time unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Time unit'**
+  String get settingsUnit;
+
+  /// No description provided for @settingsUnitSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Seconds'**
+  String get settingsUnitSeconds;
+
+  /// No description provided for @settingsUnitDecimalMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal minutes'**
+  String get settingsUnitDecimalMinutes;
+
+  /// No description provided for @actionSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get actionSave;
 }
 
 class _AppLocalizationsDelegate

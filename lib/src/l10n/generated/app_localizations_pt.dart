@@ -40,4 +40,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsAnalyst => 'Analista padrão';
+
+  @override
+  String get settingsAnalystEmpty => 'Não definido';
+
+  @override
+  String get settingsUnit => 'Unidade de tempo';
+
+  @override
+  String get settingsUnitSeconds => 'Segundos';
+
+  @override
+  String get settingsUnitDecimalMinutes => 'Minutos decimais';
+
+  @override
+  String get actionSave => 'Salvar';
 }

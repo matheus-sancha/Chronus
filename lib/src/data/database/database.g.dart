@@ -5966,6 +5966,376 @@ class MediaAttachmentsCompanion extends UpdateCompanion<MediaAttachment> {
   }
 }
 
+class $AppSettingsTable extends AppSettings
+    with TableInfo<$AppSettingsTable, AppSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _localeCodeMeta = const VerificationMeta(
+    'localeCode',
+  );
+  @override
+  late final GeneratedColumn<String> localeCode = GeneratedColumn<String>(
+    'locale_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _defaultAnalystMeta = const VerificationMeta(
+    'defaultAnalyst',
+  );
+  @override
+  late final GeneratedColumn<String> defaultAnalyst = GeneratedColumn<String>(
+    'default_analyst',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TimeUnit, String> timeUnit =
+      GeneratedColumn<String>(
+        'time_unit',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<TimeUnit>($AppSettingsTable.$convertertimeUnit);
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    localeCode,
+    defaultAnalyst,
+    timeUnit,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('locale_code')) {
+      context.handle(
+        _localeCodeMeta,
+        localeCode.isAcceptableOrUnknown(data['locale_code']!, _localeCodeMeta),
+      );
+    }
+    if (data.containsKey('default_analyst')) {
+      context.handle(
+        _defaultAnalystMeta,
+        defaultAnalyst.isAcceptableOrUnknown(
+          data['default_analyst']!,
+          _defaultAnalystMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      localeCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locale_code'],
+      ),
+      defaultAnalyst: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_analyst'],
+      ),
+      timeUnit: $AppSettingsTable.$convertertimeUnit.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}time_unit'],
+        )!,
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AppSettingsTable createAlias(String alias) {
+    return $AppSettingsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<TimeUnit, String, String> $convertertimeUnit =
+      const EnumNameConverter<TimeUnit>(TimeUnit.values);
+}
+
+class AppSetting extends DataClass implements Insertable<AppSetting> {
+  final int id;
+
+  /// null => follow the system locale; otherwise 'en' / 'pt' / 'es'.
+  final String? localeCode;
+
+  /// Pre-fills the Analyst field on new studies.
+  final String? defaultAnalyst;
+  final TimeUnit timeUnit;
+  final DateTime updatedAt;
+  const AppSetting({
+    required this.id,
+    this.localeCode,
+    this.defaultAnalyst,
+    required this.timeUnit,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || localeCode != null) {
+      map['locale_code'] = Variable<String>(localeCode);
+    }
+    if (!nullToAbsent || defaultAnalyst != null) {
+      map['default_analyst'] = Variable<String>(defaultAnalyst);
+    }
+    {
+      map['time_unit'] = Variable<String>(
+        $AppSettingsTable.$convertertimeUnit.toSql(timeUnit),
+      );
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      id: Value(id),
+      localeCode: localeCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localeCode),
+      defaultAnalyst: defaultAnalyst == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultAnalyst),
+      timeUnit: Value(timeUnit),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AppSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppSetting(
+      id: serializer.fromJson<int>(json['id']),
+      localeCode: serializer.fromJson<String?>(json['localeCode']),
+      defaultAnalyst: serializer.fromJson<String?>(json['defaultAnalyst']),
+      timeUnit: $AppSettingsTable.$convertertimeUnit.fromJson(
+        serializer.fromJson<String>(json['timeUnit']),
+      ),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'localeCode': serializer.toJson<String?>(localeCode),
+      'defaultAnalyst': serializer.toJson<String?>(defaultAnalyst),
+      'timeUnit': serializer.toJson<String>(
+        $AppSettingsTable.$convertertimeUnit.toJson(timeUnit),
+      ),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AppSetting copyWith({
+    int? id,
+    Value<String?> localeCode = const Value.absent(),
+    Value<String?> defaultAnalyst = const Value.absent(),
+    TimeUnit? timeUnit,
+    DateTime? updatedAt,
+  }) => AppSetting(
+    id: id ?? this.id,
+    localeCode: localeCode.present ? localeCode.value : this.localeCode,
+    defaultAnalyst: defaultAnalyst.present
+        ? defaultAnalyst.value
+        : this.defaultAnalyst,
+    timeUnit: timeUnit ?? this.timeUnit,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AppSetting copyWithCompanion(AppSettingsCompanion data) {
+    return AppSetting(
+      id: data.id.present ? data.id.value : this.id,
+      localeCode: data.localeCode.present
+          ? data.localeCode.value
+          : this.localeCode,
+      defaultAnalyst: data.defaultAnalyst.present
+          ? data.defaultAnalyst.value
+          : this.defaultAnalyst,
+      timeUnit: data.timeUnit.present ? data.timeUnit.value : this.timeUnit,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSetting(')
+          ..write('id: $id, ')
+          ..write('localeCode: $localeCode, ')
+          ..write('defaultAnalyst: $defaultAnalyst, ')
+          ..write('timeUnit: $timeUnit, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, localeCode, defaultAnalyst, timeUnit, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSetting &&
+          other.id == this.id &&
+          other.localeCode == this.localeCode &&
+          other.defaultAnalyst == this.defaultAnalyst &&
+          other.timeUnit == this.timeUnit &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
+  final Value<int> id;
+  final Value<String?> localeCode;
+  final Value<String?> defaultAnalyst;
+  final Value<TimeUnit> timeUnit;
+  final Value<DateTime> updatedAt;
+  const AppSettingsCompanion({
+    this.id = const Value.absent(),
+    this.localeCode = const Value.absent(),
+    this.defaultAnalyst = const Value.absent(),
+    this.timeUnit = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.localeCode = const Value.absent(),
+    this.defaultAnalyst = const Value.absent(),
+    required TimeUnit timeUnit,
+    required DateTime updatedAt,
+  }) : timeUnit = Value(timeUnit),
+       updatedAt = Value(updatedAt);
+  static Insertable<AppSetting> custom({
+    Expression<int>? id,
+    Expression<String>? localeCode,
+    Expression<String>? defaultAnalyst,
+    Expression<String>? timeUnit,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (localeCode != null) 'locale_code': localeCode,
+      if (defaultAnalyst != null) 'default_analyst': defaultAnalyst,
+      if (timeUnit != null) 'time_unit': timeUnit,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AppSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? localeCode,
+    Value<String?>? defaultAnalyst,
+    Value<TimeUnit>? timeUnit,
+    Value<DateTime>? updatedAt,
+  }) {
+    return AppSettingsCompanion(
+      id: id ?? this.id,
+      localeCode: localeCode ?? this.localeCode,
+      defaultAnalyst: defaultAnalyst ?? this.defaultAnalyst,
+      timeUnit: timeUnit ?? this.timeUnit,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (localeCode.present) {
+      map['locale_code'] = Variable<String>(localeCode.value);
+    }
+    if (defaultAnalyst.present) {
+      map['default_analyst'] = Variable<String>(defaultAnalyst.value);
+    }
+    if (timeUnit.present) {
+      map['time_unit'] = Variable<String>(
+        $AppSettingsTable.$convertertimeUnit.toSql(timeUnit.value),
+      );
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('localeCode: $localeCode, ')
+          ..write('defaultAnalyst: $defaultAnalyst, ')
+          ..write('timeUnit: $timeUnit, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5991,6 +6361,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MediaAttachmentsTable mediaAttachments = $MediaAttachmentsTable(
     this,
   );
+  late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6008,6 +6379,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     templateOperations,
     processTypeOptions,
     mediaAttachments,
+    appSettings,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -11482,6 +11854,205 @@ typedef $$MediaAttachmentsTableProcessedTableManager =
       MediaAttachment,
       PrefetchHooks Function()
     >;
+typedef $$AppSettingsTableCreateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<int> id,
+      Value<String?> localeCode,
+      Value<String?> defaultAnalyst,
+      required TimeUnit timeUnit,
+      required DateTime updatedAt,
+    });
+typedef $$AppSettingsTableUpdateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<int> id,
+      Value<String?> localeCode,
+      Value<String?> defaultAnalyst,
+      Value<TimeUnit> timeUnit,
+      Value<DateTime> updatedAt,
+    });
+
+class $$AppSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localeCode => $composableBuilder(
+    column: $table.localeCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultAnalyst => $composableBuilder(
+    column: $table.defaultAnalyst,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TimeUnit, TimeUnit, String> get timeUnit =>
+      $composableBuilder(
+        column: $table.timeUnit,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localeCode => $composableBuilder(
+    column: $table.localeCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultAnalyst => $composableBuilder(
+    column: $table.defaultAnalyst,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get timeUnit => $composableBuilder(
+    column: $table.timeUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get localeCode => $composableBuilder(
+    column: $table.localeCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultAnalyst => $composableBuilder(
+    column: $table.defaultAnalyst,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<TimeUnit, String> get timeUnit =>
+      $composableBuilder(column: $table.timeUnit, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AppSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppSettingsTable,
+          AppSetting,
+          $$AppSettingsTableFilterComposer,
+          $$AppSettingsTableOrderingComposer,
+          $$AppSettingsTableAnnotationComposer,
+          $$AppSettingsTableCreateCompanionBuilder,
+          $$AppSettingsTableUpdateCompanionBuilder,
+          (
+            AppSetting,
+            BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>,
+          ),
+          AppSetting,
+          PrefetchHooks Function()
+        > {
+  $$AppSettingsTableTableManager(_$AppDatabase db, $AppSettingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> localeCode = const Value.absent(),
+                Value<String?> defaultAnalyst = const Value.absent(),
+                Value<TimeUnit> timeUnit = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AppSettingsCompanion(
+                id: id,
+                localeCode: localeCode,
+                defaultAnalyst: defaultAnalyst,
+                timeUnit: timeUnit,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> localeCode = const Value.absent(),
+                Value<String?> defaultAnalyst = const Value.absent(),
+                required TimeUnit timeUnit,
+                required DateTime updatedAt,
+              }) => AppSettingsCompanion.insert(
+                id: id,
+                localeCode: localeCode,
+                defaultAnalyst: defaultAnalyst,
+                timeUnit: timeUnit,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppSettingsTable,
+      AppSetting,
+      $$AppSettingsTableFilterComposer,
+      $$AppSettingsTableOrderingComposer,
+      $$AppSettingsTableAnnotationComposer,
+      $$AppSettingsTableCreateCompanionBuilder,
+      $$AppSettingsTableUpdateCompanionBuilder,
+      (
+        AppSetting,
+        BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>,
+      ),
+      AppSetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11513,4 +12084,6 @@ class $AppDatabaseManager {
       $$ProcessTypeOptionsTableTableManager(_db, _db.processTypeOptions);
   $$MediaAttachmentsTableTableManager get mediaAttachments =>
       $$MediaAttachmentsTableTableManager(_db, _db.mediaAttachments);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db, _db.appSettings);
 }

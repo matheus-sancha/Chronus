@@ -40,4 +40,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAnalyst => 'Default analyst';
+
+  @override
+  String get settingsAnalystEmpty => 'Not set';
+
+  @override
+  String get settingsUnit => 'Time unit';
+
+  @override
+  String get settingsUnitSeconds => 'Seconds';
+
+  @override
+  String get settingsUnitDecimalMinutes => 'Decimal minutes';
+
+  @override
+  String get actionSave => 'Save';
 }

@@ -229,6 +229,23 @@ class ProcessTypeOptions extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// App-wide user settings. Single row (id always 0). Lives in the DB so it
+/// travels in the .chronus backup bundle and migrates with the data.
+class AppSettings extends Table {
+  IntColumn get id => integer().withDefault(const Constant(0))();
+
+  /// null => follow the system locale; otherwise 'en' / 'pt' / 'es'.
+  TextColumn get localeCode => text().nullable()();
+
+  /// Pre-fills the Analyst field on new studies.
+  TextColumn get defaultAnalyst => text().nullable()();
+  TextColumn get timeUnit => textEnum<TimeUnit>()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 /// Photos + short video attached at study / observation / operation-instance
 /// level (polymorphic owner via [ownerType] + [ownerId]). Files live in the app
 /// media directory; only the relative path is stored — never blobs.

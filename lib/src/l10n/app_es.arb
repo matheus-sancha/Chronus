@@ -10,5 +10,10 @@
   "actionCreate": "Crear",
   "settingsLanguage": "Idioma",
   "settingsLanguageSystem": "Predeterminado del sistema",
-  "settingsAnalyst": "Analista predeterminado"
+  "settingsAnalyst": "Analista predeterminado",
+  "settingsAnalystEmpty": "Sin definir",
+  "settingsUnit": "Unidad de tiempo",
+  "settingsUnitSeconds": "Segundos",
+  "settingsUnitDecimalMinutes": "Minutos decimales",
+  "actionSave": "Guardar"
 }

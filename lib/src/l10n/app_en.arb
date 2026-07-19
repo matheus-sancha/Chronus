@@ -34,5 +34,13 @@
   "settingsAnalyst": "Default analyst",
   "@settingsAnalyst": {
     "description": "Settings row for the default analyst name used on new studies."
-  }
+  },
+  "settingsAnalystEmpty": "Not set",
+  "settingsUnit": "Time unit",
+  "@settingsUnit": {
+    "description": "Settings row for the entry/display time unit."
+  },
+  "settingsUnitSeconds": "Seconds",
+  "settingsUnitDecimalMinutes": "Decimal minutes",
+  "actionSave": "Save"
 }

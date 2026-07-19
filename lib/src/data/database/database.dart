@@ -48,6 +48,7 @@ const _processTypeSeeds = <String>[
     TemplateOperations,
     ProcessTypeOptions,
     MediaAttachments,
+    AppSettings,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -94,6 +95,16 @@ class AppDatabase extends _$AppDatabase {
             createdAt: now,
           ),
       ]);
+      b.insert(
+        appSettings,
+        // Explicit id 0: the column is INTEGER PRIMARY KEY (a rowid alias), so
+        // omitting it would auto-assign a rowid rather than use the DEFAULT.
+        AppSettingsCompanion.insert(
+          id: const Value(0),
+          timeUnit: TimeUnit.seconds,
+          updatedAt: now,
+        ),
+      );
     });
   }
 

@@ -14,3 +14,7 @@ enum MediaOwnerType { study, observation, operationInstance }
 
 /// Media kind. Photos embed into PDF/XLSX exports; video is in-app only.
 enum MediaKind { photo, video }
+
+/// Entry/display unit for durations. (Reports always use the dynamic
+/// HH:MM:SS.D format regardless of this setting.)
+enum TimeUnit { seconds, decimalMinutes }
