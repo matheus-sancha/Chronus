@@ -159,4 +159,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get processTypeNone => 'None';
+
+  @override
+  String get studyAllowanceHelp =>
+      'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).';
 }

@@ -48,5 +48,6 @@
   "studyFieldShift": "Turno",
   "studyFieldWorkOrder": "Orden de trabajo",
   "studyFieldNotes": "Notas",
-  "processTypeNone": "Ninguno"
+  "processTypeNone": "Ninguno",
+  "studyAllowanceHelp": "Tiempo extra para fatiga, esperas y necesidades personales. Tiempo estándar = Tiempo normal × (1 + Tolerancia %)."
 }

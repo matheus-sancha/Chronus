@@ -393,6 +393,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get processTypeNone;
+
+  /// No description provided for @studyAllowanceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).'**
+  String get studyAllowanceHelp;
 }
 
 class _AppLocalizationsDelegate

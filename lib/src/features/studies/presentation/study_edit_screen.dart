@@ -199,6 +199,7 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  helpTooltip: l10n.studyAllowanceHelp,
                 ),
                 optionsAsync.when(
                   loading: () => const SizedBox.shrink(),
@@ -247,6 +248,7 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
     String label, {
     TextInputType? keyboardType,
     int maxLines = 1,
+    String? helpTooltip,
   }) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -254,7 +256,17 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        decoration: InputDecoration(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: helpTooltip == null
+              ? null
+              : Tooltip(
+                  message: helpTooltip,
+                  triggerMode: TooltipTriggerMode.tap,
+                  showDuration: const Duration(seconds: 6),
+                  child: const Icon(Icons.info_outline),
+                ),
+        ),
       ),
     );
   }

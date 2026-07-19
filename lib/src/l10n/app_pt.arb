@@ -48,5 +48,6 @@
   "studyFieldShift": "Turno",
   "studyFieldWorkOrder": "Ordem de produção",
   "studyFieldNotes": "Observações",
-  "processTypeNone": "Nenhum"
+  "processTypeNone": "Nenhum",
+  "studyAllowanceHelp": "Tempo extra para fadiga, esperas e necessidades pessoais. Tempo padrão = Tempo normal × (1 + Tolerância %)."
 }

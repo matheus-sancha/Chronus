@@ -159,4 +159,8 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get processTypeNone => 'Nenhum';
+
+  @override
+  String get studyAllowanceHelp =>
+      'Tempo extra para fadiga, esperas e necessidades pessoais. Tempo padrão = Tempo normal × (1 + Tolerância %).';
 }

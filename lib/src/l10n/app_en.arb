@@ -85,5 +85,6 @@
   "studyFieldShift": "Shift",
   "studyFieldWorkOrder": "Work order #",
   "studyFieldNotes": "Notes",
-  "processTypeNone": "None"
+  "processTypeNone": "None",
+  "studyAllowanceHelp": "Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %)."
 }

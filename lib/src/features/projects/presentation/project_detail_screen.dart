@@ -75,12 +75,16 @@ class ProjectDetailScreen extends ConsumerWidget {
     if (result == null || result.$1.isEmpty) return;
     final defaultAnalyst =
         ref.read(appSettingsProvider).value?.defaultAnalyst;
-    await ref.read(studyRepositoryProvider).create(
+    final study = await ref.read(studyRepositoryProvider).create(
           projectId: projectId,
           name: result.$1,
           type: result.$2,
           analyst: defaultAnalyst,
         );
+    // Flow straight into the details form to fill the rest of the header.
+    if (context.mounted) {
+      context.push('/projects/$projectId/studies/${study.id}/edit');
+    }
   }
 
   Future<void> _deleteProject(BuildContext context, WidgetRef ref) async {
