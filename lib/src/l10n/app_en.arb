@@ -72,5 +72,18 @@
   "studyFieldDate": "Date",
   "studyFieldAnalyst": "Analyst",
   "studyOperationsSection": "Operations",
-  "studyOperationsPending": "Operations are added when you build the sequence."
+  "studyOperationsPending": "Operations are added when you build the sequence.",
+  "studyEditTitle": "Edit study",
+  "studyDetailsSection": "Details",
+  "studyFieldAllowance": "Allowance %",
+  "studyFieldProcessType": "Process type",
+  "studyFieldPartProduct": "Part / Product",
+  "studyFieldProcessOperation": "Process / Operation",
+  "studyFieldMachine": "Machine / Workstation",
+  "studyFieldLineCell": "Line / Cell",
+  "studyFieldOperator": "Operator",
+  "studyFieldShift": "Shift",
+  "studyFieldWorkOrder": "Work order #",
+  "studyFieldNotes": "Notes",
+  "processTypeNone": "None"
 }

@@ -120,4 +120,43 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get studyOperationsPending =>
       'As operações são adicionadas ao montar a sequência.';
+
+  @override
+  String get studyEditTitle => 'Editar estudo';
+
+  @override
+  String get studyDetailsSection => 'Detalhes';
+
+  @override
+  String get studyFieldAllowance => 'Tolerância %';
+
+  @override
+  String get studyFieldProcessType => 'Tipo de processo';
+
+  @override
+  String get studyFieldPartProduct => 'Peça / Produto';
+
+  @override
+  String get studyFieldProcessOperation => 'Processo / Operação';
+
+  @override
+  String get studyFieldMachine => 'Máquina / Posto';
+
+  @override
+  String get studyFieldLineCell => 'Linha / Célula';
+
+  @override
+  String get studyFieldOperator => 'Operador';
+
+  @override
+  String get studyFieldShift => 'Turno';
+
+  @override
+  String get studyFieldWorkOrder => 'Ordem de produção';
+
+  @override
+  String get studyFieldNotes => 'Observações';
+
+  @override
+  String get processTypeNone => 'Nenhum';
 }

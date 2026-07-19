@@ -35,5 +35,18 @@
   "studyFieldDate": "Fecha",
   "studyFieldAnalyst": "Analista",
   "studyOperationsSection": "Operaciones",
-  "studyOperationsPending": "Las operaciones se agregan al construir la secuencia."
+  "studyOperationsPending": "Las operaciones se agregan al construir la secuencia.",
+  "studyEditTitle": "Editar estudio",
+  "studyDetailsSection": "Detalles",
+  "studyFieldAllowance": "Tolerancia %",
+  "studyFieldProcessType": "Tipo de proceso",
+  "studyFieldPartProduct": "Pieza / Producto",
+  "studyFieldProcessOperation": "Proceso / Operación",
+  "studyFieldMachine": "Máquina / Puesto",
+  "studyFieldLineCell": "Línea / Celda",
+  "studyFieldOperator": "Operador",
+  "studyFieldShift": "Turno",
+  "studyFieldWorkOrder": "Orden de trabajo",
+  "studyFieldNotes": "Notas",
+  "processTypeNone": "Ninguno"
 }

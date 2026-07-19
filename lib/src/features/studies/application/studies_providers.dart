@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,4 +26,15 @@ final studiesByProjectProvider =
 final studyByIdProvider =
     StreamProvider.family<Study, String>((ref, studyId) {
   return ref.watch(studyRepositoryProvider).watchById(studyId);
+});
+
+/// The editable Process Type picklist, in display order. Reference data read
+/// directly (a dedicated ReferenceRepository can absorb this when the catalog
+/// slice adds option management).
+final processTypeOptionsProvider =
+    StreamProvider<List<ProcessTypeOption>>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return (db.select(db.processTypeOptions)
+        ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+      .watch();
 });

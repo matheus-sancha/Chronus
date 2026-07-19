@@ -315,6 +315,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Operations are added when you build the sequence.'**
   String get studyOperationsPending;
+
+  /// No description provided for @studyEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit study'**
+  String get studyEditTitle;
+
+  /// No description provided for @studyDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get studyDetailsSection;
+
+  /// No description provided for @studyFieldAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance %'**
+  String get studyFieldAllowance;
+
+  /// No description provided for @studyFieldProcessType.
+  ///
+  /// In en, this message translates to:
+  /// **'Process type'**
+  String get studyFieldProcessType;
+
+  /// No description provided for @studyFieldPartProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Part / Product'**
+  String get studyFieldPartProduct;
+
+  /// No description provided for @studyFieldProcessOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Process / Operation'**
+  String get studyFieldProcessOperation;
+
+  /// No description provided for @studyFieldMachine.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine / Workstation'**
+  String get studyFieldMachine;
+
+  /// No description provided for @studyFieldLineCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Line / Cell'**
+  String get studyFieldLineCell;
+
+  /// No description provided for @studyFieldOperator.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator'**
+  String get studyFieldOperator;
+
+  /// No description provided for @studyFieldShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get studyFieldShift;
+
+  /// No description provided for @studyFieldWorkOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Work order #'**
+  String get studyFieldWorkOrder;
+
+  /// No description provided for @studyFieldNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get studyFieldNotes;
+
+  /// No description provided for @processTypeNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get processTypeNone;
 }
 
 class _AppLocalizationsDelegate

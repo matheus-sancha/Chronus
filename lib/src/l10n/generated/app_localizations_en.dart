@@ -120,4 +120,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get studyOperationsPending =>
       'Operations are added when you build the sequence.';
+
+  @override
+  String get studyEditTitle => 'Edit study';
+
+  @override
+  String get studyDetailsSection => 'Details';
+
+  @override
+  String get studyFieldAllowance => 'Allowance %';
+
+  @override
+  String get studyFieldProcessType => 'Process type';
+
+  @override
+  String get studyFieldPartProduct => 'Part / Product';
+
+  @override
+  String get studyFieldProcessOperation => 'Process / Operation';
+
+  @override
+  String get studyFieldMachine => 'Machine / Workstation';
+
+  @override
+  String get studyFieldLineCell => 'Line / Cell';
+
+  @override
+  String get studyFieldOperator => 'Operator';
+
+  @override
+  String get studyFieldShift => 'Shift';
+
+  @override
+  String get studyFieldWorkOrder => 'Work order #';
+
+  @override
+  String get studyFieldNotes => 'Notes';
+
+  @override
+  String get processTypeNone => 'None';
 }

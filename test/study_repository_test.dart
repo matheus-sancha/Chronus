@@ -54,7 +54,7 @@ void main() {
     expect((await studies.watchByProject(b).first).single.name, 'B1');
   });
 
-  test('update rewrites header fields', () async {
+  test('update rewrites the full header metadata', () async {
     final projectId = await newProject();
     final study = await studies.create(
       projectId: projectId,
@@ -64,11 +64,23 @@ void main() {
 
     await studies.update(
       study.id,
-      const StudiesCompanion(machineWorkstation: Value('Press 12')),
+      const StudiesCompanion(
+        name: Value('Baseline v2'),
+        machineWorkstation: Value('Press 12'),
+        operatorName: Value('J. Silva'),
+        workOrderNumber: Value('WO-4417'),
+        processType: Value('Machining'),
+        allowancePercent: Value(12.5),
+      ),
     );
 
     final updated = await studies.watchById(study.id).first;
+    expect(updated.name, 'Baseline v2');
     expect(updated.machineWorkstation, 'Press 12');
+    expect(updated.operatorName, 'J. Silva');
+    expect(updated.workOrderNumber, 'WO-4417');
+    expect(updated.processType, 'Machining');
+    expect(updated.allowancePercent, 12.5);
   });
 
   test('deleting a study leaves the project intact', () async {

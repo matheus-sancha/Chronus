@@ -5,6 +5,7 @@ import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/studies/presentation/study_detail_screen.dart';
+import '../features/studies/presentation/study_edit_screen.dart';
 import 'app_shell.dart';
 
 part 'router.g.dart';
@@ -38,6 +39,15 @@ GoRouter router(Ref ref) {
                           projectId: state.pathParameters['projectId']!,
                           studyId: state.pathParameters['studyId']!,
                         ),
+                        routes: [
+                          GoRoute(
+                            path: 'edit',
+                            builder: (context, state) => StudyEditScreen(
+                              projectId: state.pathParameters['projectId']!,
+                              studyId: state.pathParameters['studyId']!,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
