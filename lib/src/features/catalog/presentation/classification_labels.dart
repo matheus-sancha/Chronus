@@ -5,8 +5,8 @@ import '../../../l10n/generated/app_localizations.dart';
 String categoryLabel(AppLocalizations l10n, OperationCategory category) =>
     switch (category) {
       OperationCategory.setup => l10n.categorySetup,
-      OperationCategory.productive => l10n.categoryValueAdded,
-      OperationCategory.unproductive => l10n.categoryWaste,
+      OperationCategory.productive => l10n.categoryProductive,
+      OperationCategory.unproductive => l10n.categoryUnproductive,
     };
 
 /// Built-in subtypes are seeded with canonical English names, so localize those;

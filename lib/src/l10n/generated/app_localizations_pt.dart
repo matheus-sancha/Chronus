@@ -186,7 +186,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get operationSubtypeLabel => 'Subtipo';
 
   @override
-  String get operationReferenceStandardLabel => 'Padrão de referência (s)';
+  String get operationReferenceStandardLabel => 'Tempo padrão de referência';
 
   @override
   String get subtypeNewTitle => 'Novo subtipo';
@@ -206,10 +206,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get categorySetup => 'Preparação';
 
   @override
-  String get categoryValueAdded => 'Agrega Valor';
+  String get categoryProductive => 'Produtivo';
 
   @override
-  String get categoryWaste => 'Desperdício';
+  String get categoryUnproductive => 'Improdutivo';
 
   @override
   String get wasteWaiting => 'Espera';

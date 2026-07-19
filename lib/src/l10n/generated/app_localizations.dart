@@ -445,7 +445,7 @@ abstract class AppLocalizations {
   /// No description provided for @operationReferenceStandardLabel.
   ///
   /// In en, this message translates to:
-  /// **'Reference standard (s)'**
+  /// **'Reference standard time'**
   String get operationReferenceStandardLabel;
 
   /// No description provided for @subtypeNewTitle.
@@ -478,17 +478,17 @@ abstract class AppLocalizations {
   /// **'Setup'**
   String get categorySetup;
 
-  /// No description provided for @categoryValueAdded.
+  /// No description provided for @categoryProductive.
   ///
   /// In en, this message translates to:
-  /// **'Value-Added'**
-  String get categoryValueAdded;
+  /// **'Productive'**
+  String get categoryProductive;
 
-  /// No description provided for @categoryWaste.
+  /// No description provided for @categoryUnproductive.
   ///
   /// In en, this message translates to:
-  /// **'Waste'**
-  String get categoryWaste;
+  /// **'Unproductive'**
+  String get categoryUnproductive;
 
   /// No description provided for @wasteWaiting.
   ///

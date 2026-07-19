@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../common/duration_input.dart';
 import '../../../data/database/database.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -21,10 +22,10 @@ class CatalogEditScreen extends ConsumerStatefulWidget {
 class _CatalogEditScreenState extends ConsumerState<CatalogEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
-  final _referenceStandard = TextEditingController();
 
   OperationCategory _category = OperationCategory.productive;
   String? _subtypeId;
+  int? _referenceStandardMs;
   bool _initialized = false;
 
   bool get _isEditing => widget.operationId != null;
@@ -38,7 +39,6 @@ class _CatalogEditScreenState extends ConsumerState<CatalogEditScreen> {
   @override
   void dispose() {
     _name.dispose();
-    _referenceStandard.dispose();
     super.dispose();
   }
 
@@ -46,17 +46,8 @@ class _CatalogEditScreenState extends ConsumerState<CatalogEditScreen> {
     _name.text = op.name;
     _category = op.category;
     _subtypeId = op.subtypeId;
-    if (op.referenceStandardMs != null) {
-      _referenceStandard.text = _formatSeconds(op.referenceStandardMs!);
-    }
+    _referenceStandardMs = op.referenceStandardMs;
     _initialized = true;
-  }
-
-  static String _formatSeconds(int ms) {
-    final seconds = ms / 1000;
-    return seconds == seconds.roundToDouble()
-        ? seconds.toStringAsFixed(0)
-        : seconds.toString();
   }
 
   Future<void> _addSubtype() async {
@@ -73,10 +64,6 @@ class _CatalogEditScreenState extends ConsumerState<CatalogEditScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    final seconds =
-        double.tryParse(_referenceStandard.text.trim().replaceAll(',', '.'));
-    final referenceStandardMs =
-        seconds == null ? null : (seconds * 1000).round();
     final repo = ref.read(catalogRepositoryProvider);
     if (_isEditing) {
       await repo.update(
@@ -84,14 +71,14 @@ class _CatalogEditScreenState extends ConsumerState<CatalogEditScreen> {
         name: _name.text.trim(),
         category: _category,
         subtypeId: _subtypeId,
-        referenceStandardMs: referenceStandardMs,
+        referenceStandardMs: _referenceStandardMs,
       );
     } else {
       await repo.create(
         name: _name.text.trim(),
         category: _category,
         subtypeId: _subtypeId,
-        referenceStandardMs: referenceStandardMs,
+        referenceStandardMs: _referenceStandardMs,
       );
     }
     if (mounted) context.pop();
@@ -187,13 +174,10 @@ class _CatalogEditScreenState extends ConsumerState<CatalogEditScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _referenceStandard,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: l10n.operationReferenceStandardLabel,
-            ),
+          DurationInput(
+            label: l10n.operationReferenceStandardLabel,
+            initialMs: _referenceStandardMs,
+            onChanged: (ms) => _referenceStandardMs = ms,
           ),
         ],
       ),

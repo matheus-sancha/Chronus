@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../common/confirm_dialog.dart';
+import '../../../common/duration_format.dart';
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../application/catalog_providers.dart';
@@ -72,16 +73,9 @@ class CatalogScreen extends ConsumerWidget {
     final parts = <String>[categoryLabel(l10n, op.category)];
     if (subtype != null) parts.add(subtypeName(l10n, subtype));
     if (op.referenceStandardMs != null) {
-      parts.add('${_formatSeconds(op.referenceStandardMs!)} s');
+      parts.add(formatHmsd(op.referenceStandardMs!));
     }
     return parts.join(' · ');
-  }
-
-  static String _formatSeconds(int ms) {
-    final seconds = ms / 1000;
-    return seconds == seconds.roundToDouble()
-        ? seconds.toStringAsFixed(0)
-        : seconds.toString();
   }
 
   Future<void> _delete(
