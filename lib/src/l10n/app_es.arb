@@ -1,0 +1,19 @@
+{
+  "@@locale": "es",
+  "appTitle": "Chronus",
+  "navProjects": "Proyectos",
+  "navSettings": "Ajustes",
+  "projectsEmpty": "Aún no hay proyectos. Crea el primero.",
+  "projectsNewTitle": "Nuevo proyecto",
+  "projectNameLabel": "Nombre del proyecto",
+  "actionCancel": "Cancelar",
+  "actionCreate": "Crear",
+  "settingsLanguage": "Idioma",
+  "settingsLanguageSystem": "Predeterminado del sistema",
+  "settingsAnalyst": "Analista predeterminado",
+  "settingsAnalystEmpty": "Sin definir",
+  "settingsUnit": "Unidad de tiempo",
+  "settingsUnitSeconds": "Segundos",
+  "settingsUnitDecimalMinutes": "Minutos decimales",
+  "actionSave": "Guardar"
+}

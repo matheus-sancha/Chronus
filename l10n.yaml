@@ -1,0 +1,9 @@
+# Configures `flutter gen-l10n`. ARB files -> AppLocalizations (real source files,
+# not a synthetic package, so they resolve cleanly in the analyzer and IDE).
+arb-dir: lib/src/l10n
+template-arb-file: app_en.arb
+output-dir: lib/src/l10n/generated
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false
+untranslated-messages-file: lib/src/l10n/untranslated.json
