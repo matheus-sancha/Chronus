@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../features/catalog/presentation/catalog_edit_screen.dart';
+import '../features/catalog/presentation/catalog_screen.dart';
 import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -50,6 +52,26 @@ GoRouter router(Ref ref) {
                         ],
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/catalog',
+                builder: (context, state) => const CatalogScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const CatalogEditScreen(),
+                  ),
+                  GoRoute(
+                    path: 'edit/:operationId',
+                    builder: (context, state) => CatalogEditScreen(
+                      operationId: state.pathParameters['operationId']!,
+                    ),
                   ),
                 ],
               ),

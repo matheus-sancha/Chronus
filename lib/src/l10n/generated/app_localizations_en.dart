@@ -163,4 +163,72 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get studyAllowanceHelp =>
       'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).';
+
+  @override
+  String get navCatalog => 'Catalog';
+
+  @override
+  String get catalogEmpty => 'No operations yet. Add the first one.';
+
+  @override
+  String get catalogNewTitle => 'New operation';
+
+  @override
+  String get catalogEditTitle => 'Edit operation';
+
+  @override
+  String get operationNameLabel => 'Operation name';
+
+  @override
+  String get operationCategoryLabel => 'Classification';
+
+  @override
+  String get operationSubtypeLabel => 'Subtype';
+
+  @override
+  String get operationReferenceStandardLabel => 'Reference standard (s)';
+
+  @override
+  String get subtypeNewTitle => 'New subtype';
+
+  @override
+  String get subtypeNameLabel => 'Subtype name';
+
+  @override
+  String get deleteOperationTitle => 'Delete operation';
+
+  @override
+  String deleteOperationMessage(String name) {
+    return 'Delete $name? This cannot be undone.';
+  }
+
+  @override
+  String get categorySetup => 'Setup';
+
+  @override
+  String get categoryValueAdded => 'Value-Added';
+
+  @override
+  String get categoryWaste => 'Waste';
+
+  @override
+  String get wasteWaiting => 'Waiting';
+
+  @override
+  String get wasteMotion => 'Motion';
+
+  @override
+  String get wasteTransportation => 'Transportation';
+
+  @override
+  String get wasteOverProcessing => 'Over-processing';
+
+  @override
+  String get wasteOverproduction => 'Overproduction';
+
+  @override
+  String get wasteInventory => 'Inventory';
+
+  @override
+  String get wasteDefects => 'Defects';
 }

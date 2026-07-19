@@ -399,6 +399,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).'**
   String get studyAllowanceHelp;
+
+  /// No description provided for @navCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get navCatalog;
+
+  /// No description provided for @catalogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations yet. Add the first one.'**
+  String get catalogEmpty;
+
+  /// No description provided for @catalogNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New operation'**
+  String get catalogNewTitle;
+
+  /// No description provided for @catalogEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit operation'**
+  String get catalogEditTitle;
+
+  /// No description provided for @operationNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation name'**
+  String get operationNameLabel;
+
+  /// No description provided for @operationCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get operationCategoryLabel;
+
+  /// No description provided for @operationSubtypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtype'**
+  String get operationSubtypeLabel;
+
+  /// No description provided for @operationReferenceStandardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference standard (s)'**
+  String get operationReferenceStandardLabel;
+
+  /// No description provided for @subtypeNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New subtype'**
+  String get subtypeNewTitle;
+
+  /// No description provided for @subtypeNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtype name'**
+  String get subtypeNameLabel;
+
+  /// No description provided for @deleteOperationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete operation'**
+  String get deleteOperationTitle;
+
+  /// No description provided for @deleteOperationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String deleteOperationMessage(String name);
+
+  /// No description provided for @categorySetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get categorySetup;
+
+  /// No description provided for @categoryValueAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Value-Added'**
+  String get categoryValueAdded;
+
+  /// No description provided for @categoryWaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Waste'**
+  String get categoryWaste;
+
+  /// No description provided for @wasteWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get wasteWaiting;
+
+  /// No description provided for @wasteMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get wasteMotion;
+
+  /// No description provided for @wasteTransportation.
+  ///
+  /// In en, this message translates to:
+  /// **'Transportation'**
+  String get wasteTransportation;
+
+  /// No description provided for @wasteOverProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Over-processing'**
+  String get wasteOverProcessing;
+
+  /// No description provided for @wasteOverproduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Overproduction'**
+  String get wasteOverproduction;
+
+  /// No description provided for @wasteInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get wasteInventory;
+
+  /// No description provided for @wasteDefects.
+  ///
+  /// In en, this message translates to:
+  /// **'Defects'**
+  String get wasteDefects;
 }
 
 class _AppLocalizationsDelegate

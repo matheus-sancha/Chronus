@@ -163,4 +163,72 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get studyAllowanceHelp =>
       'Tempo extra para fadiga, esperas e necessidades pessoais. Tempo padrão = Tempo normal × (1 + Tolerância %).';
+
+  @override
+  String get navCatalog => 'Catálogo';
+
+  @override
+  String get catalogEmpty => 'Nenhuma operação ainda. Adicione a primeira.';
+
+  @override
+  String get catalogNewTitle => 'Nova operação';
+
+  @override
+  String get catalogEditTitle => 'Editar operação';
+
+  @override
+  String get operationNameLabel => 'Nome da operação';
+
+  @override
+  String get operationCategoryLabel => 'Classificação';
+
+  @override
+  String get operationSubtypeLabel => 'Subtipo';
+
+  @override
+  String get operationReferenceStandardLabel => 'Padrão de referência (s)';
+
+  @override
+  String get subtypeNewTitle => 'Novo subtipo';
+
+  @override
+  String get subtypeNameLabel => 'Nome do subtipo';
+
+  @override
+  String get deleteOperationTitle => 'Excluir operação';
+
+  @override
+  String deleteOperationMessage(String name) {
+    return 'Excluir $name? Isso não pode ser desfeito.';
+  }
+
+  @override
+  String get categorySetup => 'Preparação';
+
+  @override
+  String get categoryValueAdded => 'Agrega Valor';
+
+  @override
+  String get categoryWaste => 'Desperdício';
+
+  @override
+  String get wasteWaiting => 'Espera';
+
+  @override
+  String get wasteMotion => 'Movimentação';
+
+  @override
+  String get wasteTransportation => 'Transporte';
+
+  @override
+  String get wasteOverProcessing => 'Superprocessamento';
+
+  @override
+  String get wasteOverproduction => 'Superprodução';
+
+  @override
+  String get wasteInventory => 'Estoque';
+
+  @override
+  String get wasteDefects => 'Defeitos';
 }

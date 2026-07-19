@@ -86,5 +86,32 @@
   "studyFieldWorkOrder": "Work order #",
   "studyFieldNotes": "Notes",
   "processTypeNone": "None",
-  "studyAllowanceHelp": "Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %)."
+  "studyAllowanceHelp": "Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).",
+  "navCatalog": "Catalog",
+  "catalogEmpty": "No operations yet. Add the first one.",
+  "catalogNewTitle": "New operation",
+  "catalogEditTitle": "Edit operation",
+  "operationNameLabel": "Operation name",
+  "operationCategoryLabel": "Classification",
+  "operationSubtypeLabel": "Subtype",
+  "operationReferenceStandardLabel": "Reference standard (s)",
+  "subtypeNewTitle": "New subtype",
+  "subtypeNameLabel": "Subtype name",
+  "deleteOperationTitle": "Delete operation",
+  "deleteOperationMessage": "Delete {name}? This cannot be undone.",
+  "@deleteOperationMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "categorySetup": "Setup",
+  "categoryValueAdded": "Value-Added",
+  "categoryWaste": "Waste",
+  "wasteWaiting": "Waiting",
+  "wasteMotion": "Motion",
+  "wasteTransportation": "Transportation",
+  "wasteOverProcessing": "Over-processing",
+  "wasteOverproduction": "Overproduction",
+  "wasteInventory": "Inventory",
+  "wasteDefects": "Defects"
 }
