@@ -1,0 +1,38 @@
+{
+  "@@locale": "en",
+  "appTitle": "Chronus",
+  "@appTitle": {
+    "description": "Application name, shown in titles."
+  },
+  "navProjects": "Projects",
+  "@navProjects": {
+    "description": "Label for the Projects destination."
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Label for the Settings destination."
+  },
+  "projectsEmpty": "No projects yet. Create your first one.",
+  "@projectsEmpty": {
+    "description": "Shown when the project list is empty."
+  },
+  "projectsNewTitle": "New project",
+  "@projectsNewTitle": {
+    "description": "Title of the create-project dialog."
+  },
+  "projectNameLabel": "Project name",
+  "@projectNameLabel": {
+    "description": "Label for the project name input."
+  },
+  "actionCancel": "Cancel",
+  "actionCreate": "Create",
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings row for choosing the app language."
+  },
+  "settingsLanguageSystem": "System default",
+  "settingsAnalyst": "Default analyst",
+  "@settingsAnalyst": {
+    "description": "Settings row for the default analyst name used on new studies."
+  }
+}

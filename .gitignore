@@ -2,6 +2,11 @@
 # Lives at C:\src\flutter now; this guard prevents it ever being committed here.
 /flutter/
 
+# gen-l10n untranslated-messages report (build artifact, not source).
+# Note: generated *.g.dart and lib/src/l10n/generated/ ARE committed on purpose,
+# so a fresh clone compiles without a build_runner step first.
+lib/src/l10n/untranslated.json
+
 # Miscellaneous
 *.class
 *.log

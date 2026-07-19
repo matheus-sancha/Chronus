@@ -13,6 +13,10 @@ analyzer:
   exclude:
     # Throwaway stopwatch spike — validated the timing UX, not part of the app.
     - prototype/**
+    # Generated code (Drift, Riverpod, gen-l10n) — not hand-authored, don't lint.
+    - "**/*.g.dart"
+    - "**/*.drift.dart"
+    - lib/src/l10n/generated/**
 
 linter:
   # The lint rules applied to this project can be customized in the
