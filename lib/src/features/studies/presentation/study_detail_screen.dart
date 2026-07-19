@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../common/confirm_dialog.dart';
+import '../../../common/duration_format.dart';
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../catalog/presentation/classification_labels.dart';
 import '../application/studies_providers.dart';
 import 'study_formatting.dart';
 
@@ -48,7 +50,11 @@ class StudyDetailScreen extends ConsumerWidget {
       body: studyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('$error')),
-        data: (study) => _StudyBody(study: study),
+        data: (study) => _StudyBody(
+          study: study,
+          projectId: projectId,
+          studyId: studyId,
+        ),
       ),
     );
   }
@@ -70,15 +76,22 @@ class StudyDetailScreen extends ConsumerWidget {
   }
 }
 
-class _StudyBody extends StatelessWidget {
-  const _StudyBody({required this.study});
+class _StudyBody extends ConsumerWidget {
+  const _StudyBody({
+    required this.study,
+    required this.projectId,
+    required this.studyId,
+  });
 
   final Study study;
+  final String projectId;
+  final String studyId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final dateFmt = MaterialLocalizations.of(context);
+    final operations = ref.watch(studyOperationsProvider(studyId));
 
     return ListView(
       children: [
@@ -105,18 +118,67 @@ class _StudyBody extends StatelessWidget {
         _optional(context, l10n.studyFieldWorkOrder, study.workOrderNumber),
         _optional(context, l10n.studyFieldNotes, study.notes),
 
-        _section(context, l10n.studyOperationsSection),
+        // Operations section with a manage action.
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Text(
-            l10n.studyOperationsPending,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+          padding: const EdgeInsets.fromLTRB(16, 16, 4, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.studyOperationsSection,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: l10n.actionEdit,
+                onPressed: () => context.push(
+                  '/projects/$projectId/studies/$studyId/sequence',
+                ),
+              ),
+            ],
           ),
+        ),
+        operations.when(
+          loading: () => const SizedBox.shrink(),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text('$error'),
+          ),
+          data: (items) {
+            if (items.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  l10n.sequenceEmpty,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              );
+            }
+            return Column(
+              children: [
+                for (var i = 0; i < items.length; i++)
+                  ListTile(
+                    leading: CircleAvatar(child: Text('${i + 1}')),
+                    title: Text(items[i].name),
+                    subtitle: Text(_operationSubtitle(l10n, items[i])),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
+  }
+
+  String _operationSubtitle(AppLocalizations l10n, StudyOperation op) {
+    final parts = <String>[categoryLabel(l10n, op.category)];
+    if (op.referenceStandardMs != null) {
+      parts.add(formatHmsd(op.referenceStandardMs!));
+    }
+    return parts.join(' · ');
   }
 
   Widget _row(

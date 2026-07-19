@@ -113,5 +113,8 @@
   "wasteOverProcessing": "Over-processing",
   "wasteOverproduction": "Overproduction",
   "wasteInventory": "Inventory",
-  "wasteDefects": "Defects"
+  "wasteDefects": "Defects",
+  "sequenceEmpty": "No operations yet. Add them from the catalog.",
+  "addOperationTitle": "Add operation",
+  "catalogPickerEmpty": "Your catalog is empty. Add operations in the Catalog tab first."
 }

@@ -231,4 +231,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get wasteDefects => 'Defeitos';
+
+  @override
+  String get sequenceEmpty =>
+      'Nenhuma operação ainda. Adicione a partir do catálogo.';
+
+  @override
+  String get addOperationTitle => 'Adicionar operação';
+
+  @override
+  String get catalogPickerEmpty =>
+      'Seu catálogo está vazio. Adicione operações na aba Catálogo primeiro.';
 }

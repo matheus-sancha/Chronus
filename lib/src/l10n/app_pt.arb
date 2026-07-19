@@ -71,5 +71,8 @@
   "wasteOverProcessing": "Superprocessamento",
   "wasteOverproduction": "Superprodução",
   "wasteInventory": "Estoque",
-  "wasteDefects": "Defeitos"
+  "wasteDefects": "Defeitos",
+  "sequenceEmpty": "Nenhuma operação ainda. Adicione a partir do catálogo.",
+  "addOperationTitle": "Adicionar operação",
+  "catalogPickerEmpty": "Seu catálogo está vazio. Adicione operações na aba Catálogo primeiro."
 }

@@ -71,5 +71,8 @@
   "wasteOverProcessing": "Sobreprocesamiento",
   "wasteOverproduction": "Sobreproducción",
   "wasteInventory": "Inventario",
-  "wasteDefects": "Defectos"
+  "wasteDefects": "Defectos",
+  "sequenceEmpty": "Aún no hay operaciones. Agrégalas desde el catálogo.",
+  "addOperationTitle": "Agregar operación",
+  "catalogPickerEmpty": "Tu catálogo está vacío. Agrega operaciones en la pestaña Catálogo primero."
 }

@@ -231,4 +231,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wasteDefects => 'Defects';
+
+  @override
+  String get sequenceEmpty => 'No operations yet. Add them from the catalog.';
+
+  @override
+  String get addOperationTitle => 'Add operation';
+
+  @override
+  String get catalogPickerEmpty =>
+      'Your catalog is empty. Add operations in the Catalog tab first.';
 }

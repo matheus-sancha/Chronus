@@ -531,6 +531,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Defects'**
   String get wasteDefects;
+
+  /// No description provided for @sequenceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations yet. Add them from the catalog.'**
+  String get sequenceEmpty;
+
+  /// No description provided for @addOperationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add operation'**
+  String get addOperationTitle;
+
+  /// No description provided for @catalogPickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your catalog is empty. Add operations in the Catalog tab first.'**
+  String get catalogPickerEmpty;
 }
 
 class _AppLocalizationsDelegate
