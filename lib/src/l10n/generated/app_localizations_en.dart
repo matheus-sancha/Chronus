@@ -291,4 +291,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveAsTemplateAction => 'Save as template';
+
+  @override
+  String get searchHint => 'Search operations';
 }

@@ -33,10 +33,7 @@ void main() {
         category: OperationCategory.productive,
         referenceStandardMs: 4000,
       );
-      await templates.addOperation(
-        templateId: template.id,
-        catalogOperationId: op.id,
-      );
+      await templates.addFromCatalog(templateId: template.id, operation: op);
     }
     return template;
   }
@@ -67,7 +64,7 @@ void main() {
     expect(ops.first.catalogOperationId, isNotNull); // keeps the link
   });
 
-  test('save study as template keeps catalog ops, skips custom', () async {
+  test('save study as template keeps catalog AND custom ops', () async {
     final project = await projects.create(name: 'P');
     final study = await StudyRepositoryStub(db).create(project.id);
     final seq = StudyOperationRepository(db);
@@ -88,8 +85,26 @@ void main() {
     );
 
     final ops = await templates.watchOperations(template.id).first;
-    expect(ops, hasLength(1)); // only the catalog-backed op
-    expect(ops.single.catalogOperationId, op.id);
+    expect(ops.map((o) => o.name), ['Cataloged', 'Ad-hoc']);
+    expect(ops[0].catalogOperationId, op.id);
+    expect(ops[1].catalogOperationId, isNull); // custom op, snapshot only
+  });
+
+  test('a custom template operation has no catalog link', () async {
+    final template = await templates.create(
+      name: 'T',
+      defaultStudyType: StudyType.timeStudy,
+    );
+    await templates.addCustom(
+      templateId: template.id,
+      name: 'Manual step',
+      category: OperationCategory.setup,
+      referenceStandardMs: 2500,
+    );
+    final op = (await templates.watchOperations(template.id).first).single;
+    expect(op.name, 'Manual step');
+    expect(op.catalogOperationId, isNull);
+    expect(op.referenceStandardMs, 2500);
   });
 
   test('deleting a template removes its operation links', () async {

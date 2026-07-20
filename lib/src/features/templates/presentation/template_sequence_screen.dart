@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../common/duration_format.dart';
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../../catalog/application/catalog_providers.dart';
-import '../../catalog/presentation/catalog_picker.dart';
 import '../../catalog/presentation/classification_labels.dart';
+import '../../catalog/presentation/operation_picker.dart';
 import '../application/templates_providers.dart';
 import 'template_instantiate.dart';
 
@@ -20,8 +20,6 @@ class TemplateSequenceScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final template = ref.watch(templateByIdProvider(templateId));
     final operations = ref.watch(templateOperationsProvider(templateId));
-    final catalog = ref.watch(catalogListProvider).value ?? const [];
-    final catalogById = {for (final c in catalog) c.id: c};
 
     return Scaffold(
       appBar: AppBar(
@@ -54,22 +52,20 @@ class TemplateSequenceScreen extends ConsumerWidget {
             },
             itemBuilder: (context, index) {
               final op = items[index];
-              final catalogOp = catalogById[op.catalogOperationId];
               return ListTile(
                 key: ValueKey(op.id),
                 leading: ReorderableDragStartListener(
                   index: index,
                   child: const Icon(Icons.drag_handle),
                 ),
-                title: Text(catalogOp?.name ?? '—'),
-                subtitle: catalogOp == null
-                    ? null
-                    : Text(_subtitle(l10n, catalogOp)),
+                title: Text(op.name),
+                subtitle: Text(_subtitle(l10n, op)),
                 trailing: IconButton(
                   icon: const Icon(Icons.remove_circle_outline),
                   tooltip: l10n.actionDelete,
-                  onPressed: () =>
-                      ref.read(templateRepositoryProvider).removeOperation(op.id),
+                  onPressed: () => ref
+                      .read(templateRepositoryProvider)
+                      .removeOperation(op.id),
                 ),
               );
             },
@@ -84,20 +80,27 @@ class TemplateSequenceScreen extends ConsumerWidget {
     );
   }
 
-  String _subtitle(AppLocalizations l10n, CatalogOperation catalogOp) {
-    final parts = <String>[categoryLabel(l10n, catalogOp.category)];
-    if (catalogOp.referenceStandardMs != null) {
-      parts.add(formatHmsd(catalogOp.referenceStandardMs!));
+  String _subtitle(AppLocalizations l10n, TemplateOperation op) {
+    final parts = <String>[categoryLabel(l10n, op.category)];
+    if (op.referenceStandardMs != null) {
+      parts.add(formatHmsd(op.referenceStandardMs!));
     }
     return parts.join(' · ');
   }
 
   Future<void> _addOperation(BuildContext context, WidgetRef ref) async {
-    final chosen = await showCatalogPicker(context);
-    if (chosen == null) return;
-    await ref.read(templateRepositoryProvider).addOperation(
-          templateId: templateId,
-          catalogOperationId: chosen.id,
-        );
+    final pick = await showOperationPicker(context);
+    switch (pick) {
+      case PickCatalog(:final operation):
+        await ref
+            .read(templateRepositoryProvider)
+            .addFromCatalog(templateId: templateId, operation: operation);
+      case PickCustom():
+        if (context.mounted) {
+          context.push('/templates/$templateId/sequence/custom');
+        }
+      case null:
+        break;
+    }
   }
 }

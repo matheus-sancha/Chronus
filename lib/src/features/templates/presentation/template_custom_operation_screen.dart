@@ -4,21 +4,21 @@ import 'package:go_router/go_router.dart';
 
 import '../../../features/catalog/presentation/operation_fields.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../application/studies_providers.dart';
+import '../application/templates_providers.dart';
 
-/// Adds a study-local operation that isn't in the catalog.
-class StudyCustomOperationScreen extends ConsumerStatefulWidget {
-  const StudyCustomOperationScreen({super.key, required this.studyId});
+/// Adds a template-local operation that isn't in the catalog.
+class TemplateCustomOperationScreen extends ConsumerStatefulWidget {
+  const TemplateCustomOperationScreen({super.key, required this.templateId});
 
-  final String studyId;
+  final String templateId;
 
   @override
-  ConsumerState<StudyCustomOperationScreen> createState() =>
-      _StudyCustomOperationScreenState();
+  ConsumerState<TemplateCustomOperationScreen> createState() =>
+      _TemplateCustomOperationScreenState();
 }
 
-class _StudyCustomOperationScreenState
-    extends ConsumerState<StudyCustomOperationScreen> {
+class _TemplateCustomOperationScreenState
+    extends ConsumerState<TemplateCustomOperationScreen> {
   final _draft = OperationDraft();
 
   @override
@@ -29,8 +29,8 @@ class _StudyCustomOperationScreenState
 
   Future<void> _save() async {
     if (_draft.name.isEmpty) return;
-    await ref.read(studyOperationRepositoryProvider).addCustom(
-          studyId: widget.studyId,
+    await ref.read(templateRepositoryProvider).addCustom(
+          templateId: widget.templateId,
           name: _draft.name,
           category: _draft.category,
           subtypeId: _draft.subtypeId,

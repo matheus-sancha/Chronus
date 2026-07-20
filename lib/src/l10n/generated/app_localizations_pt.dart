@@ -292,4 +292,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get saveAsTemplateAction => 'Salvar como modelo';
+
+  @override
+  String get searchHint => 'Buscar operações';
 }

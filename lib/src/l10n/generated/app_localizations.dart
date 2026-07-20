@@ -645,6 +645,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save as template'**
   String get saveAsTemplateAction;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search operations'**
+  String get searchHint;
 }
 
 class _AppLocalizationsDelegate

@@ -292,4 +292,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get saveAsTemplateAction => 'Guardar como plantilla';
+
+  @override
+  String get searchHint => 'Buscar operaciones';
 }

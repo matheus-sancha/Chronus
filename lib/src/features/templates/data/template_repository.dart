@@ -72,22 +72,52 @@ class TemplateRepository {
     return (_db.delete(_db.templates)..where((t) => t.id.equals(id))).go();
   }
 
-  Future<void> addOperation({
-    required String templateId,
-    required String catalogOperationId,
-  }) async {
+  Future<double> _nextOrder(String templateId) async {
     final existing = await (_db.select(_db.templateOperations)
           ..where((t) => t.templateId.equals(templateId)))
         .get();
-    final nextOrder = existing.isEmpty
+    return existing.isEmpty
         ? 1.0
         : existing.map((e) => e.orderIndex).reduce(max) + 1;
+  }
+
+  /// Adds a catalog operation, snapshotting its fields (+ keeping the link).
+  Future<void> addFromCatalog({
+    required String templateId,
+    required CatalogOperation operation,
+  }) async {
     await _db.into(_db.templateOperations).insert(
           TemplateOperationsCompanion.insert(
             id: _uuid.v4(),
             templateId: templateId,
-            catalogOperationId: catalogOperationId,
-            orderIndex: nextOrder,
+            catalogOperationId: Value(operation.id),
+            orderIndex: await _nextOrder(templateId),
+            name: operation.name,
+            category: operation.category,
+            subtypeId: Value(operation.subtypeId),
+            referenceStandardMs: Value(operation.referenceStandardMs),
+            createdAt: DateTime.now(),
+          ),
+        );
+  }
+
+  /// Adds a template-local operation with no catalog link.
+  Future<void> addCustom({
+    required String templateId,
+    required String name,
+    required OperationCategory category,
+    String? subtypeId,
+    int? referenceStandardMs,
+  }) async {
+    await _db.into(_db.templateOperations).insert(
+          TemplateOperationsCompanion.insert(
+            id: _uuid.v4(),
+            templateId: templateId,
+            orderIndex: await _nextOrder(templateId),
+            name: name,
+            category: category,
+            subtypeId: Value(subtypeId),
+            referenceStandardMs: Value(referenceStandardMs),
             createdAt: DateTime.now(),
           ),
         );
@@ -144,20 +174,16 @@ class TemplateRepository {
           .get();
       var order = 1.0;
       for (final top in templateOps) {
-        final catalogOp = await (_db.select(_db.catalogOperations)
-              ..where((t) => t.id.equals(top.catalogOperationId)))
-            .getSingleOrNull();
-        if (catalogOp == null) continue;
         await _db.into(_db.studyOperations).insert(
               StudyOperationsCompanion.insert(
                 id: _uuid.v4(),
                 studyId: studyId,
-                catalogOperationId: Value(catalogOp.id),
+                catalogOperationId: Value(top.catalogOperationId),
                 orderIndex: order++,
-                name: catalogOp.name,
-                category: catalogOp.category,
-                subtypeId: Value(catalogOp.subtypeId),
-                referenceStandardMs: Value(catalogOp.referenceStandardMs),
+                name: top.name,
+                category: top.category,
+                subtypeId: Value(top.subtypeId),
+                referenceStandardMs: Value(top.referenceStandardMs),
                 createdAt: now,
               ),
             );
@@ -166,8 +192,8 @@ class TemplateRepository {
     });
   }
 
-  /// Creates a template from a study: its settings + catalog-backed operations
-  /// in order. Custom (non-catalog) operations are skipped.
+  /// Creates a template from a study: its settings + its full operation
+  /// sequence (catalog-backed and custom alike, snapshotted).
   Future<Template> saveStudyAsTemplate({
     required String studyId,
     required String name,
@@ -187,14 +213,16 @@ class TemplateRepository {
           .get();
       var order = 1.0;
       for (final op in ops) {
-        final catalogId = op.catalogOperationId;
-        if (catalogId == null) continue;
         await _db.into(_db.templateOperations).insert(
               TemplateOperationsCompanion.insert(
                 id: _uuid.v4(),
                 templateId: template.id,
-                catalogOperationId: catalogId,
+                catalogOperationId: Value(op.catalogOperationId),
                 orderIndex: order++,
+                name: op.name,
+                category: op.category,
+                subtypeId: Value(op.subtypeId),
+                referenceStandardMs: Value(op.referenceStandardMs),
                 createdAt: DateTime.now(),
               ),
             );

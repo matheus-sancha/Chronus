@@ -10,6 +10,7 @@ import '../features/studies/presentation/study_custom_operation_screen.dart';
 import '../features/studies/presentation/study_detail_screen.dart';
 import '../features/studies/presentation/study_edit_screen.dart';
 import '../features/studies/presentation/study_sequence_screen.dart';
+import '../features/templates/presentation/template_custom_operation_screen.dart';
 import '../features/templates/presentation/template_sequence_screen.dart';
 import '../features/templates/presentation/templates_screen.dart';
 import 'app_shell.dart';
@@ -108,6 +109,15 @@ GoRouter router(Ref ref) {
                     builder: (context, state) => TemplateSequenceScreen(
                       templateId: state.pathParameters['templateId']!,
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'custom',
+                        builder: (context, state) =>
+                            TemplateCustomOperationScreen(
+                          templateId: state.pathParameters['templateId']!,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -200,15 +200,24 @@ class Templates extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-/// Ordered catalog-operation REFERENCES (not snapshots). Instantiating a template
-/// snapshots these into [StudyOperations].
+/// A template's ordered operations. Snapshot-based like [StudyOperations]: each
+/// row carries its own fields plus an OPTIONAL hidden [catalogOperationId] link
+/// (null for custom operations added directly to the template). Instantiating a
+/// template copies these into [StudyOperations].
 class TemplateOperations extends Table {
   TextColumn get id => text()();
   TextColumn get templateId =>
       text().references(Templates, #id, onDelete: KeyAction.cascade)();
-  TextColumn get catalogOperationId =>
-      text().references(CatalogOperations, #id, onDelete: KeyAction.cascade)();
+  TextColumn get catalogOperationId => text()
+      .nullable()
+      .references(CatalogOperations, #id, onDelete: KeyAction.setNull)();
   RealColumn get orderIndex => real()();
+  TextColumn get name => text().withLength(min: 1, max: 200)();
+  TextColumn get category => textEnum<OperationCategory>()();
+  TextColumn get subtypeId => text()
+      .nullable()
+      .references(OperationSubtypes, #id, onDelete: KeyAction.setNull)();
+  IntColumn get referenceStandardMs => integer().nullable()();
   DateTimeColumn get createdAt => dateTime()();
 
   @override

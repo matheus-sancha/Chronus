@@ -4775,11 +4775,11 @@ class $TemplateOperationsTable extends TemplateOperations
       GeneratedColumn<String>(
         'catalog_operation_id',
         aliasedName,
-        false,
+        true,
         type: DriftSqlType.string,
-        requiredDuringInsert: true,
+        requiredDuringInsert: false,
         defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES catalog_operations (id) ON DELETE CASCADE',
+          'REFERENCES catalog_operations (id) ON DELETE SET NULL',
         ),
       );
   static const VerificationMeta _orderIndexMeta = const VerificationMeta(
@@ -4792,6 +4792,55 @@ class $TemplateOperationsTable extends TemplateOperations
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 200,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<OperationCategory, String>
+  category =
+      GeneratedColumn<String>(
+        'category',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<OperationCategory>(
+        $TemplateOperationsTable.$convertercategory,
+      );
+  static const VerificationMeta _subtypeIdMeta = const VerificationMeta(
+    'subtypeId',
+  );
+  @override
+  late final GeneratedColumn<String> subtypeId = GeneratedColumn<String>(
+    'subtype_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES operation_subtypes (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _referenceStandardMsMeta =
+      const VerificationMeta('referenceStandardMs');
+  @override
+  late final GeneratedColumn<int> referenceStandardMs = GeneratedColumn<int>(
+    'reference_standard_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -4810,6 +4859,10 @@ class $TemplateOperationsTable extends TemplateOperations
     templateId,
     catalogOperationId,
     orderIndex,
+    name,
+    category,
+    subtypeId,
+    referenceStandardMs,
     createdAt,
   ];
   @override
@@ -4845,8 +4898,6 @@ class $TemplateOperationsTable extends TemplateOperations
           _catalogOperationIdMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_catalogOperationIdMeta);
     }
     if (data.containsKey('order_index')) {
       context.handle(
@@ -4855,6 +4906,29 @@ class $TemplateOperationsTable extends TemplateOperations
       );
     } else if (isInserting) {
       context.missing(_orderIndexMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('subtype_id')) {
+      context.handle(
+        _subtypeIdMeta,
+        subtypeId.isAcceptableOrUnknown(data['subtype_id']!, _subtypeIdMeta),
+      );
+    }
+    if (data.containsKey('reference_standard_ms')) {
+      context.handle(
+        _referenceStandardMsMeta,
+        referenceStandardMs.isAcceptableOrUnknown(
+          data['reference_standard_ms']!,
+          _referenceStandardMsMeta,
+        ),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -4884,11 +4958,29 @@ class $TemplateOperationsTable extends TemplateOperations
       catalogOperationId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}catalog_operation_id'],
-      )!,
+      ),
       orderIndex: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}order_index'],
       )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      category: $TemplateOperationsTable.$convertercategory.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}category'],
+        )!,
+      ),
+      subtypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subtype_id'],
+      ),
+      referenceStandardMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reference_standard_ms'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -4900,20 +4992,33 @@ class $TemplateOperationsTable extends TemplateOperations
   $TemplateOperationsTable createAlias(String alias) {
     return $TemplateOperationsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<OperationCategory, String, String>
+  $convertercategory = const EnumNameConverter<OperationCategory>(
+    OperationCategory.values,
+  );
 }
 
 class TemplateOperation extends DataClass
     implements Insertable<TemplateOperation> {
   final String id;
   final String templateId;
-  final String catalogOperationId;
+  final String? catalogOperationId;
   final double orderIndex;
+  final String name;
+  final OperationCategory category;
+  final String? subtypeId;
+  final int? referenceStandardMs;
   final DateTime createdAt;
   const TemplateOperation({
     required this.id,
     required this.templateId,
-    required this.catalogOperationId,
+    this.catalogOperationId,
     required this.orderIndex,
+    required this.name,
+    required this.category,
+    this.subtypeId,
+    this.referenceStandardMs,
     required this.createdAt,
   });
   @override
@@ -4921,8 +5026,22 @@ class TemplateOperation extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['template_id'] = Variable<String>(templateId);
-    map['catalog_operation_id'] = Variable<String>(catalogOperationId);
+    if (!nullToAbsent || catalogOperationId != null) {
+      map['catalog_operation_id'] = Variable<String>(catalogOperationId);
+    }
     map['order_index'] = Variable<double>(orderIndex);
+    map['name'] = Variable<String>(name);
+    {
+      map['category'] = Variable<String>(
+        $TemplateOperationsTable.$convertercategory.toSql(category),
+      );
+    }
+    if (!nullToAbsent || subtypeId != null) {
+      map['subtype_id'] = Variable<String>(subtypeId);
+    }
+    if (!nullToAbsent || referenceStandardMs != null) {
+      map['reference_standard_ms'] = Variable<int>(referenceStandardMs);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -4931,8 +5050,18 @@ class TemplateOperation extends DataClass
     return TemplateOperationsCompanion(
       id: Value(id),
       templateId: Value(templateId),
-      catalogOperationId: Value(catalogOperationId),
+      catalogOperationId: catalogOperationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogOperationId),
       orderIndex: Value(orderIndex),
+      name: Value(name),
+      category: Value(category),
+      subtypeId: subtypeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subtypeId),
+      referenceStandardMs: referenceStandardMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referenceStandardMs),
       createdAt: Value(createdAt),
     );
   }
@@ -4945,10 +5074,18 @@ class TemplateOperation extends DataClass
     return TemplateOperation(
       id: serializer.fromJson<String>(json['id']),
       templateId: serializer.fromJson<String>(json['templateId']),
-      catalogOperationId: serializer.fromJson<String>(
+      catalogOperationId: serializer.fromJson<String?>(
         json['catalogOperationId'],
       ),
       orderIndex: serializer.fromJson<double>(json['orderIndex']),
+      name: serializer.fromJson<String>(json['name']),
+      category: $TemplateOperationsTable.$convertercategory.fromJson(
+        serializer.fromJson<String>(json['category']),
+      ),
+      subtypeId: serializer.fromJson<String?>(json['subtypeId']),
+      referenceStandardMs: serializer.fromJson<int?>(
+        json['referenceStandardMs'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -4958,8 +5095,14 @@ class TemplateOperation extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'templateId': serializer.toJson<String>(templateId),
-      'catalogOperationId': serializer.toJson<String>(catalogOperationId),
+      'catalogOperationId': serializer.toJson<String?>(catalogOperationId),
       'orderIndex': serializer.toJson<double>(orderIndex),
+      'name': serializer.toJson<String>(name),
+      'category': serializer.toJson<String>(
+        $TemplateOperationsTable.$convertercategory.toJson(category),
+      ),
+      'subtypeId': serializer.toJson<String?>(subtypeId),
+      'referenceStandardMs': serializer.toJson<int?>(referenceStandardMs),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -4967,14 +5110,26 @@ class TemplateOperation extends DataClass
   TemplateOperation copyWith({
     String? id,
     String? templateId,
-    String? catalogOperationId,
+    Value<String?> catalogOperationId = const Value.absent(),
     double? orderIndex,
+    String? name,
+    OperationCategory? category,
+    Value<String?> subtypeId = const Value.absent(),
+    Value<int?> referenceStandardMs = const Value.absent(),
     DateTime? createdAt,
   }) => TemplateOperation(
     id: id ?? this.id,
     templateId: templateId ?? this.templateId,
-    catalogOperationId: catalogOperationId ?? this.catalogOperationId,
+    catalogOperationId: catalogOperationId.present
+        ? catalogOperationId.value
+        : this.catalogOperationId,
     orderIndex: orderIndex ?? this.orderIndex,
+    name: name ?? this.name,
+    category: category ?? this.category,
+    subtypeId: subtypeId.present ? subtypeId.value : this.subtypeId,
+    referenceStandardMs: referenceStandardMs.present
+        ? referenceStandardMs.value
+        : this.referenceStandardMs,
     createdAt: createdAt ?? this.createdAt,
   );
   TemplateOperation copyWithCompanion(TemplateOperationsCompanion data) {
@@ -4989,6 +5144,12 @@ class TemplateOperation extends DataClass
       orderIndex: data.orderIndex.present
           ? data.orderIndex.value
           : this.orderIndex,
+      name: data.name.present ? data.name.value : this.name,
+      category: data.category.present ? data.category.value : this.category,
+      subtypeId: data.subtypeId.present ? data.subtypeId.value : this.subtypeId,
+      referenceStandardMs: data.referenceStandardMs.present
+          ? data.referenceStandardMs.value
+          : this.referenceStandardMs,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -5000,14 +5161,27 @@ class TemplateOperation extends DataClass
           ..write('templateId: $templateId, ')
           ..write('catalogOperationId: $catalogOperationId, ')
           ..write('orderIndex: $orderIndex, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('subtypeId: $subtypeId, ')
+          ..write('referenceStandardMs: $referenceStandardMs, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, templateId, catalogOperationId, orderIndex, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    templateId,
+    catalogOperationId,
+    orderIndex,
+    name,
+    category,
+    subtypeId,
+    referenceStandardMs,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5016,14 +5190,22 @@ class TemplateOperation extends DataClass
           other.templateId == this.templateId &&
           other.catalogOperationId == this.catalogOperationId &&
           other.orderIndex == this.orderIndex &&
+          other.name == this.name &&
+          other.category == this.category &&
+          other.subtypeId == this.subtypeId &&
+          other.referenceStandardMs == this.referenceStandardMs &&
           other.createdAt == this.createdAt);
 }
 
 class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
   final Value<String> id;
   final Value<String> templateId;
-  final Value<String> catalogOperationId;
+  final Value<String?> catalogOperationId;
   final Value<double> orderIndex;
+  final Value<String> name;
+  final Value<OperationCategory> category;
+  final Value<String?> subtypeId;
+  final Value<int?> referenceStandardMs;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const TemplateOperationsCompanion({
@@ -5031,26 +5213,39 @@ class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
     this.templateId = const Value.absent(),
     this.catalogOperationId = const Value.absent(),
     this.orderIndex = const Value.absent(),
+    this.name = const Value.absent(),
+    this.category = const Value.absent(),
+    this.subtypeId = const Value.absent(),
+    this.referenceStandardMs = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TemplateOperationsCompanion.insert({
     required String id,
     required String templateId,
-    required String catalogOperationId,
+    this.catalogOperationId = const Value.absent(),
     required double orderIndex,
+    required String name,
+    required OperationCategory category,
+    this.subtypeId = const Value.absent(),
+    this.referenceStandardMs = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        templateId = Value(templateId),
-       catalogOperationId = Value(catalogOperationId),
        orderIndex = Value(orderIndex),
+       name = Value(name),
+       category = Value(category),
        createdAt = Value(createdAt);
   static Insertable<TemplateOperation> custom({
     Expression<String>? id,
     Expression<String>? templateId,
     Expression<String>? catalogOperationId,
     Expression<double>? orderIndex,
+    Expression<String>? name,
+    Expression<String>? category,
+    Expression<String>? subtypeId,
+    Expression<int>? referenceStandardMs,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -5060,6 +5255,11 @@ class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
       if (catalogOperationId != null)
         'catalog_operation_id': catalogOperationId,
       if (orderIndex != null) 'order_index': orderIndex,
+      if (name != null) 'name': name,
+      if (category != null) 'category': category,
+      if (subtypeId != null) 'subtype_id': subtypeId,
+      if (referenceStandardMs != null)
+        'reference_standard_ms': referenceStandardMs,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -5068,8 +5268,12 @@ class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
   TemplateOperationsCompanion copyWith({
     Value<String>? id,
     Value<String>? templateId,
-    Value<String>? catalogOperationId,
+    Value<String?>? catalogOperationId,
     Value<double>? orderIndex,
+    Value<String>? name,
+    Value<OperationCategory>? category,
+    Value<String?>? subtypeId,
+    Value<int?>? referenceStandardMs,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -5078,6 +5282,10 @@ class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
       templateId: templateId ?? this.templateId,
       catalogOperationId: catalogOperationId ?? this.catalogOperationId,
       orderIndex: orderIndex ?? this.orderIndex,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      subtypeId: subtypeId ?? this.subtypeId,
+      referenceStandardMs: referenceStandardMs ?? this.referenceStandardMs,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -5098,6 +5306,20 @@ class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
     if (orderIndex.present) {
       map['order_index'] = Variable<double>(orderIndex.value);
     }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(
+        $TemplateOperationsTable.$convertercategory.toSql(category.value),
+      );
+    }
+    if (subtypeId.present) {
+      map['subtype_id'] = Variable<String>(subtypeId.value);
+    }
+    if (referenceStandardMs.present) {
+      map['reference_standard_ms'] = Variable<int>(referenceStandardMs.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -5114,6 +5336,10 @@ class TemplateOperationsCompanion extends UpdateCompanion<TemplateOperation> {
           ..write('templateId: $templateId, ')
           ..write('catalogOperationId: $catalogOperationId, ')
           ..write('orderIndex: $orderIndex, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('subtypeId: $subtypeId, ')
+          ..write('referenceStandardMs: $referenceStandardMs, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -6460,7 +6686,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'catalog_operations',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('template_operations', kind: UpdateKind.delete)],
+      result: [TableUpdate('template_operations', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'operation_subtypes',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('template_operations', kind: UpdateKind.update)],
     ),
   ]);
 }
@@ -6831,6 +7064,27 @@ final class $$OperationSubtypesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$TemplateOperationsTable, List<TemplateOperation>>
+  _templateOperationsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.templateOperations,
+        aliasName: 'operation_subtypes__id__template_operations__subtype_id',
+      );
+
+  $$TemplateOperationsTableProcessedTableManager get templateOperationsRefs {
+    final manager = $$TemplateOperationsTableTableManager(
+      $_db,
+      $_db.templateOperations,
+    ).filter((f) => f.subtypeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _templateOperationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$OperationSubtypesTableFilterComposer
@@ -6909,6 +7163,31 @@ class $$OperationSubtypesTableFilterComposer
           }) => $$StudyOperationsTableFilterComposer(
             $db: $db,
             $table: $db.studyOperations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> templateOperationsRefs(
+    Expression<bool> Function($$TemplateOperationsTableFilterComposer f) f,
+  ) {
+    final $$TemplateOperationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.templateOperations,
+      getReferencedColumn: (t) => t.subtypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TemplateOperationsTableFilterComposer(
+            $db: $db,
+            $table: $db.templateOperations,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7028,6 +7307,32 @@ class $$OperationSubtypesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> templateOperationsRefs<T extends Object>(
+    Expression<T> Function($$TemplateOperationsTableAnnotationComposer a) f,
+  ) {
+    final $$TemplateOperationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.templateOperations,
+          getReferencedColumn: (t) => t.subtypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$TemplateOperationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.templateOperations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$OperationSubtypesTableTableManager
@@ -7046,6 +7351,7 @@ class $$OperationSubtypesTableTableManager
           PrefetchHooks Function({
             bool catalogOperationsRefs,
             bool studyOperationsRefs,
+            bool templateOperationsRefs,
           })
         > {
   $$OperationSubtypesTableTableManager(
@@ -7105,12 +7411,17 @@ class $$OperationSubtypesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({catalogOperationsRefs = false, studyOperationsRefs = false}) {
+              ({
+                catalogOperationsRefs = false,
+                studyOperationsRefs = false,
+                templateOperationsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (catalogOperationsRefs) db.catalogOperations,
                     if (studyOperationsRefs) db.studyOperations,
+                    if (templateOperationsRefs) db.templateOperations,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -7157,6 +7468,27 @@ class $$OperationSubtypesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (templateOperationsRefs)
+                        await $_getPrefetchedData<
+                          OperationSubtype,
+                          $OperationSubtypesTable,
+                          TemplateOperation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OperationSubtypesTableReferences
+                              ._templateOperationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OperationSubtypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).templateOperationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.subtypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -7180,6 +7512,7 @@ typedef $$OperationSubtypesTableProcessedTableManager =
       PrefetchHooks Function({
         bool catalogOperationsRefs,
         bool studyOperationsRefs,
+        bool templateOperationsRefs,
       })
     >;
 typedef $$CatalogOperationsTableCreateCompanionBuilder =
@@ -10970,8 +11303,12 @@ typedef $$TemplateOperationsTableCreateCompanionBuilder =
     TemplateOperationsCompanion Function({
       required String id,
       required String templateId,
-      required String catalogOperationId,
+      Value<String?> catalogOperationId,
       required double orderIndex,
+      required String name,
+      required OperationCategory category,
+      Value<String?> subtypeId,
+      Value<int?> referenceStandardMs,
       required DateTime createdAt,
       Value<int> rowid,
     });
@@ -10979,8 +11316,12 @@ typedef $$TemplateOperationsTableUpdateCompanionBuilder =
     TemplateOperationsCompanion Function({
       Value<String> id,
       Value<String> templateId,
-      Value<String> catalogOperationId,
+      Value<String?> catalogOperationId,
       Value<double> orderIndex,
+      Value<String> name,
+      Value<OperationCategory> category,
+      Value<String?> subtypeId,
+      Value<int?> referenceStandardMs,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -11020,14 +11361,32 @@ final class $$TemplateOperationsTableReferences
         'template_operations__catalog_operation_id__catalog_operations__id',
       );
 
-  $$CatalogOperationsTableProcessedTableManager get catalogOperationId {
-    final $_column = $_itemColumn<String>('catalog_operation_id')!;
-
+  $$CatalogOperationsTableProcessedTableManager? get catalogOperationId {
+    final $_column = $_itemColumn<String>('catalog_operation_id');
+    if ($_column == null) return null;
     final manager = $$CatalogOperationsTableTableManager(
       $_db,
       $_db.catalogOperations,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_catalogOperationIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $OperationSubtypesTable _subtypeIdTable(_$AppDatabase db) => db
+      .operationSubtypes
+      .createAlias('template_operations__subtype_id__operation_subtypes__id');
+
+  $$OperationSubtypesTableProcessedTableManager? get subtypeId {
+    final $_column = $_itemColumn<String>('subtype_id');
+    if ($_column == null) return null;
+    final manager = $$OperationSubtypesTableTableManager(
+      $_db,
+      $_db.operationSubtypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_subtypeIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -11051,6 +11410,22 @@ class $$TemplateOperationsTableFilterComposer
 
   ColumnFilters<double> get orderIndex => $composableBuilder(
     column: $table.orderIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<OperationCategory, OperationCategory, String>
+  get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get referenceStandardMs => $composableBuilder(
+    column: $table.referenceStandardMs,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11104,6 +11479,29 @@ class $$TemplateOperationsTableFilterComposer
     );
     return composer;
   }
+
+  $$OperationSubtypesTableFilterComposer get subtypeId {
+    final $$OperationSubtypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.subtypeId,
+      referencedTable: $db.operationSubtypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OperationSubtypesTableFilterComposer(
+            $db: $db,
+            $table: $db.operationSubtypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TemplateOperationsTableOrderingComposer
@@ -11122,6 +11520,21 @@ class $$TemplateOperationsTableOrderingComposer
 
   ColumnOrderings<double> get orderIndex => $composableBuilder(
     column: $table.orderIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get referenceStandardMs => $composableBuilder(
+    column: $table.referenceStandardMs,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -11175,6 +11588,29 @@ class $$TemplateOperationsTableOrderingComposer
     );
     return composer;
   }
+
+  $$OperationSubtypesTableOrderingComposer get subtypeId {
+    final $$OperationSubtypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.subtypeId,
+      referencedTable: $db.operationSubtypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OperationSubtypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.operationSubtypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TemplateOperationsTableAnnotationComposer
@@ -11191,6 +11627,17 @@ class $$TemplateOperationsTableAnnotationComposer
 
   GeneratedColumn<double> get orderIndex => $composableBuilder(
     column: $table.orderIndex,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<OperationCategory, String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get referenceStandardMs => $composableBuilder(
+    column: $table.referenceStandardMs,
     builder: (column) => column,
   );
 
@@ -11243,6 +11690,30 @@ class $$TemplateOperationsTableAnnotationComposer
         );
     return composer;
   }
+
+  $$OperationSubtypesTableAnnotationComposer get subtypeId {
+    final $$OperationSubtypesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.subtypeId,
+          referencedTable: $db.operationSubtypes,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OperationSubtypesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.operationSubtypes,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
 }
 
 class $$TemplateOperationsTableTableManager
@@ -11258,7 +11729,11 @@ class $$TemplateOperationsTableTableManager
           $$TemplateOperationsTableUpdateCompanionBuilder,
           (TemplateOperation, $$TemplateOperationsTableReferences),
           TemplateOperation,
-          PrefetchHooks Function({bool templateId, bool catalogOperationId})
+          PrefetchHooks Function({
+            bool templateId,
+            bool catalogOperationId,
+            bool subtypeId,
+          })
         > {
   $$TemplateOperationsTableTableManager(
     _$AppDatabase db,
@@ -11280,8 +11755,12 @@ class $$TemplateOperationsTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> templateId = const Value.absent(),
-                Value<String> catalogOperationId = const Value.absent(),
+                Value<String?> catalogOperationId = const Value.absent(),
                 Value<double> orderIndex = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<OperationCategory> category = const Value.absent(),
+                Value<String?> subtypeId = const Value.absent(),
+                Value<int?> referenceStandardMs = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TemplateOperationsCompanion(
@@ -11289,6 +11768,10 @@ class $$TemplateOperationsTableTableManager
                 templateId: templateId,
                 catalogOperationId: catalogOperationId,
                 orderIndex: orderIndex,
+                name: name,
+                category: category,
+                subtypeId: subtypeId,
+                referenceStandardMs: referenceStandardMs,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -11296,8 +11779,12 @@ class $$TemplateOperationsTableTableManager
               ({
                 required String id,
                 required String templateId,
-                required String catalogOperationId,
+                Value<String?> catalogOperationId = const Value.absent(),
                 required double orderIndex,
+                required String name,
+                required OperationCategory category,
+                Value<String?> subtypeId = const Value.absent(),
+                Value<int?> referenceStandardMs = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => TemplateOperationsCompanion.insert(
@@ -11305,6 +11792,10 @@ class $$TemplateOperationsTableTableManager
                 templateId: templateId,
                 catalogOperationId: catalogOperationId,
                 orderIndex: orderIndex,
+                name: name,
+                category: category,
+                subtypeId: subtypeId,
+                referenceStandardMs: referenceStandardMs,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -11317,7 +11808,11 @@ class $$TemplateOperationsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({templateId = false, catalogOperationId = false}) {
+              ({
+                templateId = false,
+                catalogOperationId = false,
+                subtypeId = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [],
@@ -11367,6 +11862,21 @@ class $$TemplateOperationsTableTableManager
                                   )
                                   as T;
                         }
+                        if (subtypeId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.subtypeId,
+                                    referencedTable:
+                                        $$TemplateOperationsTableReferences
+                                            ._subtypeIdTable(db),
+                                    referencedColumn:
+                                        $$TemplateOperationsTableReferences
+                                            ._subtypeIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
                         return state;
                       },
@@ -11391,7 +11901,11 @@ typedef $$TemplateOperationsTableProcessedTableManager =
       $$TemplateOperationsTableUpdateCompanionBuilder,
       (TemplateOperation, $$TemplateOperationsTableReferences),
       TemplateOperation,
-      PrefetchHooks Function({bool templateId, bool catalogOperationId})
+      PrefetchHooks Function({
+        bool templateId,
+        bool catalogOperationId,
+        bool subtypeId,
+      })
     >;
 typedef $$ProcessTypeOptionsTableCreateCompanionBuilder =
     ProcessTypeOptionsCompanion Function({

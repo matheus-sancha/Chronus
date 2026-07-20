@@ -137,5 +137,6 @@
   "fieldProject": "Project",
   "instantiateNoProjects": "Create a project first.",
   "templateStudyCreated": "Study created.",
-  "saveAsTemplateAction": "Save as template"
+  "saveAsTemplateAction": "Save as template",
+  "searchHint": "Search operations"
 }

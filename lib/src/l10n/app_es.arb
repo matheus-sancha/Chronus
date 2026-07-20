@@ -90,5 +90,6 @@
   "fieldProject": "Proyecto",
   "instantiateNoProjects": "Crea un proyecto primero.",
   "templateStudyCreated": "Estudio creado.",
-  "saveAsTemplateAction": "Guardar como plantilla"
+  "saveAsTemplateAction": "Guardar como plantilla",
+  "searchHint": "Buscar operaciones"
 }
