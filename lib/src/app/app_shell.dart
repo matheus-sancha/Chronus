@@ -20,6 +20,9 @@ class AppShell extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final destinations = <_Destination>[
       _Destination(Icons.folder_outlined, Icons.folder, l10n.navProjects),
+      _Destination(Icons.build_outlined, Icons.build, l10n.navCatalog),
+      _Destination(Icons.description_outlined, Icons.description,
+          l10n.navTemplates),
       _Destination(Icons.settings_outlined, Icons.settings, l10n.navSettings),
     ];
 

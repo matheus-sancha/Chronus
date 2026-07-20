@@ -57,13 +57,37 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedReferenceData();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // template_operations became snapshot-based (nullable catalog link +
+            // name/category/subtype/reference-standard). Rebuild it, backfilling
+            // the snapshot fields from each referenced catalog operation.
+            // (Foreign keys are off during migration — beforeOpen runs later.)
+            await customStatement(
+              'ALTER TABLE template_operations '
+              'RENAME TO _template_operations_old',
+            );
+            await m.createTable(templateOperations);
+            await customStatement('''
+              INSERT INTO template_operations
+                (id, template_id, catalog_operation_id, order_index,
+                 name, category, subtype_id, reference_standard_ms, created_at)
+              SELECT o.id, o.template_id, o.catalog_operation_id, o.order_index,
+                     c.name, c.category, c.subtype_id, c.reference_standard_ms,
+                     o.created_at
+              FROM _template_operations_old o
+              JOIN catalog_operations c ON c.id = o.catalog_operation_id
+            ''');
+            await customStatement('DROP TABLE _template_operations_old');
+          }
         },
         beforeOpen: (details) async {
           // SQLite has foreign keys OFF by default; enforce them every open.

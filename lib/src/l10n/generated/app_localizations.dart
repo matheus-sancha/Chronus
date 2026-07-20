@@ -195,6 +195,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get actionSave;
+
+  /// No description provided for @actionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get actionEdit;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// No description provided for @projectEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit project'**
+  String get projectEditTitle;
+
+  /// No description provided for @projectNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get projectNotesLabel;
+
+  /// No description provided for @deleteProjectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete project'**
+  String get deleteProjectTitle;
+
+  /// No description provided for @deleteProjectMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name} and all its studies? This cannot be undone.'**
+  String deleteProjectMessage(String name);
+
+  /// No description provided for @studiesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Studies'**
+  String get studiesSectionTitle;
+
+  /// No description provided for @studiesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No studies yet. Create the first one.'**
+  String get studiesEmpty;
+
+  /// No description provided for @studyNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New study'**
+  String get studyNewTitle;
+
+  /// No description provided for @studyNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Study name'**
+  String get studyNameLabel;
+
+  /// No description provided for @studyTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Study type'**
+  String get studyTypeLabel;
+
+  /// No description provided for @studyTypeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Study'**
+  String get studyTypeTime;
+
+  /// No description provided for @studyTypeSampling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampling Study'**
+  String get studyTypeSampling;
+
+  /// No description provided for @deleteStudyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete study'**
+  String get deleteStudyTitle;
+
+  /// No description provided for @deleteStudyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String deleteStudyMessage(String name);
+
+  /// No description provided for @studyFieldType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get studyFieldType;
+
+  /// No description provided for @studyFieldDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get studyFieldDate;
+
+  /// No description provided for @studyFieldAnalyst.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyst'**
+  String get studyFieldAnalyst;
+
+  /// No description provided for @studyOperationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get studyOperationsSection;
+
+  /// No description provided for @studyOperationsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations are added when you build the sequence.'**
+  String get studyOperationsPending;
+
+  /// No description provided for @studyEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit study'**
+  String get studyEditTitle;
+
+  /// No description provided for @studyDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get studyDetailsSection;
+
+  /// No description provided for @studyFieldAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance %'**
+  String get studyFieldAllowance;
+
+  /// No description provided for @studyFieldProcessType.
+  ///
+  /// In en, this message translates to:
+  /// **'Process type'**
+  String get studyFieldProcessType;
+
+  /// No description provided for @studyFieldPartProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Part / Product'**
+  String get studyFieldPartProduct;
+
+  /// No description provided for @studyFieldProcessOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Process / Operation'**
+  String get studyFieldProcessOperation;
+
+  /// No description provided for @studyFieldMachine.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine / Workstation'**
+  String get studyFieldMachine;
+
+  /// No description provided for @studyFieldLineCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Line / Cell'**
+  String get studyFieldLineCell;
+
+  /// No description provided for @studyFieldOperator.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator'**
+  String get studyFieldOperator;
+
+  /// No description provided for @studyFieldShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get studyFieldShift;
+
+  /// No description provided for @studyFieldWorkOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Work order #'**
+  String get studyFieldWorkOrder;
+
+  /// No description provided for @studyFieldNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get studyFieldNotes;
+
+  /// No description provided for @processTypeNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get processTypeNone;
+
+  /// No description provided for @studyAllowanceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).'**
+  String get studyAllowanceHelp;
+
+  /// No description provided for @navCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog'**
+  String get navCatalog;
+
+  /// No description provided for @catalogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations yet. Add the first one.'**
+  String get catalogEmpty;
+
+  /// No description provided for @catalogNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New operation'**
+  String get catalogNewTitle;
+
+  /// No description provided for @catalogEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit operation'**
+  String get catalogEditTitle;
+
+  /// No description provided for @operationNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation name'**
+  String get operationNameLabel;
+
+  /// No description provided for @operationCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get operationCategoryLabel;
+
+  /// No description provided for @operationSubtypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtype'**
+  String get operationSubtypeLabel;
+
+  /// No description provided for @operationReferenceStandardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference standard time'**
+  String get operationReferenceStandardLabel;
+
+  /// No description provided for @subtypeNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New subtype'**
+  String get subtypeNewTitle;
+
+  /// No description provided for @subtypeNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtype name'**
+  String get subtypeNameLabel;
+
+  /// No description provided for @deleteOperationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete operation'**
+  String get deleteOperationTitle;
+
+  /// No description provided for @deleteOperationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String deleteOperationMessage(String name);
+
+  /// No description provided for @categorySetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get categorySetup;
+
+  /// No description provided for @categoryProductive.
+  ///
+  /// In en, this message translates to:
+  /// **'Productive'**
+  String get categoryProductive;
+
+  /// No description provided for @categoryUnproductive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unproductive'**
+  String get categoryUnproductive;
+
+  /// No description provided for @wasteWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get wasteWaiting;
+
+  /// No description provided for @wasteMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get wasteMotion;
+
+  /// No description provided for @wasteTransportation.
+  ///
+  /// In en, this message translates to:
+  /// **'Transportation'**
+  String get wasteTransportation;
+
+  /// No description provided for @wasteOverProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Over-processing'**
+  String get wasteOverProcessing;
+
+  /// No description provided for @wasteOverproduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Overproduction'**
+  String get wasteOverproduction;
+
+  /// No description provided for @wasteInventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get wasteInventory;
+
+  /// No description provided for @wasteDefects.
+  ///
+  /// In en, this message translates to:
+  /// **'Defects'**
+  String get wasteDefects;
+
+  /// No description provided for @sequenceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations yet. Add them from the catalog.'**
+  String get sequenceEmpty;
+
+  /// No description provided for @addOperationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add operation'**
+  String get addOperationTitle;
+
+  /// No description provided for @catalogPickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your catalog is empty. Add operations in the Catalog tab first.'**
+  String get catalogPickerEmpty;
+
+  /// No description provided for @customOperationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom operation'**
+  String get customOperationTitle;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @navTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get navTemplates;
+
+  /// No description provided for @templatesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet. Create the first one.'**
+  String get templatesEmpty;
+
+  /// No description provided for @templateNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New template'**
+  String get templateNewTitle;
+
+  /// No description provided for @templateEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit template'**
+  String get templateEditTitle;
+
+  /// No description provided for @templateNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get templateNameLabel;
+
+  /// No description provided for @templateDefaultType.
+  ///
+  /// In en, this message translates to:
+  /// **'Default study type'**
+  String get templateDefaultType;
+
+  /// No description provided for @deleteTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template'**
+  String get deleteTemplateTitle;
+
+  /// No description provided for @deleteTemplateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String deleteTemplateMessage(String name);
+
+  /// No description provided for @createStudyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create study'**
+  String get createStudyAction;
+
+  /// No description provided for @instantiateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create study from template'**
+  String get instantiateTitle;
+
+  /// No description provided for @fieldProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get fieldProject;
+
+  /// No description provided for @instantiateNoProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a project first.'**
+  String get instantiateNoProjects;
+
+  /// No description provided for @templateStudyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Study created.'**
+  String get templateStudyCreated;
+
+  /// No description provided for @saveAsTemplateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get saveAsTemplateAction;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search operations'**
+  String get searchHint;
 }
 
 class _AppLocalizationsDelegate

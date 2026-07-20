@@ -55,4 +55,244 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get actionSave => 'Guardar';
+
+  @override
+  String get actionEdit => 'Editar';
+
+  @override
+  String get actionDelete => 'Eliminar';
+
+  @override
+  String get projectEditTitle => 'Editar proyecto';
+
+  @override
+  String get projectNotesLabel => 'Notas';
+
+  @override
+  String get deleteProjectTitle => 'Eliminar proyecto';
+
+  @override
+  String deleteProjectMessage(String name) {
+    return '¿Eliminar $name y todos sus estudios? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get studiesSectionTitle => 'Estudios';
+
+  @override
+  String get studiesEmpty => 'Aún no hay estudios. Crea el primero.';
+
+  @override
+  String get studyNewTitle => 'Nuevo estudio';
+
+  @override
+  String get studyNameLabel => 'Nombre del estudio';
+
+  @override
+  String get studyTypeLabel => 'Tipo de estudio';
+
+  @override
+  String get studyTypeTime => 'Estudio de Tiempo';
+
+  @override
+  String get studyTypeSampling => 'Estudio por Muestreo';
+
+  @override
+  String get deleteStudyTitle => 'Eliminar estudio';
+
+  @override
+  String deleteStudyMessage(String name) {
+    return '¿Eliminar $name? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get studyFieldType => 'Tipo';
+
+  @override
+  String get studyFieldDate => 'Fecha';
+
+  @override
+  String get studyFieldAnalyst => 'Analista';
+
+  @override
+  String get studyOperationsSection => 'Operaciones';
+
+  @override
+  String get studyOperationsPending =>
+      'Las operaciones se agregan al construir la secuencia.';
+
+  @override
+  String get studyEditTitle => 'Editar estudio';
+
+  @override
+  String get studyDetailsSection => 'Detalles';
+
+  @override
+  String get studyFieldAllowance => 'Tolerancia %';
+
+  @override
+  String get studyFieldProcessType => 'Tipo de proceso';
+
+  @override
+  String get studyFieldPartProduct => 'Pieza / Producto';
+
+  @override
+  String get studyFieldProcessOperation => 'Proceso / Operación';
+
+  @override
+  String get studyFieldMachine => 'Máquina / Puesto';
+
+  @override
+  String get studyFieldLineCell => 'Línea / Celda';
+
+  @override
+  String get studyFieldOperator => 'Operador';
+
+  @override
+  String get studyFieldShift => 'Turno';
+
+  @override
+  String get studyFieldWorkOrder => 'Orden de trabajo';
+
+  @override
+  String get studyFieldNotes => 'Notas';
+
+  @override
+  String get processTypeNone => 'Ninguno';
+
+  @override
+  String get studyAllowanceHelp =>
+      'Tiempo extra para fatiga, esperas y necesidades personales. Tiempo estándar = Tiempo normal × (1 + Tolerancia %).';
+
+  @override
+  String get navCatalog => 'Catálogo';
+
+  @override
+  String get catalogEmpty => 'Aún no hay operaciones. Agrega la primera.';
+
+  @override
+  String get catalogNewTitle => 'Nueva operación';
+
+  @override
+  String get catalogEditTitle => 'Editar operación';
+
+  @override
+  String get operationNameLabel => 'Nombre de la operación';
+
+  @override
+  String get operationCategoryLabel => 'Tipo';
+
+  @override
+  String get operationSubtypeLabel => 'Subtipo';
+
+  @override
+  String get operationReferenceStandardLabel => 'Tiempo estándar de referencia';
+
+  @override
+  String get subtypeNewTitle => 'Nuevo subtipo';
+
+  @override
+  String get subtypeNameLabel => 'Nombre del subtipo';
+
+  @override
+  String get deleteOperationTitle => 'Eliminar operación';
+
+  @override
+  String deleteOperationMessage(String name) {
+    return '¿Eliminar $name? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get categorySetup => 'Preparación';
+
+  @override
+  String get categoryProductive => 'Productivo';
+
+  @override
+  String get categoryUnproductive => 'Improductivo';
+
+  @override
+  String get wasteWaiting => 'Espera';
+
+  @override
+  String get wasteMotion => 'Movimiento';
+
+  @override
+  String get wasteTransportation => 'Transporte';
+
+  @override
+  String get wasteOverProcessing => 'Sobreprocesamiento';
+
+  @override
+  String get wasteOverproduction => 'Sobreproducción';
+
+  @override
+  String get wasteInventory => 'Inventario';
+
+  @override
+  String get wasteDefects => 'Defectos';
+
+  @override
+  String get sequenceEmpty =>
+      'Aún no hay operaciones. Agrégalas desde el catálogo.';
+
+  @override
+  String get addOperationTitle => 'Agregar operación';
+
+  @override
+  String get catalogPickerEmpty =>
+      'Tu catálogo está vacío. Agrega operaciones en la pestaña Catálogo primero.';
+
+  @override
+  String get customOperationTitle => 'Operación personalizada';
+
+  @override
+  String get filterAll => 'Todos';
+
+  @override
+  String get navTemplates => 'Plantillas';
+
+  @override
+  String get templatesEmpty => 'Aún no hay plantillas. Crea la primera.';
+
+  @override
+  String get templateNewTitle => 'Nueva plantilla';
+
+  @override
+  String get templateEditTitle => 'Editar plantilla';
+
+  @override
+  String get templateNameLabel => 'Nombre de la plantilla';
+
+  @override
+  String get templateDefaultType => 'Tipo de estudio predeterminado';
+
+  @override
+  String get deleteTemplateTitle => 'Eliminar plantilla';
+
+  @override
+  String deleteTemplateMessage(String name) {
+    return '¿Eliminar $name? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get createStudyAction => 'Crear estudio';
+
+  @override
+  String get instantiateTitle => 'Crear estudio desde la plantilla';
+
+  @override
+  String get fieldProject => 'Proyecto';
+
+  @override
+  String get instantiateNoProjects => 'Crea un proyecto primero.';
+
+  @override
+  String get templateStudyCreated => 'Estudio creado.';
+
+  @override
+  String get saveAsTemplateAction => 'Guardar como plantilla';
+
+  @override
+  String get searchHint => 'Buscar operaciones';
 }

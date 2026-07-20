@@ -22,3 +22,8 @@ ProjectRepository projectRepository(Ref ref) {
 final projectsListProvider = StreamProvider<List<Project>>((ref) {
   return ref.watch(projectRepositoryProvider).watchAll();
 });
+
+/// A single project by id (for the detail screen).
+final projectByIdProvider = StreamProvider.family<Project, String>((ref, id) {
+  return ref.watch(projectRepositoryProvider).watchById(id);
+});

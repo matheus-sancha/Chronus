@@ -19,6 +19,25 @@ class ProjectRepository {
         .watch();
   }
 
+  Stream<Project> watchById(String id) {
+    return (_db.select(_db.projects)..where((t) => t.id.equals(id)))
+        .watchSingle();
+  }
+
+  Future<void> update({
+    required String id,
+    required String name,
+    String? notes,
+  }) {
+    return (_db.update(_db.projects)..where((t) => t.id.equals(id))).write(
+      ProjectsCompanion(
+        name: Value(name),
+        notes: Value(notes),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
   Future<Project> create({required String name, String? notes}) {
     final now = DateTime.now();
     return _db.into(_db.projects).insertReturning(

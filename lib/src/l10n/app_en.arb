@@ -42,5 +42,101 @@
   },
   "settingsUnitSeconds": "Seconds",
   "settingsUnitDecimalMinutes": "Decimal minutes",
-  "actionSave": "Save"
+  "actionSave": "Save",
+  "actionEdit": "Edit",
+  "actionDelete": "Delete",
+  "projectEditTitle": "Edit project",
+  "projectNotesLabel": "Notes",
+  "deleteProjectTitle": "Delete project",
+  "deleteProjectMessage": "Delete {name} and all its studies? This cannot be undone.",
+  "@deleteProjectMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "studiesSectionTitle": "Studies",
+  "studiesEmpty": "No studies yet. Create the first one.",
+  "studyNewTitle": "New study",
+  "studyNameLabel": "Study name",
+  "studyTypeLabel": "Study type",
+  "studyTypeTime": "Time Study",
+  "studyTypeSampling": "Sampling Study",
+  "deleteStudyTitle": "Delete study",
+  "deleteStudyMessage": "Delete {name}? This cannot be undone.",
+  "@deleteStudyMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "studyFieldType": "Type",
+  "studyFieldDate": "Date",
+  "studyFieldAnalyst": "Analyst",
+  "studyOperationsSection": "Operations",
+  "studyOperationsPending": "Operations are added when you build the sequence.",
+  "studyEditTitle": "Edit study",
+  "studyDetailsSection": "Details",
+  "studyFieldAllowance": "Allowance %",
+  "studyFieldProcessType": "Process type",
+  "studyFieldPartProduct": "Part / Product",
+  "studyFieldProcessOperation": "Process / Operation",
+  "studyFieldMachine": "Machine / Workstation",
+  "studyFieldLineCell": "Line / Cell",
+  "studyFieldOperator": "Operator",
+  "studyFieldShift": "Shift",
+  "studyFieldWorkOrder": "Work order #",
+  "studyFieldNotes": "Notes",
+  "processTypeNone": "None",
+  "studyAllowanceHelp": "Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).",
+  "navCatalog": "Catalog",
+  "catalogEmpty": "No operations yet. Add the first one.",
+  "catalogNewTitle": "New operation",
+  "catalogEditTitle": "Edit operation",
+  "operationNameLabel": "Operation name",
+  "operationCategoryLabel": "Type",
+  "operationSubtypeLabel": "Subtype",
+  "operationReferenceStandardLabel": "Reference standard time",
+  "subtypeNewTitle": "New subtype",
+  "subtypeNameLabel": "Subtype name",
+  "deleteOperationTitle": "Delete operation",
+  "deleteOperationMessage": "Delete {name}? This cannot be undone.",
+  "@deleteOperationMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "categorySetup": "Setup",
+  "categoryProductive": "Productive",
+  "categoryUnproductive": "Unproductive",
+  "wasteWaiting": "Waiting",
+  "wasteMotion": "Motion",
+  "wasteTransportation": "Transportation",
+  "wasteOverProcessing": "Over-processing",
+  "wasteOverproduction": "Overproduction",
+  "wasteInventory": "Inventory",
+  "wasteDefects": "Defects",
+  "sequenceEmpty": "No operations yet. Add them from the catalog.",
+  "addOperationTitle": "Add operation",
+  "catalogPickerEmpty": "Your catalog is empty. Add operations in the Catalog tab first.",
+  "customOperationTitle": "Custom operation",
+  "filterAll": "All",
+  "navTemplates": "Templates",
+  "templatesEmpty": "No templates yet. Create the first one.",
+  "templateNewTitle": "New template",
+  "templateEditTitle": "Edit template",
+  "templateNameLabel": "Template name",
+  "templateDefaultType": "Default study type",
+  "deleteTemplateTitle": "Delete template",
+  "deleteTemplateMessage": "Delete {name}? This cannot be undone.",
+  "@deleteTemplateMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "createStudyAction": "Create study",
+  "instantiateTitle": "Create study from template",
+  "fieldProject": "Project",
+  "instantiateNoProjects": "Create a project first.",
+  "templateStudyCreated": "Study created.",
+  "saveAsTemplateAction": "Save as template",
+  "searchHint": "Search operations"
 }

@@ -1,8 +1,18 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../features/catalog/presentation/catalog_edit_screen.dart';
+import '../features/catalog/presentation/catalog_screen.dart';
+import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/studies/presentation/study_custom_operation_screen.dart';
+import '../features/studies/presentation/study_detail_screen.dart';
+import '../features/studies/presentation/study_edit_screen.dart';
+import '../features/studies/presentation/study_sequence_screen.dart';
+import '../features/templates/presentation/template_custom_operation_screen.dart';
+import '../features/templates/presentation/template_sequence_screen.dart';
+import '../features/templates/presentation/templates_screen.dart';
 import 'app_shell.dart';
 
 part 'router.g.dart';
@@ -23,6 +33,93 @@ GoRouter router(Ref ref) {
               GoRoute(
                 path: '/projects',
                 builder: (context, state) => const ProjectsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':projectId',
+                    builder: (context, state) => ProjectDetailScreen(
+                      projectId: state.pathParameters['projectId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'studies/:studyId',
+                        builder: (context, state) => StudyDetailScreen(
+                          projectId: state.pathParameters['projectId']!,
+                          studyId: state.pathParameters['studyId']!,
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'edit',
+                            builder: (context, state) => StudyEditScreen(
+                              projectId: state.pathParameters['projectId']!,
+                              studyId: state.pathParameters['studyId']!,
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'sequence',
+                            builder: (context, state) => StudySequenceScreen(
+                              projectId: state.pathParameters['projectId']!,
+                              studyId: state.pathParameters['studyId']!,
+                            ),
+                            routes: [
+                              GoRoute(
+                                path: 'custom',
+                                builder: (context, state) =>
+                                    StudyCustomOperationScreen(
+                                  studyId: state.pathParameters['studyId']!,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/catalog',
+                builder: (context, state) => const CatalogScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const CatalogEditScreen(),
+                  ),
+                  GoRoute(
+                    path: 'edit/:operationId',
+                    builder: (context, state) => CatalogEditScreen(
+                      operationId: state.pathParameters['operationId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/templates',
+                builder: (context, state) => const TemplatesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':templateId/sequence',
+                    builder: (context, state) => TemplateSequenceScreen(
+                      templateId: state.pathParameters['templateId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'custom',
+                        builder: (context, state) =>
+                            TemplateCustomOperationScreen(
+                          templateId: state.pathParameters['templateId']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
