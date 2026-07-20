@@ -76,5 +76,19 @@
   "addOperationTitle": "Agregar operación",
   "catalogPickerEmpty": "Tu catálogo está vacío. Agrega operaciones en la pestaña Catálogo primero.",
   "customOperationTitle": "Operación personalizada",
-  "filterAll": "Todos"
+  "filterAll": "Todos",
+  "navTemplates": "Plantillas",
+  "templatesEmpty": "Aún no hay plantillas. Crea la primera.",
+  "templateNewTitle": "Nueva plantilla",
+  "templateEditTitle": "Editar plantilla",
+  "templateNameLabel": "Nombre de la plantilla",
+  "templateDefaultType": "Tipo de estudio predeterminado",
+  "deleteTemplateTitle": "Eliminar plantilla",
+  "deleteTemplateMessage": "¿Eliminar {name}? Esto no se puede deshacer.",
+  "createStudyAction": "Crear estudio",
+  "instantiateTitle": "Crear estudio desde la plantilla",
+  "fieldProject": "Proyecto",
+  "instantiateNoProjects": "Crea un proyecto primero.",
+  "templateStudyCreated": "Estudio creado.",
+  "saveAsTemplateAction": "Guardar como plantilla"
 }

@@ -7,6 +7,7 @@ import '../../../common/duration_format.dart';
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/presentation/classification_labels.dart';
+import '../../templates/application/templates_providers.dart';
 import '../application/studies_providers.dart';
 import 'study_formatting.dart';
 
@@ -29,6 +30,13 @@ class StudyDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(studyAsync.value?.name ?? ''),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_add_outlined),
+            tooltip: l10n.saveAsTemplateAction,
+            onPressed: studyAsync.hasValue
+                ? () => _saveAsTemplate(context, ref, studyAsync.value!.name)
+                : null,
+          ),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: l10n.actionEdit,
@@ -57,6 +65,27 @@ class StudyDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _saveAsTemplate(
+    BuildContext context,
+    WidgetRef ref,
+    String studyName,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => _TemplateNameDialog(initial: studyName),
+    );
+    if (name == null || name.trim().isEmpty) return;
+    await ref
+        .read(templateRepositoryProvider)
+        .saveStudyAsTemplate(studyId: studyId, name: name.trim());
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.saveAsTemplateAction)),
+      );
+    }
   }
 
   Future<void> _deleteStudy(
@@ -206,6 +235,50 @@ class _StudyBody extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+}
+
+/// Prompts for a template name (defaults to the study's name).
+class _TemplateNameDialog extends StatefulWidget {
+  const _TemplateNameDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_TemplateNameDialog> createState() => _TemplateNameDialogState();
+}
+
+class _TemplateNameDialogState extends State<_TemplateNameDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.saveAsTemplateAction),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(labelText: l10n.templateNameLabel),
+        onSubmitted: (v) => Navigator.of(context).pop(v),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.actionCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: Text(l10n.actionSave),
+        ),
+      ],
     );
   }
 }

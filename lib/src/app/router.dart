@@ -10,6 +10,8 @@ import '../features/studies/presentation/study_custom_operation_screen.dart';
 import '../features/studies/presentation/study_detail_screen.dart';
 import '../features/studies/presentation/study_edit_screen.dart';
 import '../features/studies/presentation/study_sequence_screen.dart';
+import '../features/templates/presentation/template_sequence_screen.dart';
+import '../features/templates/presentation/templates_screen.dart';
 import 'app_shell.dart';
 
 part 'router.g.dart';
@@ -89,6 +91,22 @@ GoRouter router(Ref ref) {
                     path: 'edit/:operationId',
                     builder: (context, state) => CatalogEditScreen(
                       operationId: state.pathParameters['operationId']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/templates',
+                builder: (context, state) => const TemplatesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':templateId/sequence',
+                    builder: (context, state) => TemplateSequenceScreen(
+                      templateId: state.pathParameters['templateId']!,
                     ),
                   ),
                 ],

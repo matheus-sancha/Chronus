@@ -76,5 +76,19 @@
   "addOperationTitle": "Adicionar operação",
   "catalogPickerEmpty": "Seu catálogo está vazio. Adicione operações na aba Catálogo primeiro.",
   "customOperationTitle": "Operação personalizada",
-  "filterAll": "Todos"
+  "filterAll": "Todos",
+  "navTemplates": "Modelos",
+  "templatesEmpty": "Nenhum modelo ainda. Crie o primeiro.",
+  "templateNewTitle": "Novo modelo",
+  "templateEditTitle": "Editar modelo",
+  "templateNameLabel": "Nome do modelo",
+  "templateDefaultType": "Tipo de estudo padrão",
+  "deleteTemplateTitle": "Excluir modelo",
+  "deleteTemplateMessage": "Excluir {name}? Isso não pode ser desfeito.",
+  "createStudyAction": "Criar estudo",
+  "instantiateTitle": "Criar estudo a partir do modelo",
+  "fieldProject": "Projeto",
+  "instantiateNoProjects": "Crie um projeto primeiro.",
+  "templateStudyCreated": "Estudo criado.",
+  "saveAsTemplateAction": "Salvar como modelo"
 }

@@ -248,4 +248,48 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get filterAll => 'Todos';
+
+  @override
+  String get navTemplates => 'Modelos';
+
+  @override
+  String get templatesEmpty => 'Nenhum modelo ainda. Crie o primeiro.';
+
+  @override
+  String get templateNewTitle => 'Novo modelo';
+
+  @override
+  String get templateEditTitle => 'Editar modelo';
+
+  @override
+  String get templateNameLabel => 'Nome do modelo';
+
+  @override
+  String get templateDefaultType => 'Tipo de estudo padrão';
+
+  @override
+  String get deleteTemplateTitle => 'Excluir modelo';
+
+  @override
+  String deleteTemplateMessage(String name) {
+    return 'Excluir $name? Isso não pode ser desfeito.';
+  }
+
+  @override
+  String get createStudyAction => 'Criar estudo';
+
+  @override
+  String get instantiateTitle => 'Criar estudo a partir do modelo';
+
+  @override
+  String get fieldProject => 'Projeto';
+
+  @override
+  String get instantiateNoProjects => 'Crie um projeto primeiro.';
+
+  @override
+  String get templateStudyCreated => 'Estudo criado.';
+
+  @override
+  String get saveAsTemplateAction => 'Salvar como modelo';
 }

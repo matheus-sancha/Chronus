@@ -247,4 +247,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterAll => 'All';
+
+  @override
+  String get navTemplates => 'Templates';
+
+  @override
+  String get templatesEmpty => 'No templates yet. Create the first one.';
+
+  @override
+  String get templateNewTitle => 'New template';
+
+  @override
+  String get templateEditTitle => 'Edit template';
+
+  @override
+  String get templateNameLabel => 'Template name';
+
+  @override
+  String get templateDefaultType => 'Default study type';
+
+  @override
+  String get deleteTemplateTitle => 'Delete template';
+
+  @override
+  String deleteTemplateMessage(String name) {
+    return 'Delete $name? This cannot be undone.';
+  }
+
+  @override
+  String get createStudyAction => 'Create study';
+
+  @override
+  String get instantiateTitle => 'Create study from template';
+
+  @override
+  String get fieldProject => 'Project';
+
+  @override
+  String get instantiateNoProjects => 'Create a project first.';
+
+  @override
+  String get templateStudyCreated => 'Study created.';
+
+  @override
+  String get saveAsTemplateAction => 'Save as template';
 }

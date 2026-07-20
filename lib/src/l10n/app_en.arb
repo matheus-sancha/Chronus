@@ -118,5 +118,24 @@
   "addOperationTitle": "Add operation",
   "catalogPickerEmpty": "Your catalog is empty. Add operations in the Catalog tab first.",
   "customOperationTitle": "Custom operation",
-  "filterAll": "All"
+  "filterAll": "All",
+  "navTemplates": "Templates",
+  "templatesEmpty": "No templates yet. Create the first one.",
+  "templateNewTitle": "New template",
+  "templateEditTitle": "Edit template",
+  "templateNameLabel": "Template name",
+  "templateDefaultType": "Default study type",
+  "deleteTemplateTitle": "Delete template",
+  "deleteTemplateMessage": "Delete {name}? This cannot be undone.",
+  "@deleteTemplateMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "createStudyAction": "Create study",
+  "instantiateTitle": "Create study from template",
+  "fieldProject": "Project",
+  "instantiateNoProjects": "Create a project first.",
+  "templateStudyCreated": "Study created.",
+  "saveAsTemplateAction": "Save as template"
 }

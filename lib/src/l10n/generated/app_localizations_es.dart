@@ -248,4 +248,48 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get filterAll => 'Todos';
+
+  @override
+  String get navTemplates => 'Plantillas';
+
+  @override
+  String get templatesEmpty => 'Aún no hay plantillas. Crea la primera.';
+
+  @override
+  String get templateNewTitle => 'Nueva plantilla';
+
+  @override
+  String get templateEditTitle => 'Editar plantilla';
+
+  @override
+  String get templateNameLabel => 'Nombre de la plantilla';
+
+  @override
+  String get templateDefaultType => 'Tipo de estudio predeterminado';
+
+  @override
+  String get deleteTemplateTitle => 'Eliminar plantilla';
+
+  @override
+  String deleteTemplateMessage(String name) {
+    return '¿Eliminar $name? Esto no se puede deshacer.';
+  }
+
+  @override
+  String get createStudyAction => 'Crear estudio';
+
+  @override
+  String get instantiateTitle => 'Crear estudio desde la plantilla';
+
+  @override
+  String get fieldProject => 'Proyecto';
+
+  @override
+  String get instantiateNoProjects => 'Crea un proyecto primero.';
+
+  @override
+  String get templateStudyCreated => 'Estudio creado.';
+
+  @override
+  String get saveAsTemplateAction => 'Guardar como plantilla';
 }

@@ -561,6 +561,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All'**
   String get filterAll;
+
+  /// No description provided for @navTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get navTemplates;
+
+  /// No description provided for @templatesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet. Create the first one.'**
+  String get templatesEmpty;
+
+  /// No description provided for @templateNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New template'**
+  String get templateNewTitle;
+
+  /// No description provided for @templateEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit template'**
+  String get templateEditTitle;
+
+  /// No description provided for @templateNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get templateNameLabel;
+
+  /// No description provided for @templateDefaultType.
+  ///
+  /// In en, this message translates to:
+  /// **'Default study type'**
+  String get templateDefaultType;
+
+  /// No description provided for @deleteTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template'**
+  String get deleteTemplateTitle;
+
+  /// No description provided for @deleteTemplateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String deleteTemplateMessage(String name);
+
+  /// No description provided for @createStudyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create study'**
+  String get createStudyAction;
+
+  /// No description provided for @instantiateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create study from template'**
+  String get instantiateTitle;
+
+  /// No description provided for @fieldProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get fieldProject;
+
+  /// No description provided for @instantiateNoProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a project first.'**
+  String get instantiateNoProjects;
+
+  /// No description provided for @templateStudyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Study created.'**
+  String get templateStudyCreated;
+
+  /// No description provided for @saveAsTemplateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get saveAsTemplateAction;
 }
 
 class _AppLocalizationsDelegate
