@@ -429,4 +429,23 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get noteHint => 'Comentários sobre esta operação';
+
+  @override
+  String get photosAction => 'Fotos';
+
+  @override
+  String get photosEmpty => 'Nenhuma foto ainda.';
+
+  @override
+  String get addPhoto => 'Adicionar foto';
+
+  @override
+  String get captionLabel => 'Legenda';
+
+  @override
+  String get deletePhotoTitle => 'Excluir foto';
+
+  @override
+  String get deletePhotoMessage =>
+      'Excluir esta foto? Isso não pode ser desfeito.';
 }

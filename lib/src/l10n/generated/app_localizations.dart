@@ -903,6 +903,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Comments about this operation'**
   String get noteHint;
+
+  /// No description provided for @photosAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get photosAction;
+
+  /// No description provided for @photosEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet.'**
+  String get photosEmpty;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get addPhoto;
+
+  /// No description provided for @captionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get captionLabel;
+
+  /// No description provided for @deletePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete photo'**
+  String get deletePhotoTitle;
+
+  /// No description provided for @deletePhotoMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this photo? This cannot be undone.'**
+  String get deletePhotoMessage;
 }
 
 class _AppLocalizationsDelegate

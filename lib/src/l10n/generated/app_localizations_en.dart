@@ -428,4 +428,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noteHint => 'Comments about this operation';
+
+  @override
+  String get photosAction => 'Photos';
+
+  @override
+  String get photosEmpty => 'No photos yet.';
+
+  @override
+  String get addPhoto => 'Add photo';
+
+  @override
+  String get captionLabel => 'Caption';
+
+  @override
+  String get deletePhotoTitle => 'Delete photo';
+
+  @override
+  String get deletePhotoMessage => 'Delete this photo? This cannot be undone.';
 }

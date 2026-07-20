@@ -197,5 +197,11 @@
   "actionDuplicate": "Duplicate",
   "noteAction": "Note",
   "noteDialogTitle": "Operation note",
-  "noteHint": "Comments about this operation"
+  "noteHint": "Comments about this operation",
+  "photosAction": "Photos",
+  "photosEmpty": "No photos yet.",
+  "addPhoto": "Add photo",
+  "captionLabel": "Caption",
+  "deletePhotoTitle": "Delete photo",
+  "deletePhotoMessage": "Delete this photo? This cannot be undone."
 }

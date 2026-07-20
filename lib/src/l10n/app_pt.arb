@@ -150,5 +150,11 @@
   "actionDuplicate": "Duplicar",
   "noteAction": "Nota",
   "noteDialogTitle": "Nota da operação",
-  "noteHint": "Comentários sobre esta operação"
+  "noteHint": "Comentários sobre esta operação",
+  "photosAction": "Fotos",
+  "photosEmpty": "Nenhuma foto ainda.",
+  "addPhoto": "Adicionar foto",
+  "captionLabel": "Legenda",
+  "deletePhotoTitle": "Excluir foto",
+  "deletePhotoMessage": "Excluir esta foto? Isso não pode ser desfeito."
 }

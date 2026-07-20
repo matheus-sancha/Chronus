@@ -14,6 +14,8 @@ import '../../catalog/application/catalog_providers.dart';
 import '../../catalog/presentation/classification_labels.dart';
 import '../../catalog/presentation/operation_fields.dart';
 import '../../catalog/presentation/operation_picker.dart';
+import '../../media/application/media_providers.dart';
+import '../../media/presentation/media_gallery.dart';
 import '../../templates/application/templates_providers.dart';
 import '../application/studies_providers.dart';
 import '../application/timing_model.dart';
@@ -162,6 +164,8 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
             const <OperationTimeSegment>[]);
     final subtypes = ref.watch(subtypesProvider).value ?? const [];
     final subtypeById = {for (final s in subtypes) s.id: s};
+    final mediaCounts =
+        ref.watch(operationMediaCountsProvider).value ?? const <String, int>{};
 
     final timing = timingByOperation(instances: instances, segments: segments);
     _live = timing.values.any((t) => t.state == OperationTimingState.running);
@@ -201,7 +205,11 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
                     final op = ops[i];
                     final t = timing[op.id] ??
                         OperationTiming(instance: null, segments: const []);
-                    return _row(context, l10n, i, op, t, subtypeById);
+                    final photoCount = t.instance != null
+                        ? (mediaCounts[t.instance!.id] ?? 0)
+                        : 0;
+                    return _row(
+                        context, l10n, i, op, t, subtypeById, photoCount);
                   },
                 ),
         ),
@@ -274,6 +282,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     StudyOperation op,
     OperationTiming t,
     Map<String, OperationSubtype> subtypeById,
+    int photoCount,
   ) {
     final theme = Theme.of(context);
     final actual = t.actualMs();
@@ -311,6 +320,22 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
                           padding: const EdgeInsets.only(left: 6),
                           child: Icon(Icons.sticky_note_2_outlined,
                               size: 15, color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      if (photoCount > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.photo_outlined,
+                                  size: 15,
+                                  color: theme.colorScheme.onSurfaceVariant),
+                              Text(' $photoCount',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                      color:
+                                          theme.colorScheme.onSurfaceVariant)),
+                            ],
+                          ),
                         ),
                     ],
                   ),
@@ -415,6 +440,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
       icon: const Icon(Icons.more_vert),
       onSelected: (value) => switch (value) {
         'note' => _editNote(op, note),
+        'photos' => _openPhotos(op),
         'duplicate' => _seq.duplicate(op.id),
         'edit' => _editOperation(op),
         'delete' => _deleteOperation(op),
@@ -422,10 +448,23 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
       },
       itemBuilder: (_) => [
         PopupMenuItem(value: 'note', child: Text(l10n.noteAction)),
+        PopupMenuItem(value: 'photos', child: Text(l10n.photosAction)),
         PopupMenuItem(value: 'duplicate', child: Text(l10n.actionDuplicate)),
         PopupMenuItem(value: 'edit', child: Text(l10n.actionEdit)),
         PopupMenuItem(value: 'delete', child: Text(l10n.actionDelete)),
       ],
+    );
+  }
+
+  Future<void> _openPhotos(StudyOperation op) async {
+    final instanceId = await _timing.ensureInstanceId(
+        studyId: _studyId, studyOperationId: op.id);
+    if (!mounted) return;
+    await showMediaGallery(
+      context,
+      ownerType: MediaOwnerType.operationInstance,
+      ownerId: instanceId,
+      title: op.name,
     );
   }
 

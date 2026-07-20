@@ -179,6 +179,19 @@ class TimingRepository {
     });
   }
 
+  /// Ensures a timing instance exists for an operation and returns its id, so
+  /// callers (e.g. attaching photos) have a stable owner id even before the
+  /// operation has been timed.
+  Future<String> ensureInstanceId({
+    required String studyId,
+    required String studyOperationId,
+  }) async {
+    return _db.transaction(() async {
+      final observationId = await _ensureObservation(studyId);
+      return _ensureInstance(observationId, studyOperationId);
+    });
+  }
+
   /// Set (or clear, with a null/blank value) a free-form note about the
   /// operation. Lazily creates the instance so a note can be added to an
   /// operation that has never been timed.
