@@ -55,7 +55,7 @@
   "catalogNewTitle": "Nueva operación",
   "catalogEditTitle": "Editar operación",
   "operationNameLabel": "Nombre de la operación",
-  "operationCategoryLabel": "Clasificación",
+  "operationCategoryLabel": "Tipo",
   "operationSubtypeLabel": "Subtipo",
   "operationReferenceStandardLabel": "Tiempo estándar de referencia",
   "subtypeNewTitle": "Nuevo subtipo",
@@ -74,5 +74,7 @@
   "wasteDefects": "Defectos",
   "sequenceEmpty": "Aún no hay operaciones. Agrégalas desde el catálogo.",
   "addOperationTitle": "Agregar operación",
-  "catalogPickerEmpty": "Tu catálogo está vacío. Agrega operaciones en la pestaña Catálogo primero."
+  "catalogPickerEmpty": "Tu catálogo está vacío. Agrega operaciones en la pestaña Catálogo primero.",
+  "customOperationTitle": "Operación personalizada",
+  "filterAll": "Todos"
 }

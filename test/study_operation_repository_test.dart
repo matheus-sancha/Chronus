@@ -76,6 +76,20 @@ void main() {
     expect(ops.map((o) => o.name), ['C', 'A', 'B']);
   });
 
+  test('a custom operation has no catalog link', () async {
+    await sequence.addCustom(
+      studyId: studyId,
+      name: 'Ad-hoc rework',
+      category: OperationCategory.unproductive,
+      referenceStandardMs: 3000,
+    );
+    final op = (await sequence.watchByStudy(studyId).first).single;
+    expect(op.name, 'Ad-hoc rework');
+    expect(op.category, OperationCategory.unproductive);
+    expect(op.catalogOperationId, isNull);
+    expect(op.referenceStandardMs, 3000);
+  });
+
   test('remove deletes one operation', () async {
     await sequence.addFromCatalog(studyId: studyId, operation: await catalogOp('A'));
     final op = (await sequence.watchByStudy(studyId).first).single;

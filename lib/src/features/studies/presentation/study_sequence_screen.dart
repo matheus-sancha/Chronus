@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../common/duration_format.dart';
 import '../../../data/database/database.dart';
@@ -11,8 +12,13 @@ import '../application/studies_providers.dart';
 /// Build a study's operation sequence: add from the catalog, drag to reorder,
 /// remove. Timing (per-observation) comes in Phase 3.
 class StudySequenceScreen extends ConsumerWidget {
-  const StudySequenceScreen({super.key, required this.studyId});
+  const StudySequenceScreen({
+    super.key,
+    required this.projectId,
+    required this.studyId,
+  });
 
+  final String projectId;
   final String studyId;
 
   @override
@@ -77,16 +83,34 @@ class StudySequenceScreen extends ConsumerWidget {
   }
 
   Future<void> _addOperation(BuildContext context, WidgetRef ref) async {
-    final chosen = await showModalBottomSheet<CatalogOperation>(
+    final choice = await showModalBottomSheet<_AddChoice>(
       context: context,
       builder: (context) => const _CatalogPickerSheet(),
     );
-    if (chosen == null) return;
-    await ref
-        .read(studyOperationRepositoryProvider)
-        .addFromCatalog(studyId: studyId, operation: chosen);
+    switch (choice) {
+      case _AddFromCatalog(:final operation):
+        await ref
+            .read(studyOperationRepositoryProvider)
+            .addFromCatalog(studyId: studyId, operation: operation);
+      case _AddCustom():
+        if (context.mounted) {
+          context.push('/projects/$projectId/studies/$studyId/sequence/custom');
+        }
+      case null:
+        break;
+    }
   }
 }
+
+/// Result of the add-operation sheet.
+sealed class _AddChoice {}
+
+class _AddFromCatalog extends _AddChoice {
+  _AddFromCatalog(this.operation);
+  final CatalogOperation operation;
+}
+
+class _AddCustom extends _AddChoice {}
 
 /// Bottom sheet listing catalog operations; tap one to add it to the sequence.
 class _CatalogPickerSheet extends ConsumerWidget {
@@ -96,6 +120,12 @@ class _CatalogPickerSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final catalog = ref.watch(catalogListProvider);
+
+    final customTile = ListTile(
+      leading: const Icon(Icons.edit_note_outlined),
+      title: Text(l10n.customOperationTitle),
+      onTap: () => Navigator.of(context).pop(_AddCustom()),
+    );
 
     return SafeArea(
       child: catalog.when(
@@ -108,12 +138,6 @@ class _CatalogPickerSheet extends ConsumerWidget {
           child: Center(child: Text('$error')),
         ),
         data: (operations) {
-          if (operations.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(32),
-              child: Center(child: Text(l10n.catalogPickerEmpty)),
-            );
-          }
           return ListView(
             shrinkWrap: true,
             children: [
@@ -124,12 +148,21 @@ class _CatalogPickerSheet extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              for (final op in operations)
-                ListTile(
-                  title: Text(op.name),
-                  subtitle: Text(categoryLabel(l10n, op.category)),
-                  onTap: () => Navigator.of(context).pop(op),
-                ),
+              customTile,
+              if (operations.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(child: Text(l10n.catalogPickerEmpty)),
+                )
+              else ...[
+                const Divider(),
+                for (final op in operations)
+                  ListTile(
+                    title: Text(op.name),
+                    subtitle: Text(categoryLabel(l10n, op.category)),
+                    onTap: () => Navigator.of(context).pop(_AddFromCatalog(op)),
+                  ),
+              ],
             ],
           );
         },

@@ -180,7 +180,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get operationNameLabel => 'Nombre de la operación';
 
   @override
-  String get operationCategoryLabel => 'Clasificación';
+  String get operationCategoryLabel => 'Tipo';
 
   @override
   String get operationSubtypeLabel => 'Subtipo';
@@ -242,4 +242,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get catalogPickerEmpty =>
       'Tu catálogo está vacío. Agrega operaciones en la pestaña Catálogo primero.';
+
+  @override
+  String get customOperationTitle => 'Operación personalizada';
+
+  @override
+  String get filterAll => 'Todos';
 }

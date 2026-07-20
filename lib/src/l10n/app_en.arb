@@ -92,7 +92,7 @@
   "catalogNewTitle": "New operation",
   "catalogEditTitle": "Edit operation",
   "operationNameLabel": "Operation name",
-  "operationCategoryLabel": "Classification",
+  "operationCategoryLabel": "Type",
   "operationSubtypeLabel": "Subtype",
   "operationReferenceStandardLabel": "Reference standard time",
   "subtypeNewTitle": "New subtype",
@@ -116,5 +116,7 @@
   "wasteDefects": "Defects",
   "sequenceEmpty": "No operations yet. Add them from the catalog.",
   "addOperationTitle": "Add operation",
-  "catalogPickerEmpty": "Your catalog is empty. Add operations in the Catalog tab first."
+  "catalogPickerEmpty": "Your catalog is empty. Add operations in the Catalog tab first.",
+  "customOperationTitle": "Custom operation",
+  "filterAll": "All"
 }

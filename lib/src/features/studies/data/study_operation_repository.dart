@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/database/database.dart';
+import '../../../data/database/enums.dart';
 
 /// Manages a study's ordered operation sequence ([StudyOperation]s). Adding from
 /// the catalog SNAPSHOTS the catalog fields (name/category/subtype/reference
@@ -43,6 +44,36 @@ class StudyOperationRepository {
             category: operation.category,
             subtypeId: Value(operation.subtypeId),
             referenceStandardMs: Value(operation.referenceStandardMs),
+            createdAt: DateTime.now(),
+          ),
+        );
+  }
+
+  /// Adds a study-local operation not backed by the catalog
+  /// ([catalogOperationId] stays null).
+  Future<void> addCustom({
+    required String studyId,
+    required String name,
+    required OperationCategory category,
+    String? subtypeId,
+    int? referenceStandardMs,
+  }) async {
+    final existing = await (_db.select(_db.studyOperations)
+          ..where((t) => t.studyId.equals(studyId)))
+        .get();
+    final nextOrder = existing.isEmpty
+        ? 1.0
+        : existing.map((e) => e.orderIndex).reduce(max) + 1;
+
+    await _db.into(_db.studyOperations).insert(
+          StudyOperationsCompanion.insert(
+            id: _uuid.v4(),
+            studyId: studyId,
+            orderIndex: nextOrder,
+            name: name,
+            category: category,
+            subtypeId: Value(subtypeId),
+            referenceStandardMs: Value(referenceStandardMs),
             createdAt: DateTime.now(),
           ),
         );

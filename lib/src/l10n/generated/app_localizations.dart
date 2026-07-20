@@ -433,7 +433,7 @@ abstract class AppLocalizations {
   /// No description provided for @operationCategoryLabel.
   ///
   /// In en, this message translates to:
-  /// **'Classification'**
+  /// **'Type'**
   String get operationCategoryLabel;
 
   /// No description provided for @operationSubtypeLabel.
@@ -549,6 +549,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your catalog is empty. Add operations in the Catalog tab first.'**
   String get catalogPickerEmpty;
+
+  /// No description provided for @customOperationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom operation'**
+  String get customOperationTitle;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
 }
 
 class _AppLocalizationsDelegate
