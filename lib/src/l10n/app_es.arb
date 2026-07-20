@@ -91,5 +91,64 @@
   "instantiateNoProjects": "Crea un proyecto primero.",
   "templateStudyCreated": "Estudio creado.",
   "saveAsTemplateAction": "Guardar como plantilla",
-  "searchHint": "Buscar operaciones"
+  "searchHint": "Buscar operaciones",
+  "timingTitle": "Cronometraje",
+  "timingStart": "Iniciar cronometraje",
+  "timingContinue": "Continuar cronometraje",
+  "timingView": "Ver cronometraje",
+  "timingLapNext": "Terminar e iniciar:\n{name}",
+  "@timingLapNext": {
+    "description": "The big lap-advance button while running; ends the current operation and starts the next.",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "timingLapFinal": "Terminar operación final",
+  "timingUnplanned": "No planificada",
+  "timingUnplannedTag": "no planificada",
+  "timingFinish": "Finalizar",
+  "timingInsertUnplannedTitle": "Insertar operación no planificada",
+  "timingComplete": "Estudio completado",
+  "timingTotalTime": "Tiempo total",
+  "timingValueAddedRatio": "Índice de valor añadido",
+  "timingDiscard": "Descartar cronometraje",
+  "timingDiscardTitle": "Descartar cronometraje",
+  "timingDiscardMessage": "¿Eliminar todos los tiempos registrados de este estudio? Esto no se puede deshacer.",
+  "timingNoOperations": "Añade operaciones antes de cronometrar.",
+  "timingNoSegments": "Aún no hay operaciones registradas.",
+  "workspaceTotalLabel": "Total",
+  "timedProgress": "{done} / {total} cronometradas",
+  "@timedProgress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "colOperation": "Operación",
+  "colExpected": "Previsto",
+  "colActual": "Real",
+  "tooltipStart": "Iniciar",
+  "tooltipResume": "Reanudar",
+  "tooltipPause": "Pausar",
+  "tooltipStop": "Detener",
+  "tooltipStopNext": "Detener e iniciar siguiente",
+  "tooltipReset": "Reiniciar",
+  "resetConfirmTitle": "Reiniciar operación",
+  "resetConfirmMessage": "¿Descartar el tiempo medido de {name}?",
+  "@resetConfirmMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "interruptionTitle": "Operación pausada",
+  "interruptionMessage": "¿Registrar esta interrupción como una operación no productiva?",
+  "interruptionLog": "Registrar interrupción",
+  "interruptionSkip": "Ahora no",
+  "manualTimeTitle": "Introducir tiempo real",
+  "manualClear": "Quitar ajuste manual",
+  "manualBadge": "manual",
+  "actionDuplicate": "Duplicar",
+  "noteAction": "Nota",
+  "noteDialogTitle": "Nota de la operación",
+  "noteHint": "Comentarios sobre esta operación"
 }

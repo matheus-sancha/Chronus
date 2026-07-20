@@ -295,4 +295,138 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get searchHint => 'Buscar operaciones';
+
+  @override
+  String get timingTitle => 'Cronometraje';
+
+  @override
+  String get timingStart => 'Iniciar cronometraje';
+
+  @override
+  String get timingContinue => 'Continuar cronometraje';
+
+  @override
+  String get timingView => 'Ver cronometraje';
+
+  @override
+  String timingLapNext(String name) {
+    return 'Terminar e iniciar:\n$name';
+  }
+
+  @override
+  String get timingLapFinal => 'Terminar operación final';
+
+  @override
+  String get timingUnplanned => 'No planificada';
+
+  @override
+  String get timingUnplannedTag => 'no planificada';
+
+  @override
+  String get timingFinish => 'Finalizar';
+
+  @override
+  String get timingInsertUnplannedTitle => 'Insertar operación no planificada';
+
+  @override
+  String get timingComplete => 'Estudio completado';
+
+  @override
+  String get timingTotalTime => 'Tiempo total';
+
+  @override
+  String get timingValueAddedRatio => 'Índice de valor añadido';
+
+  @override
+  String get timingDiscard => 'Descartar cronometraje';
+
+  @override
+  String get timingDiscardTitle => 'Descartar cronometraje';
+
+  @override
+  String get timingDiscardMessage =>
+      '¿Eliminar todos los tiempos registrados de este estudio? Esto no se puede deshacer.';
+
+  @override
+  String get timingNoOperations => 'Añade operaciones antes de cronometrar.';
+
+  @override
+  String get timingNoSegments => 'Aún no hay operaciones registradas.';
+
+  @override
+  String get workspaceTotalLabel => 'Total';
+
+  @override
+  String timedProgress(int done, int total) {
+    return '$done / $total cronometradas';
+  }
+
+  @override
+  String get colOperation => 'Operación';
+
+  @override
+  String get colExpected => 'Previsto';
+
+  @override
+  String get colActual => 'Real';
+
+  @override
+  String get tooltipStart => 'Iniciar';
+
+  @override
+  String get tooltipResume => 'Reanudar';
+
+  @override
+  String get tooltipPause => 'Pausar';
+
+  @override
+  String get tooltipStop => 'Detener';
+
+  @override
+  String get tooltipStopNext => 'Detener e iniciar siguiente';
+
+  @override
+  String get tooltipReset => 'Reiniciar';
+
+  @override
+  String get resetConfirmTitle => 'Reiniciar operación';
+
+  @override
+  String resetConfirmMessage(String name) {
+    return '¿Descartar el tiempo medido de $name?';
+  }
+
+  @override
+  String get interruptionTitle => 'Operación pausada';
+
+  @override
+  String get interruptionMessage =>
+      '¿Registrar esta interrupción como una operación no productiva?';
+
+  @override
+  String get interruptionLog => 'Registrar interrupción';
+
+  @override
+  String get interruptionSkip => 'Ahora no';
+
+  @override
+  String get manualTimeTitle => 'Introducir tiempo real';
+
+  @override
+  String get manualClear => 'Quitar ajuste manual';
+
+  @override
+  String get manualBadge => 'manual';
+
+  @override
+  String get actionDuplicate => 'Duplicar';
+
+  @override
+  String get noteAction => 'Nota';
+
+  @override
+  String get noteDialogTitle => 'Nota de la operación';
+
+  @override
+  String get noteHint => 'Comentarios sobre esta operación';
 }

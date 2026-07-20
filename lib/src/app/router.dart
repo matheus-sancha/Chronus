@@ -6,10 +6,8 @@ import '../features/catalog/presentation/catalog_screen.dart';
 import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
-import '../features/studies/presentation/study_custom_operation_screen.dart';
 import '../features/studies/presentation/study_detail_screen.dart';
 import '../features/studies/presentation/study_edit_screen.dart';
-import '../features/studies/presentation/study_sequence_screen.dart';
 import '../features/templates/presentation/template_custom_operation_screen.dart';
 import '../features/templates/presentation/template_sequence_screen.dart';
 import '../features/templates/presentation/templates_screen.dart';
@@ -53,22 +51,6 @@ GoRouter router(Ref ref) {
                               projectId: state.pathParameters['projectId']!,
                               studyId: state.pathParameters['studyId']!,
                             ),
-                          ),
-                          GoRoute(
-                            path: 'sequence',
-                            builder: (context, state) => StudySequenceScreen(
-                              projectId: state.pathParameters['projectId']!,
-                              studyId: state.pathParameters['studyId']!,
-                            ),
-                            routes: [
-                              GoRoute(
-                                path: 'custom',
-                                builder: (context, state) =>
-                                    StudyCustomOperationScreen(
-                                  studyId: state.pathParameters['studyId']!,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),

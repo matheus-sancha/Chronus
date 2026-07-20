@@ -3802,26 +3802,26 @@ class $OperationInstancesTable extends OperationInstances
       'REFERENCES study_operations (id) ON DELETE CASCADE',
     ),
   );
-  static const VerificationMeta _startAtMsMeta = const VerificationMeta(
-    'startAtMs',
+  static const VerificationMeta _manualActualMsMeta = const VerificationMeta(
+    'manualActualMs',
   );
   @override
-  late final GeneratedColumn<int> startAtMs = GeneratedColumn<int>(
-    'start_at_ms',
+  late final GeneratedColumn<int> manualActualMs = GeneratedColumn<int>(
+    'manual_actual_ms',
     aliasedName,
     true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _endAtMsMeta = const VerificationMeta(
-    'endAtMs',
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
   );
   @override
-  late final GeneratedColumn<int> endAtMs = GeneratedColumn<int>(
-    'end_at_ms',
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _ratingPercentMeta = const VerificationMeta(
@@ -3861,8 +3861,8 @@ class $OperationInstancesTable extends OperationInstances
     id,
     observationId,
     studyOperationId,
-    startAtMs,
-    endAtMs,
+    manualActualMs,
+    completedAt,
     ratingPercent,
     notes,
     createdAt,
@@ -3906,16 +3906,22 @@ class $OperationInstancesTable extends OperationInstances
     } else if (isInserting) {
       context.missing(_studyOperationIdMeta);
     }
-    if (data.containsKey('start_at_ms')) {
+    if (data.containsKey('manual_actual_ms')) {
       context.handle(
-        _startAtMsMeta,
-        startAtMs.isAcceptableOrUnknown(data['start_at_ms']!, _startAtMsMeta),
+        _manualActualMsMeta,
+        manualActualMs.isAcceptableOrUnknown(
+          data['manual_actual_ms']!,
+          _manualActualMsMeta,
+        ),
       );
     }
-    if (data.containsKey('end_at_ms')) {
+    if (data.containsKey('completed_at')) {
       context.handle(
-        _endAtMsMeta,
-        endAtMs.isAcceptableOrUnknown(data['end_at_ms']!, _endAtMsMeta),
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
       );
     }
     if (data.containsKey('rating_percent')) {
@@ -3966,13 +3972,13 @@ class $OperationInstancesTable extends OperationInstances
         DriftSqlType.string,
         data['${effectivePrefix}study_operation_id'],
       )!,
-      startAtMs: attachedDatabase.typeMapping.read(
+      manualActualMs: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}start_at_ms'],
+        data['${effectivePrefix}manual_actual_ms'],
       ),
-      endAtMs: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}end_at_ms'],
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
       ),
       ratingPercent: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
@@ -4000,8 +4006,16 @@ class OperationInstance extends DataClass
   final String id;
   final String observationId;
   final String studyOperationId;
-  final int? startAtMs;
-  final int? endAtMs;
+
+  /// Manual override of the actual time, in milliseconds. Null => use the sum
+  /// of [OperationTimeSegments]. Setting it never deletes segments.
+  final int? manualActualMs;
+
+  /// When the operation was **stopped** (marked complete). Null while it is
+  /// still pending, running, or merely paused. Lets the UI tell a paused
+  /// operation (resumable) apart from a finished one, since both have no open
+  /// segment. Cleared if timing resumes.
+  final DateTime? completedAt;
   final double ratingPercent;
   final String? notes;
   final DateTime createdAt;
@@ -4009,8 +4023,8 @@ class OperationInstance extends DataClass
     required this.id,
     required this.observationId,
     required this.studyOperationId,
-    this.startAtMs,
-    this.endAtMs,
+    this.manualActualMs,
+    this.completedAt,
     required this.ratingPercent,
     this.notes,
     required this.createdAt,
@@ -4021,11 +4035,11 @@ class OperationInstance extends DataClass
     map['id'] = Variable<String>(id);
     map['observation_id'] = Variable<String>(observationId);
     map['study_operation_id'] = Variable<String>(studyOperationId);
-    if (!nullToAbsent || startAtMs != null) {
-      map['start_at_ms'] = Variable<int>(startAtMs);
+    if (!nullToAbsent || manualActualMs != null) {
+      map['manual_actual_ms'] = Variable<int>(manualActualMs);
     }
-    if (!nullToAbsent || endAtMs != null) {
-      map['end_at_ms'] = Variable<int>(endAtMs);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
     }
     map['rating_percent'] = Variable<double>(ratingPercent);
     if (!nullToAbsent || notes != null) {
@@ -4040,12 +4054,12 @@ class OperationInstance extends DataClass
       id: Value(id),
       observationId: Value(observationId),
       studyOperationId: Value(studyOperationId),
-      startAtMs: startAtMs == null && nullToAbsent
+      manualActualMs: manualActualMs == null && nullToAbsent
           ? const Value.absent()
-          : Value(startAtMs),
-      endAtMs: endAtMs == null && nullToAbsent
+          : Value(manualActualMs),
+      completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(endAtMs),
+          : Value(completedAt),
       ratingPercent: Value(ratingPercent),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
@@ -4063,8 +4077,8 @@ class OperationInstance extends DataClass
       id: serializer.fromJson<String>(json['id']),
       observationId: serializer.fromJson<String>(json['observationId']),
       studyOperationId: serializer.fromJson<String>(json['studyOperationId']),
-      startAtMs: serializer.fromJson<int?>(json['startAtMs']),
-      endAtMs: serializer.fromJson<int?>(json['endAtMs']),
+      manualActualMs: serializer.fromJson<int?>(json['manualActualMs']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       ratingPercent: serializer.fromJson<double>(json['ratingPercent']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -4077,8 +4091,8 @@ class OperationInstance extends DataClass
       'id': serializer.toJson<String>(id),
       'observationId': serializer.toJson<String>(observationId),
       'studyOperationId': serializer.toJson<String>(studyOperationId),
-      'startAtMs': serializer.toJson<int?>(startAtMs),
-      'endAtMs': serializer.toJson<int?>(endAtMs),
+      'manualActualMs': serializer.toJson<int?>(manualActualMs),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
       'ratingPercent': serializer.toJson<double>(ratingPercent),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -4089,8 +4103,8 @@ class OperationInstance extends DataClass
     String? id,
     String? observationId,
     String? studyOperationId,
-    Value<int?> startAtMs = const Value.absent(),
-    Value<int?> endAtMs = const Value.absent(),
+    Value<int?> manualActualMs = const Value.absent(),
+    Value<DateTime?> completedAt = const Value.absent(),
     double? ratingPercent,
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
@@ -4098,8 +4112,10 @@ class OperationInstance extends DataClass
     id: id ?? this.id,
     observationId: observationId ?? this.observationId,
     studyOperationId: studyOperationId ?? this.studyOperationId,
-    startAtMs: startAtMs.present ? startAtMs.value : this.startAtMs,
-    endAtMs: endAtMs.present ? endAtMs.value : this.endAtMs,
+    manualActualMs: manualActualMs.present
+        ? manualActualMs.value
+        : this.manualActualMs,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
     ratingPercent: ratingPercent ?? this.ratingPercent,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
@@ -4113,8 +4129,12 @@ class OperationInstance extends DataClass
       studyOperationId: data.studyOperationId.present
           ? data.studyOperationId.value
           : this.studyOperationId,
-      startAtMs: data.startAtMs.present ? data.startAtMs.value : this.startAtMs,
-      endAtMs: data.endAtMs.present ? data.endAtMs.value : this.endAtMs,
+      manualActualMs: data.manualActualMs.present
+          ? data.manualActualMs.value
+          : this.manualActualMs,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
       ratingPercent: data.ratingPercent.present
           ? data.ratingPercent.value
           : this.ratingPercent,
@@ -4129,8 +4149,8 @@ class OperationInstance extends DataClass
           ..write('id: $id, ')
           ..write('observationId: $observationId, ')
           ..write('studyOperationId: $studyOperationId, ')
-          ..write('startAtMs: $startAtMs, ')
-          ..write('endAtMs: $endAtMs, ')
+          ..write('manualActualMs: $manualActualMs, ')
+          ..write('completedAt: $completedAt, ')
           ..write('ratingPercent: $ratingPercent, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt')
@@ -4143,8 +4163,8 @@ class OperationInstance extends DataClass
     id,
     observationId,
     studyOperationId,
-    startAtMs,
-    endAtMs,
+    manualActualMs,
+    completedAt,
     ratingPercent,
     notes,
     createdAt,
@@ -4156,8 +4176,8 @@ class OperationInstance extends DataClass
           other.id == this.id &&
           other.observationId == this.observationId &&
           other.studyOperationId == this.studyOperationId &&
-          other.startAtMs == this.startAtMs &&
-          other.endAtMs == this.endAtMs &&
+          other.manualActualMs == this.manualActualMs &&
+          other.completedAt == this.completedAt &&
           other.ratingPercent == this.ratingPercent &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt);
@@ -4167,8 +4187,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
   final Value<String> id;
   final Value<String> observationId;
   final Value<String> studyOperationId;
-  final Value<int?> startAtMs;
-  final Value<int?> endAtMs;
+  final Value<int?> manualActualMs;
+  final Value<DateTime?> completedAt;
   final Value<double> ratingPercent;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
@@ -4177,8 +4197,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     this.id = const Value.absent(),
     this.observationId = const Value.absent(),
     this.studyOperationId = const Value.absent(),
-    this.startAtMs = const Value.absent(),
-    this.endAtMs = const Value.absent(),
+    this.manualActualMs = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.ratingPercent = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -4188,8 +4208,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     required String id,
     required String observationId,
     required String studyOperationId,
-    this.startAtMs = const Value.absent(),
-    this.endAtMs = const Value.absent(),
+    this.manualActualMs = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.ratingPercent = const Value.absent(),
     this.notes = const Value.absent(),
     required DateTime createdAt,
@@ -4202,8 +4222,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     Expression<String>? id,
     Expression<String>? observationId,
     Expression<String>? studyOperationId,
-    Expression<int>? startAtMs,
-    Expression<int>? endAtMs,
+    Expression<int>? manualActualMs,
+    Expression<DateTime>? completedAt,
     Expression<double>? ratingPercent,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
@@ -4213,8 +4233,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
       if (id != null) 'id': id,
       if (observationId != null) 'observation_id': observationId,
       if (studyOperationId != null) 'study_operation_id': studyOperationId,
-      if (startAtMs != null) 'start_at_ms': startAtMs,
-      if (endAtMs != null) 'end_at_ms': endAtMs,
+      if (manualActualMs != null) 'manual_actual_ms': manualActualMs,
+      if (completedAt != null) 'completed_at': completedAt,
       if (ratingPercent != null) 'rating_percent': ratingPercent,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
@@ -4226,8 +4246,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     Value<String>? id,
     Value<String>? observationId,
     Value<String>? studyOperationId,
-    Value<int?>? startAtMs,
-    Value<int?>? endAtMs,
+    Value<int?>? manualActualMs,
+    Value<DateTime?>? completedAt,
     Value<double>? ratingPercent,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
@@ -4237,8 +4257,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
       id: id ?? this.id,
       observationId: observationId ?? this.observationId,
       studyOperationId: studyOperationId ?? this.studyOperationId,
-      startAtMs: startAtMs ?? this.startAtMs,
-      endAtMs: endAtMs ?? this.endAtMs,
+      manualActualMs: manualActualMs ?? this.manualActualMs,
+      completedAt: completedAt ?? this.completedAt,
       ratingPercent: ratingPercent ?? this.ratingPercent,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
@@ -4258,11 +4278,11 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     if (studyOperationId.present) {
       map['study_operation_id'] = Variable<String>(studyOperationId.value);
     }
-    if (startAtMs.present) {
-      map['start_at_ms'] = Variable<int>(startAtMs.value);
+    if (manualActualMs.present) {
+      map['manual_actual_ms'] = Variable<int>(manualActualMs.value);
     }
-    if (endAtMs.present) {
-      map['end_at_ms'] = Variable<int>(endAtMs.value);
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
     if (ratingPercent.present) {
       map['rating_percent'] = Variable<double>(ratingPercent.value);
@@ -4285,10 +4305,389 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
           ..write('id: $id, ')
           ..write('observationId: $observationId, ')
           ..write('studyOperationId: $studyOperationId, ')
-          ..write('startAtMs: $startAtMs, ')
-          ..write('endAtMs: $endAtMs, ')
+          ..write('manualActualMs: $manualActualMs, ')
+          ..write('completedAt: $completedAt, ')
           ..write('ratingPercent: $ratingPercent, ')
           ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OperationTimeSegmentsTable extends OperationTimeSegments
+    with TableInfo<$OperationTimeSegmentsTable, OperationTimeSegment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OperationTimeSegmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _operationInstanceIdMeta =
+      const VerificationMeta('operationInstanceId');
+  @override
+  late final GeneratedColumn<String> operationInstanceId =
+      GeneratedColumn<String>(
+        'operation_instance_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES operation_instances (id) ON DELETE CASCADE',
+        ),
+      );
+  static const VerificationMeta _startAtMsMeta = const VerificationMeta(
+    'startAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> startAtMs = GeneratedColumn<int>(
+    'start_at_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endAtMsMeta = const VerificationMeta(
+    'endAtMs',
+  );
+  @override
+  late final GeneratedColumn<int> endAtMs = GeneratedColumn<int>(
+    'end_at_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    operationInstanceId,
+    startAtMs,
+    endAtMs,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'operation_time_segments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OperationTimeSegment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('operation_instance_id')) {
+      context.handle(
+        _operationInstanceIdMeta,
+        operationInstanceId.isAcceptableOrUnknown(
+          data['operation_instance_id']!,
+          _operationInstanceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_operationInstanceIdMeta);
+    }
+    if (data.containsKey('start_at_ms')) {
+      context.handle(
+        _startAtMsMeta,
+        startAtMs.isAcceptableOrUnknown(data['start_at_ms']!, _startAtMsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startAtMsMeta);
+    }
+    if (data.containsKey('end_at_ms')) {
+      context.handle(
+        _endAtMsMeta,
+        endAtMs.isAcceptableOrUnknown(data['end_at_ms']!, _endAtMsMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OperationTimeSegment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OperationTimeSegment(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      operationInstanceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_instance_id'],
+      )!,
+      startAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_at_ms'],
+      )!,
+      endAtMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}end_at_ms'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $OperationTimeSegmentsTable createAlias(String alias) {
+    return $OperationTimeSegmentsTable(attachedDatabase, alias);
+  }
+}
+
+class OperationTimeSegment extends DataClass
+    implements Insertable<OperationTimeSegment> {
+  final String id;
+  final String operationInstanceId;
+  final int startAtMs;
+  final int? endAtMs;
+  final DateTime createdAt;
+  const OperationTimeSegment({
+    required this.id,
+    required this.operationInstanceId,
+    required this.startAtMs,
+    this.endAtMs,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['operation_instance_id'] = Variable<String>(operationInstanceId);
+    map['start_at_ms'] = Variable<int>(startAtMs);
+    if (!nullToAbsent || endAtMs != null) {
+      map['end_at_ms'] = Variable<int>(endAtMs);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  OperationTimeSegmentsCompanion toCompanion(bool nullToAbsent) {
+    return OperationTimeSegmentsCompanion(
+      id: Value(id),
+      operationInstanceId: Value(operationInstanceId),
+      startAtMs: Value(startAtMs),
+      endAtMs: endAtMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endAtMs),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory OperationTimeSegment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OperationTimeSegment(
+      id: serializer.fromJson<String>(json['id']),
+      operationInstanceId: serializer.fromJson<String>(
+        json['operationInstanceId'],
+      ),
+      startAtMs: serializer.fromJson<int>(json['startAtMs']),
+      endAtMs: serializer.fromJson<int?>(json['endAtMs']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'operationInstanceId': serializer.toJson<String>(operationInstanceId),
+      'startAtMs': serializer.toJson<int>(startAtMs),
+      'endAtMs': serializer.toJson<int?>(endAtMs),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  OperationTimeSegment copyWith({
+    String? id,
+    String? operationInstanceId,
+    int? startAtMs,
+    Value<int?> endAtMs = const Value.absent(),
+    DateTime? createdAt,
+  }) => OperationTimeSegment(
+    id: id ?? this.id,
+    operationInstanceId: operationInstanceId ?? this.operationInstanceId,
+    startAtMs: startAtMs ?? this.startAtMs,
+    endAtMs: endAtMs.present ? endAtMs.value : this.endAtMs,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  OperationTimeSegment copyWithCompanion(OperationTimeSegmentsCompanion data) {
+    return OperationTimeSegment(
+      id: data.id.present ? data.id.value : this.id,
+      operationInstanceId: data.operationInstanceId.present
+          ? data.operationInstanceId.value
+          : this.operationInstanceId,
+      startAtMs: data.startAtMs.present ? data.startAtMs.value : this.startAtMs,
+      endAtMs: data.endAtMs.present ? data.endAtMs.value : this.endAtMs,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OperationTimeSegment(')
+          ..write('id: $id, ')
+          ..write('operationInstanceId: $operationInstanceId, ')
+          ..write('startAtMs: $startAtMs, ')
+          ..write('endAtMs: $endAtMs, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, operationInstanceId, startAtMs, endAtMs, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OperationTimeSegment &&
+          other.id == this.id &&
+          other.operationInstanceId == this.operationInstanceId &&
+          other.startAtMs == this.startAtMs &&
+          other.endAtMs == this.endAtMs &&
+          other.createdAt == this.createdAt);
+}
+
+class OperationTimeSegmentsCompanion
+    extends UpdateCompanion<OperationTimeSegment> {
+  final Value<String> id;
+  final Value<String> operationInstanceId;
+  final Value<int> startAtMs;
+  final Value<int?> endAtMs;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const OperationTimeSegmentsCompanion({
+    this.id = const Value.absent(),
+    this.operationInstanceId = const Value.absent(),
+    this.startAtMs = const Value.absent(),
+    this.endAtMs = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OperationTimeSegmentsCompanion.insert({
+    required String id,
+    required String operationInstanceId,
+    required int startAtMs,
+    this.endAtMs = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       operationInstanceId = Value(operationInstanceId),
+       startAtMs = Value(startAtMs),
+       createdAt = Value(createdAt);
+  static Insertable<OperationTimeSegment> custom({
+    Expression<String>? id,
+    Expression<String>? operationInstanceId,
+    Expression<int>? startAtMs,
+    Expression<int>? endAtMs,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (operationInstanceId != null)
+        'operation_instance_id': operationInstanceId,
+      if (startAtMs != null) 'start_at_ms': startAtMs,
+      if (endAtMs != null) 'end_at_ms': endAtMs,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OperationTimeSegmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? operationInstanceId,
+    Value<int>? startAtMs,
+    Value<int?>? endAtMs,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return OperationTimeSegmentsCompanion(
+      id: id ?? this.id,
+      operationInstanceId: operationInstanceId ?? this.operationInstanceId,
+      startAtMs: startAtMs ?? this.startAtMs,
+      endAtMs: endAtMs ?? this.endAtMs,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (operationInstanceId.present) {
+      map['operation_instance_id'] = Variable<String>(
+        operationInstanceId.value,
+      );
+    }
+    if (startAtMs.present) {
+      map['start_at_ms'] = Variable<int>(startAtMs.value);
+    }
+    if (endAtMs.present) {
+      map['end_at_ms'] = Variable<int>(endAtMs.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OperationTimeSegmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('operationInstanceId: $operationInstanceId, ')
+          ..write('startAtMs: $startAtMs, ')
+          ..write('endAtMs: $endAtMs, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -6579,6 +6978,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ObservationsTable observations = $ObservationsTable(this);
   late final $OperationInstancesTable operationInstances =
       $OperationInstancesTable(this);
+  late final $OperationTimeSegmentsTable operationTimeSegments =
+      $OperationTimeSegmentsTable(this);
   late final $TemplatesTable templates = $TemplatesTable(this);
   late final $TemplateOperationsTable templateOperations =
       $TemplateOperationsTable(this);
@@ -6601,6 +7002,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     studyOperations,
     observations,
     operationInstances,
+    operationTimeSegments,
     templates,
     templateOperations,
     processTypeOptions,
@@ -6673,6 +7075,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('operation_instances', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'operation_instances',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('operation_time_segments', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -10488,8 +10897,8 @@ typedef $$OperationInstancesTableCreateCompanionBuilder =
       required String id,
       required String observationId,
       required String studyOperationId,
-      Value<int?> startAtMs,
-      Value<int?> endAtMs,
+      Value<int?> manualActualMs,
+      Value<DateTime?> completedAt,
       Value<double> ratingPercent,
       Value<String?> notes,
       required DateTime createdAt,
@@ -10500,8 +10909,8 @@ typedef $$OperationInstancesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> observationId,
       Value<String> studyOperationId,
-      Value<int?> startAtMs,
-      Value<int?> endAtMs,
+      Value<int?> manualActualMs,
+      Value<DateTime?> completedAt,
       Value<double> ratingPercent,
       Value<String?> notes,
       Value<DateTime> createdAt,
@@ -10557,6 +10966,37 @@ final class $$OperationInstancesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<
+    $OperationTimeSegmentsTable,
+    List<OperationTimeSegment>
+  >
+  _operationTimeSegmentsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.operationTimeSegments,
+    aliasName:
+        'operation_instances__id__operation_time_segments__operation_instance_id',
+  );
+
+  $$OperationTimeSegmentsTableProcessedTableManager
+  get operationTimeSegmentsRefs {
+    final manager =
+        $$OperationTimeSegmentsTableTableManager(
+          $_db,
+          $_db.operationTimeSegments,
+        ).filter(
+          (f) =>
+              f.operationInstanceId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _operationTimeSegmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$OperationInstancesTableFilterComposer
@@ -10573,13 +11013,13 @@ class $$OperationInstancesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get startAtMs => $composableBuilder(
-    column: $table.startAtMs,
+  ColumnFilters<int> get manualActualMs => $composableBuilder(
+    column: $table.manualActualMs,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get endAtMs => $composableBuilder(
-    column: $table.endAtMs,
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10643,6 +11083,32 @@ class $$OperationInstancesTableFilterComposer
     );
     return composer;
   }
+
+  Expression<bool> operationTimeSegmentsRefs(
+    Expression<bool> Function($$OperationTimeSegmentsTableFilterComposer f) f,
+  ) {
+    final $$OperationTimeSegmentsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.operationTimeSegments,
+          getReferencedColumn: (t) => t.operationInstanceId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OperationTimeSegmentsTableFilterComposer(
+                $db: $db,
+                $table: $db.operationTimeSegments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$OperationInstancesTableOrderingComposer
@@ -10659,13 +11125,13 @@ class $$OperationInstancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get startAtMs => $composableBuilder(
-    column: $table.startAtMs,
+  ColumnOrderings<int> get manualActualMs => $composableBuilder(
+    column: $table.manualActualMs,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get endAtMs => $composableBuilder(
-    column: $table.endAtMs,
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -10743,11 +11209,15 @@ class $$OperationInstancesTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get startAtMs =>
-      $composableBuilder(column: $table.startAtMs, builder: (column) => column);
+  GeneratedColumn<int> get manualActualMs => $composableBuilder(
+    column: $table.manualActualMs,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<int> get endAtMs =>
-      $composableBuilder(column: $table.endAtMs, builder: (column) => column);
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<double> get ratingPercent => $composableBuilder(
     column: $table.ratingPercent,
@@ -10805,6 +11275,32 @@ class $$OperationInstancesTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> operationTimeSegmentsRefs<T extends Object>(
+    Expression<T> Function($$OperationTimeSegmentsTableAnnotationComposer a) f,
+  ) {
+    final $$OperationTimeSegmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.operationTimeSegments,
+          getReferencedColumn: (t) => t.operationInstanceId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OperationTimeSegmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.operationTimeSegments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$OperationInstancesTableTableManager
@@ -10820,7 +11316,11 @@ class $$OperationInstancesTableTableManager
           $$OperationInstancesTableUpdateCompanionBuilder,
           (OperationInstance, $$OperationInstancesTableReferences),
           OperationInstance,
-          PrefetchHooks Function({bool observationId, bool studyOperationId})
+          PrefetchHooks Function({
+            bool observationId,
+            bool studyOperationId,
+            bool operationTimeSegmentsRefs,
+          })
         > {
   $$OperationInstancesTableTableManager(
     _$AppDatabase db,
@@ -10843,8 +11343,8 @@ class $$OperationInstancesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> observationId = const Value.absent(),
                 Value<String> studyOperationId = const Value.absent(),
-                Value<int?> startAtMs = const Value.absent(),
-                Value<int?> endAtMs = const Value.absent(),
+                Value<int?> manualActualMs = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
                 Value<double> ratingPercent = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -10853,8 +11353,8 @@ class $$OperationInstancesTableTableManager
                 id: id,
                 observationId: observationId,
                 studyOperationId: studyOperationId,
-                startAtMs: startAtMs,
-                endAtMs: endAtMs,
+                manualActualMs: manualActualMs,
+                completedAt: completedAt,
                 ratingPercent: ratingPercent,
                 notes: notes,
                 createdAt: createdAt,
@@ -10865,8 +11365,8 @@ class $$OperationInstancesTableTableManager
                 required String id,
                 required String observationId,
                 required String studyOperationId,
-                Value<int?> startAtMs = const Value.absent(),
-                Value<int?> endAtMs = const Value.absent(),
+                Value<int?> manualActualMs = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
                 Value<double> ratingPercent = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required DateTime createdAt,
@@ -10875,8 +11375,8 @@ class $$OperationInstancesTableTableManager
                 id: id,
                 observationId: observationId,
                 studyOperationId: studyOperationId,
-                startAtMs: startAtMs,
-                endAtMs: endAtMs,
+                manualActualMs: manualActualMs,
+                completedAt: completedAt,
                 ratingPercent: ratingPercent,
                 notes: notes,
                 createdAt: createdAt,
@@ -10891,10 +11391,16 @@ class $$OperationInstancesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({observationId = false, studyOperationId = false}) {
+              ({
+                observationId = false,
+                studyOperationId = false,
+                operationTimeSegmentsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [],
+                  explicitlyWatchedTables: [
+                    if (operationTimeSegmentsRefs) db.operationTimeSegments,
+                  ],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -10945,7 +11451,29 @@ class $$OperationInstancesTableTableManager
                         return state;
                       },
                   getPrefetchedDataCallback: (items) async {
-                    return [];
+                    return [
+                      if (operationTimeSegmentsRefs)
+                        await $_getPrefetchedData<
+                          OperationInstance,
+                          $OperationInstancesTable,
+                          OperationTimeSegment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OperationInstancesTableReferences
+                              ._operationTimeSegmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OperationInstancesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).operationTimeSegmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.operationInstanceId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
                 );
               },
@@ -10965,7 +11493,354 @@ typedef $$OperationInstancesTableProcessedTableManager =
       $$OperationInstancesTableUpdateCompanionBuilder,
       (OperationInstance, $$OperationInstancesTableReferences),
       OperationInstance,
-      PrefetchHooks Function({bool observationId, bool studyOperationId})
+      PrefetchHooks Function({
+        bool observationId,
+        bool studyOperationId,
+        bool operationTimeSegmentsRefs,
+      })
+    >;
+typedef $$OperationTimeSegmentsTableCreateCompanionBuilder =
+    OperationTimeSegmentsCompanion Function({
+      required String id,
+      required String operationInstanceId,
+      required int startAtMs,
+      Value<int?> endAtMs,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$OperationTimeSegmentsTableUpdateCompanionBuilder =
+    OperationTimeSegmentsCompanion Function({
+      Value<String> id,
+      Value<String> operationInstanceId,
+      Value<int> startAtMs,
+      Value<int?> endAtMs,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$OperationTimeSegmentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $OperationTimeSegmentsTable,
+          OperationTimeSegment
+        > {
+  $$OperationTimeSegmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $OperationInstancesTable _operationInstanceIdTable(
+    _$AppDatabase db,
+  ) => db.operationInstances.createAlias(
+    'operation_time_segments__operation_instance_id__operation_instances__id',
+  );
+
+  $$OperationInstancesTableProcessedTableManager get operationInstanceId {
+    final $_column = $_itemColumn<String>('operation_instance_id')!;
+
+    final manager = $$OperationInstancesTableTableManager(
+      $_db,
+      $_db.operationInstances,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_operationInstanceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$OperationTimeSegmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $OperationTimeSegmentsTable> {
+  $$OperationTimeSegmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startAtMs => $composableBuilder(
+    column: $table.startAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get endAtMs => $composableBuilder(
+    column: $table.endAtMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$OperationInstancesTableFilterComposer get operationInstanceId {
+    final $$OperationInstancesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.operationInstanceId,
+      referencedTable: $db.operationInstances,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OperationInstancesTableFilterComposer(
+            $db: $db,
+            $table: $db.operationInstances,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OperationTimeSegmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $OperationTimeSegmentsTable> {
+  $$OperationTimeSegmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startAtMs => $composableBuilder(
+    column: $table.startAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get endAtMs => $composableBuilder(
+    column: $table.endAtMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$OperationInstancesTableOrderingComposer get operationInstanceId {
+    final $$OperationInstancesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.operationInstanceId,
+      referencedTable: $db.operationInstances,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OperationInstancesTableOrderingComposer(
+            $db: $db,
+            $table: $db.operationInstances,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OperationTimeSegmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OperationTimeSegmentsTable> {
+  $$OperationTimeSegmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get startAtMs =>
+      $composableBuilder(column: $table.startAtMs, builder: (column) => column);
+
+  GeneratedColumn<int> get endAtMs =>
+      $composableBuilder(column: $table.endAtMs, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$OperationInstancesTableAnnotationComposer get operationInstanceId {
+    final $$OperationInstancesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.operationInstanceId,
+          referencedTable: $db.operationInstances,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$OperationInstancesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.operationInstances,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$OperationTimeSegmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OperationTimeSegmentsTable,
+          OperationTimeSegment,
+          $$OperationTimeSegmentsTableFilterComposer,
+          $$OperationTimeSegmentsTableOrderingComposer,
+          $$OperationTimeSegmentsTableAnnotationComposer,
+          $$OperationTimeSegmentsTableCreateCompanionBuilder,
+          $$OperationTimeSegmentsTableUpdateCompanionBuilder,
+          (OperationTimeSegment, $$OperationTimeSegmentsTableReferences),
+          OperationTimeSegment,
+          PrefetchHooks Function({bool operationInstanceId})
+        > {
+  $$OperationTimeSegmentsTableTableManager(
+    _$AppDatabase db,
+    $OperationTimeSegmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OperationTimeSegmentsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$OperationTimeSegmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$OperationTimeSegmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> operationInstanceId = const Value.absent(),
+                Value<int> startAtMs = const Value.absent(),
+                Value<int?> endAtMs = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OperationTimeSegmentsCompanion(
+                id: id,
+                operationInstanceId: operationInstanceId,
+                startAtMs: startAtMs,
+                endAtMs: endAtMs,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String operationInstanceId,
+                required int startAtMs,
+                Value<int?> endAtMs = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => OperationTimeSegmentsCompanion.insert(
+                id: id,
+                operationInstanceId: operationInstanceId,
+                startAtMs: startAtMs,
+                endAtMs: endAtMs,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OperationTimeSegmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({operationInstanceId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (operationInstanceId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.operationInstanceId,
+                                referencedTable:
+                                    $$OperationTimeSegmentsTableReferences
+                                        ._operationInstanceIdTable(db),
+                                referencedColumn:
+                                    $$OperationTimeSegmentsTableReferences
+                                        ._operationInstanceIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OperationTimeSegmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OperationTimeSegmentsTable,
+      OperationTimeSegment,
+      $$OperationTimeSegmentsTableFilterComposer,
+      $$OperationTimeSegmentsTableOrderingComposer,
+      $$OperationTimeSegmentsTableAnnotationComposer,
+      $$OperationTimeSegmentsTableCreateCompanionBuilder,
+      $$OperationTimeSegmentsTableUpdateCompanionBuilder,
+      (OperationTimeSegment, $$OperationTimeSegmentsTableReferences),
+      OperationTimeSegment,
+      PrefetchHooks Function({bool operationInstanceId})
     >;
 typedef $$TemplatesTableCreateCompanionBuilder =
     TemplatesCompanion Function({
@@ -12590,6 +13465,8 @@ class $AppDatabaseManager {
       $$ObservationsTableTableManager(_db, _db.observations);
   $$OperationInstancesTableTableManager get operationInstances =>
       $$OperationInstancesTableTableManager(_db, _db.operationInstances);
+  $$OperationTimeSegmentsTableTableManager get operationTimeSegments =>
+      $$OperationTimeSegmentsTableTableManager(_db, _db.operationTimeSegments);
   $$TemplatesTableTableManager get templates =>
       $$TemplatesTableTableManager(_db, _db.templates);
   $$TemplateOperationsTableTableManager get templateOperations =>

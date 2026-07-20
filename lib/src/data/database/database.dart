@@ -44,6 +44,7 @@ const _processTypeSeeds = <String>[
     StudyOperations,
     Observations,
     OperationInstances,
+    OperationTimeSegments,
     Templates,
     TemplateOperations,
     ProcessTypeOptions,
@@ -57,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -87,6 +88,26 @@ class AppDatabase extends _$AppDatabase {
               JOIN catalog_operations c ON c.id = o.catalog_operation_id
             ''');
             await customStatement('DROP TABLE _template_operations_old');
+          }
+          if (from < 3) {
+            // Timing moved from a single start/end span on operation_instances
+            // to a child operation_time_segments table (per-operation snapshot
+            // timing, pausable, concurrent), plus a manual-override column.
+            // No released data exists, so drop the old span columns by
+            // recreating the table rather than migrating any rows.
+            await customStatement(
+                'ALTER TABLE operation_instances RENAME TO _oi_old');
+            await m.createTable(operationInstances);
+            await customStatement('''
+              INSERT INTO operation_instances
+                (id, observation_id, study_operation_id, rating_percent,
+                 notes, created_at)
+              SELECT id, observation_id, study_operation_id, rating_percent,
+                     notes, created_at
+              FROM _oi_old
+            ''');
+            await customStatement('DROP TABLE _oi_old');
+            await m.createTable(operationTimeSegments);
           }
         },
         beforeOpen: (details) async {

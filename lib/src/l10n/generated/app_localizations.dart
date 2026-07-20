@@ -651,6 +651,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search operations'**
   String get searchHint;
+
+  /// No description provided for @timingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing'**
+  String get timingTitle;
+
+  /// No description provided for @timingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start timing'**
+  String get timingStart;
+
+  /// No description provided for @timingContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue timing'**
+  String get timingContinue;
+
+  /// No description provided for @timingView.
+  ///
+  /// In en, this message translates to:
+  /// **'View timing'**
+  String get timingView;
+
+  /// The big lap-advance button while running; ends the current operation and starts the next.
+  ///
+  /// In en, this message translates to:
+  /// **'End & start:\n{name}'**
+  String timingLapNext(String name);
+
+  /// No description provided for @timingLapFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'End final operation'**
+  String get timingLapFinal;
+
+  /// No description provided for @timingUnplanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unplanned'**
+  String get timingUnplanned;
+
+  /// No description provided for @timingUnplannedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'unplanned'**
+  String get timingUnplannedTag;
+
+  /// No description provided for @timingFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get timingFinish;
+
+  /// No description provided for @timingInsertUnplannedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert unplanned operation'**
+  String get timingInsertUnplannedTitle;
+
+  /// No description provided for @timingComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Study complete'**
+  String get timingComplete;
+
+  /// No description provided for @timingTotalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total time'**
+  String get timingTotalTime;
+
+  /// No description provided for @timingValueAddedRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'Value-added ratio'**
+  String get timingValueAddedRatio;
+
+  /// No description provided for @timingDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard timing'**
+  String get timingDiscard;
+
+  /// No description provided for @timingDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard timing'**
+  String get timingDiscardTitle;
+
+  /// No description provided for @timingDiscardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all recorded times for this study? This cannot be undone.'**
+  String get timingDiscardMessage;
+
+  /// No description provided for @timingNoOperations.
+  ///
+  /// In en, this message translates to:
+  /// **'Add operations before timing.'**
+  String get timingNoOperations;
+
+  /// No description provided for @timingNoSegments.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations recorded yet.'**
+  String get timingNoSegments;
+
+  /// No description provided for @workspaceTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get workspaceTotalLabel;
+
+  /// No description provided for @timedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} timed'**
+  String timedProgress(int done, int total);
+
+  /// No description provided for @colOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation'**
+  String get colOperation;
+
+  /// No description provided for @colExpected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get colExpected;
+
+  /// No description provided for @colActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get colActual;
+
+  /// No description provided for @tooltipStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get tooltipStart;
+
+  /// No description provided for @tooltipResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get tooltipResume;
+
+  /// No description provided for @tooltipPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get tooltipPause;
+
+  /// No description provided for @tooltipStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get tooltipStop;
+
+  /// No description provided for @tooltipStopNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop & start next'**
+  String get tooltipStopNext;
+
+  /// No description provided for @tooltipReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get tooltipReset;
+
+  /// No description provided for @resetConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset operation'**
+  String get resetConfirmTitle;
+
+  /// No description provided for @resetConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard the measured time for {name}?'**
+  String resetConfirmMessage(String name);
+
+  /// No description provided for @interruptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation paused'**
+  String get interruptionTitle;
+
+  /// No description provided for @interruptionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this interruption as an unproductive operation?'**
+  String get interruptionMessage;
+
+  /// No description provided for @interruptionLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log interruption'**
+  String get interruptionLog;
+
+  /// No description provided for @interruptionSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get interruptionSkip;
+
+  /// No description provided for @manualTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter actual time'**
+  String get manualTimeTitle;
+
+  /// No description provided for @manualClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear override'**
+  String get manualClear;
+
+  /// No description provided for @manualBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'manual'**
+  String get manualBadge;
+
+  /// No description provided for @actionDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get actionDuplicate;
+
+  /// No description provided for @noteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteAction;
+
+  /// No description provided for @noteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation note'**
+  String get noteDialogTitle;
+
+  /// No description provided for @noteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments about this operation'**
+  String get noteHint;
 }
 
 class _AppLocalizationsDelegate

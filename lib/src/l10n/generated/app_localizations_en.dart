@@ -294,4 +294,138 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchHint => 'Search operations';
+
+  @override
+  String get timingTitle => 'Timing';
+
+  @override
+  String get timingStart => 'Start timing';
+
+  @override
+  String get timingContinue => 'Continue timing';
+
+  @override
+  String get timingView => 'View timing';
+
+  @override
+  String timingLapNext(String name) {
+    return 'End & start:\n$name';
+  }
+
+  @override
+  String get timingLapFinal => 'End final operation';
+
+  @override
+  String get timingUnplanned => 'Unplanned';
+
+  @override
+  String get timingUnplannedTag => 'unplanned';
+
+  @override
+  String get timingFinish => 'Finish';
+
+  @override
+  String get timingInsertUnplannedTitle => 'Insert unplanned operation';
+
+  @override
+  String get timingComplete => 'Study complete';
+
+  @override
+  String get timingTotalTime => 'Total time';
+
+  @override
+  String get timingValueAddedRatio => 'Value-added ratio';
+
+  @override
+  String get timingDiscard => 'Discard timing';
+
+  @override
+  String get timingDiscardTitle => 'Discard timing';
+
+  @override
+  String get timingDiscardMessage =>
+      'Delete all recorded times for this study? This cannot be undone.';
+
+  @override
+  String get timingNoOperations => 'Add operations before timing.';
+
+  @override
+  String get timingNoSegments => 'No operations recorded yet.';
+
+  @override
+  String get workspaceTotalLabel => 'Total';
+
+  @override
+  String timedProgress(int done, int total) {
+    return '$done / $total timed';
+  }
+
+  @override
+  String get colOperation => 'Operation';
+
+  @override
+  String get colExpected => 'Expected';
+
+  @override
+  String get colActual => 'Actual';
+
+  @override
+  String get tooltipStart => 'Start';
+
+  @override
+  String get tooltipResume => 'Resume';
+
+  @override
+  String get tooltipPause => 'Pause';
+
+  @override
+  String get tooltipStop => 'Stop';
+
+  @override
+  String get tooltipStopNext => 'Stop & start next';
+
+  @override
+  String get tooltipReset => 'Reset';
+
+  @override
+  String get resetConfirmTitle => 'Reset operation';
+
+  @override
+  String resetConfirmMessage(String name) {
+    return 'Discard the measured time for $name?';
+  }
+
+  @override
+  String get interruptionTitle => 'Operation paused';
+
+  @override
+  String get interruptionMessage =>
+      'Log this interruption as an unproductive operation?';
+
+  @override
+  String get interruptionLog => 'Log interruption';
+
+  @override
+  String get interruptionSkip => 'Not now';
+
+  @override
+  String get manualTimeTitle => 'Enter actual time';
+
+  @override
+  String get manualClear => 'Clear override';
+
+  @override
+  String get manualBadge => 'manual';
+
+  @override
+  String get actionDuplicate => 'Duplicate';
+
+  @override
+  String get noteAction => 'Note';
+
+  @override
+  String get noteDialogTitle => 'Operation note';
+
+  @override
+  String get noteHint => 'Comments about this operation';
 }
