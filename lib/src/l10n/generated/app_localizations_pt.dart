@@ -128,9 +128,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get studyDetailsSection => 'Detalhes';
 
   @override
-  String get studyFieldAllowance => 'Tolerância %';
-
-  @override
   String get studyFieldProcessType => 'Tipo de processo';
 
   @override
@@ -159,10 +156,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get processTypeNone => 'Nenhum';
-
-  @override
-  String get studyAllowanceHelp =>
-      'Tempo extra para fadiga, esperas e necessidades pessoais. Tempo padrão = Tempo normal × (1 + Tolerância %).';
 
   @override
   String get navCatalog => 'Catálogo';
@@ -362,7 +355,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get colOperation => 'Operação';
+  String get colOperation => 'Nome da operação';
 
   @override
   String get colExpected => 'Previsto';
@@ -448,4 +441,49 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get deletePhotoMessage =>
       'Excluir esta foto? Isso não pode ser desfeito.';
+
+  @override
+  String get reportTitle => 'Relatório';
+
+  @override
+  String get reportTotalElapsed => 'Tempo decorrido';
+
+  @override
+  String get reportSimultaneous => 'Simultâneo';
+
+  @override
+  String get reportEfficiency => 'Eficiência (%)';
+
+  @override
+  String get reportRollupTitle => 'Distribuição por categoria';
+
+  @override
+  String get reportTimelineTitle => 'Linha do tempo';
+
+  @override
+  String get reportParetoTitle => 'Pareto de desperdícios';
+
+  @override
+  String get timelineStart => 'Início';
+
+  @override
+  String get timelineEnd => 'Fim';
+
+  @override
+  String get colObserved => 'Tempo observado';
+
+  @override
+  String get colReference => 'Tempo de referência';
+
+  @override
+  String get colNotes => 'Notas';
+
+  @override
+  String get colImages => 'Imagens';
+
+  @override
+  String get reportEmpty => 'Cronometre operações para ver o relatório.';
+
+  @override
+  String get wasteUnlabeled => 'Sem subtipo';
 }

@@ -328,12 +328,6 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get studyDetailsSection;
 
-  /// No description provided for @studyFieldAllowance.
-  ///
-  /// In en, this message translates to:
-  /// **'Allowance %'**
-  String get studyFieldAllowance;
-
   /// No description provided for @studyFieldProcessType.
   ///
   /// In en, this message translates to:
@@ -393,12 +387,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get processTypeNone;
-
-  /// No description provided for @studyAllowanceHelp.
-  ///
-  /// In en, this message translates to:
-  /// **'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).'**
-  String get studyAllowanceHelp;
 
   /// No description provided for @navCatalog.
   ///
@@ -775,7 +763,7 @@ abstract class AppLocalizations {
   /// No description provided for @colOperation.
   ///
   /// In en, this message translates to:
-  /// **'Operation'**
+  /// **'Operation Name'**
   String get colOperation;
 
   /// No description provided for @colExpected.
@@ -939,6 +927,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this photo? This cannot be undone.'**
   String get deletePhotoMessage;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportTitle;
+
+  /// No description provided for @reportTotalElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Total elapsed'**
+  String get reportTotalElapsed;
+
+  /// No description provided for @reportSimultaneous.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous'**
+  String get reportSimultaneous;
+
+  /// No description provided for @reportEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency (%)'**
+  String get reportEfficiency;
+
+  /// No description provided for @reportRollupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Category breakdown'**
+  String get reportRollupTitle;
+
+  /// No description provided for @reportTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get reportTimelineTitle;
+
+  /// No description provided for @reportParetoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waste Pareto'**
+  String get reportParetoTitle;
+
+  /// No description provided for @timelineStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get timelineStart;
+
+  /// No description provided for @timelineEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get timelineEnd;
+
+  /// No description provided for @colObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed Time'**
+  String get colObserved;
+
+  /// No description provided for @colReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Time'**
+  String get colReference;
+
+  /// No description provided for @colNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get colNotes;
+
+  /// No description provided for @colImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get colImages;
+
+  /// No description provided for @reportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Time some operations to see the report.'**
+  String get reportEmpty;
+
+  /// No description provided for @wasteUnlabeled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlabeled'**
+  String get wasteUnlabeled;
 }
 
 class _AppLocalizationsDelegate

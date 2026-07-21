@@ -37,7 +37,6 @@ void main() {
     expect(list.single.name, 'Baseline');
     expect(list.single.type, StudyType.timeStudy);
     expect(list.single.analyst, 'Matheus');
-    expect(list.single.allowancePercent, 0.0); // default
   });
 
   test('studies are scoped to their project', () async {
@@ -70,7 +69,6 @@ void main() {
         operatorName: Value('J. Silva'),
         workOrderNumber: Value('WO-4417'),
         processType: Value('Machining'),
-        allowancePercent: Value(12.5),
       ),
     );
 
@@ -80,7 +78,6 @@ void main() {
     expect(updated.operatorName, 'J. Silva');
     expect(updated.workOrderNumber, 'WO-4417');
     expect(updated.processType, 'Machining');
-    expect(updated.allowancePercent, 12.5);
   });
 
   test('deleting a study leaves the project intact', () async {

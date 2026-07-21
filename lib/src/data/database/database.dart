@@ -40,7 +40,6 @@ const _processTypeSeeds = <String>[
     OperationSubtypes,
     CatalogOperations,
     Studies,
-    StudyAllowanceOverrides,
     StudyOperations,
     Observations,
     OperationInstances,
@@ -100,10 +99,8 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(operationInstances);
             await customStatement('''
               INSERT INTO operation_instances
-                (id, observation_id, study_operation_id, rating_percent,
-                 notes, created_at)
-              SELECT id, observation_id, study_operation_id, rating_percent,
-                     notes, created_at
+                (id, observation_id, study_operation_id, notes, created_at)
+              SELECT id, observation_id, study_operation_id, notes, created_at
               FROM _oi_old
             ''');
             await customStatement('DROP TABLE _oi_old');

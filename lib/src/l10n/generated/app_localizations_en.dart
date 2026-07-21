@@ -128,9 +128,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studyDetailsSection => 'Details';
 
   @override
-  String get studyFieldAllowance => 'Allowance %';
-
-  @override
   String get studyFieldProcessType => 'Process type';
 
   @override
@@ -159,10 +156,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get processTypeNone => 'None';
-
-  @override
-  String get studyAllowanceHelp =>
-      'Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).';
 
   @override
   String get navCatalog => 'Catalog';
@@ -361,7 +354,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get colOperation => 'Operation';
+  String get colOperation => 'Operation Name';
 
   @override
   String get colExpected => 'Expected';
@@ -446,4 +439,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deletePhotoMessage => 'Delete this photo? This cannot be undone.';
+
+  @override
+  String get reportTitle => 'Report';
+
+  @override
+  String get reportTotalElapsed => 'Total elapsed';
+
+  @override
+  String get reportSimultaneous => 'Simultaneous';
+
+  @override
+  String get reportEfficiency => 'Efficiency (%)';
+
+  @override
+  String get reportRollupTitle => 'Category breakdown';
+
+  @override
+  String get reportTimelineTitle => 'Timeline';
+
+  @override
+  String get reportParetoTitle => 'Waste Pareto';
+
+  @override
+  String get timelineStart => 'Start';
+
+  @override
+  String get timelineEnd => 'End';
+
+  @override
+  String get colObserved => 'Observed Time';
+
+  @override
+  String get colReference => 'Reference Time';
+
+  @override
+  String get colNotes => 'Notes';
+
+  @override
+  String get colImages => 'Images';
+
+  @override
+  String get reportEmpty => 'Time some operations to see the report.';
+
+  @override
+  String get wasteUnlabeled => 'Unlabeled';
 }

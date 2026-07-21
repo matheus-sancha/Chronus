@@ -75,23 +75,15 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 - A **timed / not-timed** indicator per operation (plus an in-progress state) tracks study completeness at a glance.
 - _Continuous single-cursor "one big lap button" timing rejected_ — it forces every instant onto some operation and cannot represent concurrency, pauses/interruptions, or discretely re-measured elements. (This reverses the original v1 decision, which had instead rejected snapback; the domain reality is the opposite.)
 
-### 3.6 Standard-time chain (full, in v1)
+### 3.6 Reference standard & efficiency
 
-```
-Observed time
-  × performance Rating %   (default 100)     → Normal time
-  × (1 + Allowance %)      (default 0)        → Computed Standard time
-```
-
-- Rating is per-observation/per-operation; Allowance is study-level with **optional per-category override**. Both optional with sensible defaults.
-- **Two distinct "standard times":**
-  1. **Reference standard** — pre-existing benchmark stored in the catalog (the "standard" in standard-vs-actual).
-  2. **Computed standard** — the study's output from the chain above.
-  The comparison view shows both.
+- Each operation may carry an optional **reference standard** — a pre-existing benchmark time stored in the catalog and snapshotted onto the study operation.
+- **Efficiency = reference standard ÷ observed time** (≥ 100 % = met or beat the benchmark). Reported per operation and in aggregate (Σ reference ÷ Σ observed over operations that have both).
+- _The performance-rating / allowance "standard-time chain" (rating → normal → computed standard) was scrapped_ — it added ceremony without matching how these studies are actually read. Observed-vs-reference and efficiency are the deliverable.
 
 ### 3.7 Templates
 
-- **First-class entity:** an ordered list of catalog-operation references + default study settings (type, allowance %). **No measured data, ever.**
+- **First-class entity:** an ordered list of catalog-operation references + the default study type. **No measured data, ever.**
 - Instantiating a template **snapshots** the sequence into a new study.
 - **"Save as template from study"** strips measurements, keeps sequence + settings.
 - No built-in starter templates in v1.
@@ -118,19 +110,20 @@ Observed time
 **In-app first** (interactive views); export is a separate artifact (§5).
 
 **Time Study**
-- Operation breakdown table: observed / rating / normal / computed-standard / reference-standard / % deviation.
-- Category roll-up: % Setup vs. Value-Added vs. Waste.
+- Summary tiles: total elapsed (wall-clock span), total "simultaneous" (Σ operation times / work content), value-added ratio, **efficiency %**.
+- Operation breakdown table: observed / reference standard / **efficiency %** (+ note & photo indicators).
+- Category roll-up: % Setup vs. Value-Added vs. Waste (by work content).
+- **Timeline:** the operation sequence as one proportional strip, coloured by category.
 - Waste Pareto: time by waste subtype, ranked.
-- Summary card: total cycle time, value-added ratio, computed standard time.
 
 **Sampling Study**
 - Per-operation statistics across observations: mean, min, max, range, std dev, coefficient of variation.
 - **Sample-size adequacy** — given observed variability and chosen confidence/precision, how many observations are needed and whether you're there. (Key cronoanálise deliverable, retained.)
-- Standard comparison: mean vs. reference and computed standard; variability/consistency flags.
+- Reference comparison: mean vs. reference standard + efficiency; variability/consistency flags.
 
 **Cross-study comparison (v1)**
 - Operations matched by **catalog id** (unmatched excluded).
-- Compares each operation's **representative time** (Sampling → mean/computed standard; Time → observed/computed standard) + % deviation vs reference standard.
+- Compares each operation's **representative time** (Sampling → mean; Time → observed) + efficiency vs reference standard.
 - Presentation: **side-by-side table** (operations × studies) + **per-operation trend over time** (ordered by date).
 - **Mixed study types allowed.** **Scoped within a single Project** for v1 (cross-project later).
 
@@ -185,7 +178,7 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 1. **Foundations** — Flutter project, Drift schema, i18n scaffold, navigation, settings.
 2. **Structure** — Projects/Studies CRUD, operation Catalog, sequencing, Templates.
 3. **Core** — the **study workspace** (one merged screen): per-operation timing engine (multi-segment, concurrency, pause/interruption, reset, manual override), inline add / reorder / edit / duplicate / delete, notes + photos. Retires the separate sequence screen.
-4. **Analysis** — standard-time chain (rating/allowances) + Time Study reports, incl. **simultaneous-time** breakdown from concurrent timers.
+4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. **Licensing** — StoreKit IAP + gating + backup bundle.
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.

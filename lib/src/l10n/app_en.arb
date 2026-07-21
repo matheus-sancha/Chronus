@@ -75,7 +75,6 @@
   "studyOperationsPending": "Operations are added when you build the sequence.",
   "studyEditTitle": "Edit study",
   "studyDetailsSection": "Details",
-  "studyFieldAllowance": "Allowance %",
   "studyFieldProcessType": "Process type",
   "studyFieldPartProduct": "Part / Product",
   "studyFieldProcessOperation": "Process / Operation",
@@ -86,7 +85,6 @@
   "studyFieldWorkOrder": "Work order #",
   "studyFieldNotes": "Notes",
   "processTypeNone": "None",
-  "studyAllowanceHelp": "Extra time added for fatigue, delays and personal needs. Standard time = Normal time × (1 + Allowance %).",
   "navCatalog": "Catalog",
   "catalogEmpty": "No operations yet. Add the first one.",
   "catalogNewTitle": "New operation",
@@ -171,7 +169,7 @@
       "total": { "type": "int" }
     }
   },
-  "colOperation": "Operation",
+  "colOperation": "Operation Name",
   "colExpected": "Expected",
   "colActual": "Actual",
   "tooltipStart": "Start",
@@ -203,5 +201,20 @@
   "addPhoto": "Add photo",
   "captionLabel": "Caption",
   "deletePhotoTitle": "Delete photo",
-  "deletePhotoMessage": "Delete this photo? This cannot be undone."
+  "deletePhotoMessage": "Delete this photo? This cannot be undone.",
+  "reportTitle": "Report",
+  "reportTotalElapsed": "Total elapsed",
+  "reportSimultaneous": "Simultaneous",
+  "reportEfficiency": "Efficiency (%)",
+  "reportRollupTitle": "Category breakdown",
+  "reportTimelineTitle": "Timeline",
+  "reportParetoTitle": "Waste Pareto",
+  "timelineStart": "Start",
+  "timelineEnd": "End",
+  "colObserved": "Observed Time",
+  "colReference": "Reference Time",
+  "colNotes": "Notes",
+  "colImages": "Images",
+  "reportEmpty": "Time some operations to see the report.",
+  "wasteUnlabeled": "Unlabeled"
 }

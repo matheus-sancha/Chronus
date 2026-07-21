@@ -95,7 +95,6 @@ void main() {
         );
 
     final instance = await db.select(db.operationInstances).getSingle();
-    expect(instance.ratingPercent, 100.0); // default applied
     expect(instance.manualActualMs, null);
     final segment = await db.select(db.operationTimeSegments).getSingle();
     expect(segment.endAtMs! - segment.startAtMs, 4500);

@@ -25,7 +25,6 @@ void main() {
     final template = await templates.create(
       name: 'Line 3 cycle',
       defaultStudyType: StudyType.samplingStudy,
-      defaultAllowancePercent: 10,
     );
     for (final name in names) {
       final op = await catalog.create(
@@ -56,7 +55,6 @@ void main() {
     );
 
     expect(study.type, StudyType.samplingStudy); // from template
-    expect(study.allowancePercent, 10);
 
     final ops = await StudyOperationRepository(db).watchByStudy(study.id).first;
     expect(ops.map((o) => o.name), ['A', 'B']);

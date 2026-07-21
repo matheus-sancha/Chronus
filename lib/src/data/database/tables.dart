@@ -83,33 +83,12 @@ class Studies extends Table {
   /// as text so historical studies keep their value if the option changes.
   TextColumn get processType => text().nullable()();
 
-  /// Study-level allowance % for the standard-time chain (per-category overrides
-  /// live in [StudyAllowanceOverrides]). Rating % is per operation-instance.
-  RealColumn get allowancePercent => real().withDefault(const Constant(0.0))();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
-}
-
-/// Optional per-category allowance override. Absence => use the study default.
-class StudyAllowanceOverrides extends Table {
-  TextColumn get id => text()();
-  TextColumn get studyId =>
-      text().references(Studies, #id, onDelete: KeyAction.cascade)();
-  TextColumn get category => textEnum<OperationCategory>()();
-  RealColumn get allowancePercent => real()();
-  DateTimeColumn get createdAt => dateTime()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-
-  @override
-  List<Set<Column<Object>>> get uniqueKeys => [
-        {studyId, category},
-      ];
 }
 
 /// The study's planned operation SEQUENCE — the per-study snapshot of catalog
@@ -168,8 +147,7 @@ class Observations extends Table {
 /// more [OperationTimeSegments] (not a single span). Multiple instances may run
 /// at once (two operators, or man + machine). [manualActualMs], when set,
 /// NON-DESTRUCTIVELY shadows the measured sum (segments are kept); it also lets
-/// a paper study be transcribed with no live timing at all. Rating % is per
-/// instance (default 100), applied in the Phase-4 standard-time chain.
+/// a paper study be transcribed with no live timing at all.
 class OperationInstances extends Table {
   TextColumn get id => text()();
   TextColumn get observationId =>
@@ -186,7 +164,6 @@ class OperationInstances extends Table {
   /// operation (resumable) apart from a finished one, since both have no open
   /// segment. Cleared if timing resumes.
   DateTimeColumn get completedAt => dateTime().nullable()();
-  RealColumn get ratingPercent => real().withDefault(const Constant(100.0))();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -222,8 +199,6 @@ class Templates extends Table {
   TextColumn get id => text()();
   TextColumn get name => text().withLength(min: 1, max: 200)();
   TextColumn get defaultStudyType => textEnum<StudyType>()();
-  RealColumn get defaultAllowancePercent =>
-      real().withDefault(const Constant(0.0))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

@@ -46,6 +46,13 @@ class StudyDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(studyAsync.value?.name ?? ''),
         actions: [
+          if (studyAsync.value?.type == StudyType.timeStudy)
+            IconButton(
+              icon: const Icon(Icons.assessment_outlined),
+              tooltip: l10n.reportTitle,
+              onPressed: () =>
+                  context.push('/projects/$projectId/studies/$studyId/report'),
+            ),
           IconButton(
             icon: const Icon(Icons.bookmark_add_outlined),
             tooltip: l10n.saveAsTemplateAction,

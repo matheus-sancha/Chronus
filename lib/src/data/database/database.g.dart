@@ -1386,18 +1386,6 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _allowancePercentMeta = const VerificationMeta(
-    'allowancePercent',
-  );
-  @override
-  late final GeneratedColumn<double> allowancePercent = GeneratedColumn<double>(
-    'allowance_percent',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0.0),
-  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -1445,7 +1433,6 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
     shift,
     workOrderNumber,
     processType,
-    allowancePercent,
     notes,
     createdAt,
     updatedAt,
@@ -1566,15 +1553,6 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         ),
       );
     }
-    if (data.containsKey('allowance_percent')) {
-      context.handle(
-        _allowancePercentMeta,
-        allowancePercent.isAcceptableOrUnknown(
-          data['allowance_percent']!,
-          _allowancePercentMeta,
-        ),
-      );
-    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -1664,10 +1642,6 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         DriftSqlType.string,
         data['${effectivePrefix}process_type'],
       ),
-      allowancePercent: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}allowance_percent'],
-      )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -1710,10 +1684,6 @@ class Study extends DataClass implements Insertable<Study> {
   /// Chosen value from the editable [ProcessTypeOptions] picklist, snapshotted
   /// as text so historical studies keep their value if the option changes.
   final String? processType;
-
-  /// Study-level allowance % for the standard-time chain (per-category overrides
-  /// live in [StudyAllowanceOverrides]). Rating % is per operation-instance.
-  final double allowancePercent;
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -1732,7 +1702,6 @@ class Study extends DataClass implements Insertable<Study> {
     this.shift,
     this.workOrderNumber,
     this.processType,
-    required this.allowancePercent,
     this.notes,
     required this.createdAt,
     required this.updatedAt,
@@ -1774,7 +1743,6 @@ class Study extends DataClass implements Insertable<Study> {
     if (!nullToAbsent || processType != null) {
       map['process_type'] = Variable<String>(processType);
     }
-    map['allowance_percent'] = Variable<double>(allowancePercent);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -1817,7 +1785,6 @@ class Study extends DataClass implements Insertable<Study> {
       processType: processType == null && nullToAbsent
           ? const Value.absent()
           : Value(processType),
-      allowancePercent: Value(allowancePercent),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -1850,7 +1817,6 @@ class Study extends DataClass implements Insertable<Study> {
       shift: serializer.fromJson<String?>(json['shift']),
       workOrderNumber: serializer.fromJson<String?>(json['workOrderNumber']),
       processType: serializer.fromJson<String?>(json['processType']),
-      allowancePercent: serializer.fromJson<double>(json['allowancePercent']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -1876,7 +1842,6 @@ class Study extends DataClass implements Insertable<Study> {
       'shift': serializer.toJson<String?>(shift),
       'workOrderNumber': serializer.toJson<String?>(workOrderNumber),
       'processType': serializer.toJson<String?>(processType),
-      'allowancePercent': serializer.toJson<double>(allowancePercent),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -1898,7 +1863,6 @@ class Study extends DataClass implements Insertable<Study> {
     Value<String?> shift = const Value.absent(),
     Value<String?> workOrderNumber = const Value.absent(),
     Value<String?> processType = const Value.absent(),
-    double? allowancePercent,
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -1923,7 +1887,6 @@ class Study extends DataClass implements Insertable<Study> {
         ? workOrderNumber.value
         : this.workOrderNumber,
     processType: processType.present ? processType.value : this.processType,
-    allowancePercent: allowancePercent ?? this.allowancePercent,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1958,9 +1921,6 @@ class Study extends DataClass implements Insertable<Study> {
       processType: data.processType.present
           ? data.processType.value
           : this.processType,
-      allowancePercent: data.allowancePercent.present
-          ? data.allowancePercent.value
-          : this.allowancePercent,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1984,7 +1944,6 @@ class Study extends DataClass implements Insertable<Study> {
           ..write('shift: $shift, ')
           ..write('workOrderNumber: $workOrderNumber, ')
           ..write('processType: $processType, ')
-          ..write('allowancePercent: $allowancePercent, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -2008,7 +1967,6 @@ class Study extends DataClass implements Insertable<Study> {
     shift,
     workOrderNumber,
     processType,
-    allowancePercent,
     notes,
     createdAt,
     updatedAt,
@@ -2031,7 +1989,6 @@ class Study extends DataClass implements Insertable<Study> {
           other.shift == this.shift &&
           other.workOrderNumber == this.workOrderNumber &&
           other.processType == this.processType &&
-          other.allowancePercent == this.allowancePercent &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -2052,7 +2009,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
   final Value<String?> shift;
   final Value<String?> workOrderNumber;
   final Value<String?> processType;
-  final Value<double> allowancePercent;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -2072,7 +2028,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     this.shift = const Value.absent(),
     this.workOrderNumber = const Value.absent(),
     this.processType = const Value.absent(),
-    this.allowancePercent = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -2093,7 +2048,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     this.shift = const Value.absent(),
     this.workOrderNumber = const Value.absent(),
     this.processType = const Value.absent(),
-    this.allowancePercent = const Value.absent(),
     this.notes = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -2120,7 +2074,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     Expression<String>? shift,
     Expression<String>? workOrderNumber,
     Expression<String>? processType,
-    Expression<double>? allowancePercent,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -2141,7 +2094,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
       if (shift != null) 'shift': shift,
       if (workOrderNumber != null) 'work_order_number': workOrderNumber,
       if (processType != null) 'process_type': processType,
-      if (allowancePercent != null) 'allowance_percent': allowancePercent,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -2164,7 +2116,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     Value<String?>? shift,
     Value<String?>? workOrderNumber,
     Value<String?>? processType,
-    Value<double>? allowancePercent,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -2185,7 +2136,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
       shift: shift ?? this.shift,
       workOrderNumber: workOrderNumber ?? this.workOrderNumber,
       processType: processType ?? this.processType,
-      allowancePercent: allowancePercent ?? this.allowancePercent,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -2240,9 +2190,6 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     if (processType.present) {
       map['process_type'] = Variable<String>(processType.value);
     }
-    if (allowancePercent.present) {
-      map['allowance_percent'] = Variable<double>(allowancePercent.value);
-    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -2275,399 +2222,9 @@ class StudiesCompanion extends UpdateCompanion<Study> {
           ..write('shift: $shift, ')
           ..write('workOrderNumber: $workOrderNumber, ')
           ..write('processType: $processType, ')
-          ..write('allowancePercent: $allowancePercent, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $StudyAllowanceOverridesTable extends StudyAllowanceOverrides
-    with TableInfo<$StudyAllowanceOverridesTable, StudyAllowanceOverride> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $StudyAllowanceOverridesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _studyIdMeta = const VerificationMeta(
-    'studyId',
-  );
-  @override
-  late final GeneratedColumn<String> studyId = GeneratedColumn<String>(
-    'study_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES studies (id) ON DELETE CASCADE',
-    ),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<OperationCategory, String>
-  category =
-      GeneratedColumn<String>(
-        'category',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<OperationCategory>(
-        $StudyAllowanceOverridesTable.$convertercategory,
-      );
-  static const VerificationMeta _allowancePercentMeta = const VerificationMeta(
-    'allowancePercent',
-  );
-  @override
-  late final GeneratedColumn<double> allowancePercent = GeneratedColumn<double>(
-    'allowance_percent',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    studyId,
-    category,
-    allowancePercent,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'study_allowance_overrides';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<StudyAllowanceOverride> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('study_id')) {
-      context.handle(
-        _studyIdMeta,
-        studyId.isAcceptableOrUnknown(data['study_id']!, _studyIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_studyIdMeta);
-    }
-    if (data.containsKey('allowance_percent')) {
-      context.handle(
-        _allowancePercentMeta,
-        allowancePercent.isAcceptableOrUnknown(
-          data['allowance_percent']!,
-          _allowancePercentMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_allowancePercentMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {studyId, category},
-  ];
-  @override
-  StudyAllowanceOverride map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudyAllowanceOverride(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      studyId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}study_id'],
-      )!,
-      category: $StudyAllowanceOverridesTable.$convertercategory.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}category'],
-        )!,
-      ),
-      allowancePercent: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}allowance_percent'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $StudyAllowanceOverridesTable createAlias(String alias) {
-    return $StudyAllowanceOverridesTable(attachedDatabase, alias);
-  }
-
-  static JsonTypeConverter2<OperationCategory, String, String>
-  $convertercategory = const EnumNameConverter<OperationCategory>(
-    OperationCategory.values,
-  );
-}
-
-class StudyAllowanceOverride extends DataClass
-    implements Insertable<StudyAllowanceOverride> {
-  final String id;
-  final String studyId;
-  final OperationCategory category;
-  final double allowancePercent;
-  final DateTime createdAt;
-  const StudyAllowanceOverride({
-    required this.id,
-    required this.studyId,
-    required this.category,
-    required this.allowancePercent,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['study_id'] = Variable<String>(studyId);
-    {
-      map['category'] = Variable<String>(
-        $StudyAllowanceOverridesTable.$convertercategory.toSql(category),
-      );
-    }
-    map['allowance_percent'] = Variable<double>(allowancePercent);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  StudyAllowanceOverridesCompanion toCompanion(bool nullToAbsent) {
-    return StudyAllowanceOverridesCompanion(
-      id: Value(id),
-      studyId: Value(studyId),
-      category: Value(category),
-      allowancePercent: Value(allowancePercent),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory StudyAllowanceOverride.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudyAllowanceOverride(
-      id: serializer.fromJson<String>(json['id']),
-      studyId: serializer.fromJson<String>(json['studyId']),
-      category: $StudyAllowanceOverridesTable.$convertercategory.fromJson(
-        serializer.fromJson<String>(json['category']),
-      ),
-      allowancePercent: serializer.fromJson<double>(json['allowancePercent']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'studyId': serializer.toJson<String>(studyId),
-      'category': serializer.toJson<String>(
-        $StudyAllowanceOverridesTable.$convertercategory.toJson(category),
-      ),
-      'allowancePercent': serializer.toJson<double>(allowancePercent),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  StudyAllowanceOverride copyWith({
-    String? id,
-    String? studyId,
-    OperationCategory? category,
-    double? allowancePercent,
-    DateTime? createdAt,
-  }) => StudyAllowanceOverride(
-    id: id ?? this.id,
-    studyId: studyId ?? this.studyId,
-    category: category ?? this.category,
-    allowancePercent: allowancePercent ?? this.allowancePercent,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  StudyAllowanceOverride copyWithCompanion(
-    StudyAllowanceOverridesCompanion data,
-  ) {
-    return StudyAllowanceOverride(
-      id: data.id.present ? data.id.value : this.id,
-      studyId: data.studyId.present ? data.studyId.value : this.studyId,
-      category: data.category.present ? data.category.value : this.category,
-      allowancePercent: data.allowancePercent.present
-          ? data.allowancePercent.value
-          : this.allowancePercent,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudyAllowanceOverride(')
-          ..write('id: $id, ')
-          ..write('studyId: $studyId, ')
-          ..write('category: $category, ')
-          ..write('allowancePercent: $allowancePercent, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, studyId, category, allowancePercent, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StudyAllowanceOverride &&
-          other.id == this.id &&
-          other.studyId == this.studyId &&
-          other.category == this.category &&
-          other.allowancePercent == this.allowancePercent &&
-          other.createdAt == this.createdAt);
-}
-
-class StudyAllowanceOverridesCompanion
-    extends UpdateCompanion<StudyAllowanceOverride> {
-  final Value<String> id;
-  final Value<String> studyId;
-  final Value<OperationCategory> category;
-  final Value<double> allowancePercent;
-  final Value<DateTime> createdAt;
-  final Value<int> rowid;
-  const StudyAllowanceOverridesCompanion({
-    this.id = const Value.absent(),
-    this.studyId = const Value.absent(),
-    this.category = const Value.absent(),
-    this.allowancePercent = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  StudyAllowanceOverridesCompanion.insert({
-    required String id,
-    required String studyId,
-    required OperationCategory category,
-    required double allowancePercent,
-    required DateTime createdAt,
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       studyId = Value(studyId),
-       category = Value(category),
-       allowancePercent = Value(allowancePercent),
-       createdAt = Value(createdAt);
-  static Insertable<StudyAllowanceOverride> custom({
-    Expression<String>? id,
-    Expression<String>? studyId,
-    Expression<String>? category,
-    Expression<double>? allowancePercent,
-    Expression<DateTime>? createdAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (studyId != null) 'study_id': studyId,
-      if (category != null) 'category': category,
-      if (allowancePercent != null) 'allowance_percent': allowancePercent,
-      if (createdAt != null) 'created_at': createdAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  StudyAllowanceOverridesCompanion copyWith({
-    Value<String>? id,
-    Value<String>? studyId,
-    Value<OperationCategory>? category,
-    Value<double>? allowancePercent,
-    Value<DateTime>? createdAt,
-    Value<int>? rowid,
-  }) {
-    return StudyAllowanceOverridesCompanion(
-      id: id ?? this.id,
-      studyId: studyId ?? this.studyId,
-      category: category ?? this.category,
-      allowancePercent: allowancePercent ?? this.allowancePercent,
-      createdAt: createdAt ?? this.createdAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (studyId.present) {
-      map['study_id'] = Variable<String>(studyId.value);
-    }
-    if (category.present) {
-      map['category'] = Variable<String>(
-        $StudyAllowanceOverridesTable.$convertercategory.toSql(category.value),
-      );
-    }
-    if (allowancePercent.present) {
-      map['allowance_percent'] = Variable<double>(allowancePercent.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudyAllowanceOverridesCompanion(')
-          ..write('id: $id, ')
-          ..write('studyId: $studyId, ')
-          ..write('category: $category, ')
-          ..write('allowancePercent: $allowancePercent, ')
-          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3824,18 +3381,6 @@ class $OperationInstancesTable extends OperationInstances
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _ratingPercentMeta = const VerificationMeta(
-    'ratingPercent',
-  );
-  @override
-  late final GeneratedColumn<double> ratingPercent = GeneratedColumn<double>(
-    'rating_percent',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(100.0),
-  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -3863,7 +3408,6 @@ class $OperationInstancesTable extends OperationInstances
     studyOperationId,
     manualActualMs,
     completedAt,
-    ratingPercent,
     notes,
     createdAt,
   ];
@@ -3924,15 +3468,6 @@ class $OperationInstancesTable extends OperationInstances
         ),
       );
     }
-    if (data.containsKey('rating_percent')) {
-      context.handle(
-        _ratingPercentMeta,
-        ratingPercent.isAcceptableOrUnknown(
-          data['rating_percent']!,
-          _ratingPercentMeta,
-        ),
-      );
-    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -3980,10 +3515,6 @@ class $OperationInstancesTable extends OperationInstances
         DriftSqlType.dateTime,
         data['${effectivePrefix}completed_at'],
       ),
-      ratingPercent: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}rating_percent'],
-      )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -4016,7 +3547,6 @@ class OperationInstance extends DataClass
   /// operation (resumable) apart from a finished one, since both have no open
   /// segment. Cleared if timing resumes.
   final DateTime? completedAt;
-  final double ratingPercent;
   final String? notes;
   final DateTime createdAt;
   const OperationInstance({
@@ -4025,7 +3555,6 @@ class OperationInstance extends DataClass
     required this.studyOperationId,
     this.manualActualMs,
     this.completedAt,
-    required this.ratingPercent,
     this.notes,
     required this.createdAt,
   });
@@ -4041,7 +3570,6 @@ class OperationInstance extends DataClass
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
     }
-    map['rating_percent'] = Variable<double>(ratingPercent);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -4060,7 +3588,6 @@ class OperationInstance extends DataClass
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
-      ratingPercent: Value(ratingPercent),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -4079,7 +3606,6 @@ class OperationInstance extends DataClass
       studyOperationId: serializer.fromJson<String>(json['studyOperationId']),
       manualActualMs: serializer.fromJson<int?>(json['manualActualMs']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
-      ratingPercent: serializer.fromJson<double>(json['ratingPercent']),
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -4093,7 +3619,6 @@ class OperationInstance extends DataClass
       'studyOperationId': serializer.toJson<String>(studyOperationId),
       'manualActualMs': serializer.toJson<int?>(manualActualMs),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
-      'ratingPercent': serializer.toJson<double>(ratingPercent),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -4105,7 +3630,6 @@ class OperationInstance extends DataClass
     String? studyOperationId,
     Value<int?> manualActualMs = const Value.absent(),
     Value<DateTime?> completedAt = const Value.absent(),
-    double? ratingPercent,
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
   }) => OperationInstance(
@@ -4116,7 +3640,6 @@ class OperationInstance extends DataClass
         ? manualActualMs.value
         : this.manualActualMs,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
-    ratingPercent: ratingPercent ?? this.ratingPercent,
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -4135,9 +3658,6 @@ class OperationInstance extends DataClass
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
-      ratingPercent: data.ratingPercent.present
-          ? data.ratingPercent.value
-          : this.ratingPercent,
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -4151,7 +3671,6 @@ class OperationInstance extends DataClass
           ..write('studyOperationId: $studyOperationId, ')
           ..write('manualActualMs: $manualActualMs, ')
           ..write('completedAt: $completedAt, ')
-          ..write('ratingPercent: $ratingPercent, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -4165,7 +3684,6 @@ class OperationInstance extends DataClass
     studyOperationId,
     manualActualMs,
     completedAt,
-    ratingPercent,
     notes,
     createdAt,
   );
@@ -4178,7 +3696,6 @@ class OperationInstance extends DataClass
           other.studyOperationId == this.studyOperationId &&
           other.manualActualMs == this.manualActualMs &&
           other.completedAt == this.completedAt &&
-          other.ratingPercent == this.ratingPercent &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt);
 }
@@ -4189,7 +3706,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
   final Value<String> studyOperationId;
   final Value<int?> manualActualMs;
   final Value<DateTime?> completedAt;
-  final Value<double> ratingPercent;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -4199,7 +3715,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     this.studyOperationId = const Value.absent(),
     this.manualActualMs = const Value.absent(),
     this.completedAt = const Value.absent(),
-    this.ratingPercent = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4210,7 +3725,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     required String studyOperationId,
     this.manualActualMs = const Value.absent(),
     this.completedAt = const Value.absent(),
-    this.ratingPercent = const Value.absent(),
     this.notes = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -4224,7 +3738,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     Expression<String>? studyOperationId,
     Expression<int>? manualActualMs,
     Expression<DateTime>? completedAt,
-    Expression<double>? ratingPercent,
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -4235,7 +3748,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
       if (studyOperationId != null) 'study_operation_id': studyOperationId,
       if (manualActualMs != null) 'manual_actual_ms': manualActualMs,
       if (completedAt != null) 'completed_at': completedAt,
-      if (ratingPercent != null) 'rating_percent': ratingPercent,
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -4248,7 +3760,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     Value<String>? studyOperationId,
     Value<int?>? manualActualMs,
     Value<DateTime?>? completedAt,
-    Value<double>? ratingPercent,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -4259,7 +3770,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
       studyOperationId: studyOperationId ?? this.studyOperationId,
       manualActualMs: manualActualMs ?? this.manualActualMs,
       completedAt: completedAt ?? this.completedAt,
-      ratingPercent: ratingPercent ?? this.ratingPercent,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -4284,9 +3794,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
-    if (ratingPercent.present) {
-      map['rating_percent'] = Variable<double>(ratingPercent.value);
-    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -4307,7 +3814,6 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
           ..write('studyOperationId: $studyOperationId, ')
           ..write('manualActualMs: $manualActualMs, ')
           ..write('completedAt: $completedAt, ')
-          ..write('ratingPercent: $ratingPercent, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -4732,18 +4238,6 @@ class $TemplatesTable extends Templates
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<StudyType>($TemplatesTable.$converterdefaultStudyType);
-  static const VerificationMeta _defaultAllowancePercentMeta =
-      const VerificationMeta('defaultAllowancePercent');
-  @override
-  late final GeneratedColumn<double> defaultAllowancePercent =
-      GeneratedColumn<double>(
-        'default_allowance_percent',
-        aliasedName,
-        false,
-        type: DriftSqlType.double,
-        requiredDuringInsert: false,
-        defaultValue: const Constant(0.0),
-      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -4771,7 +4265,6 @@ class $TemplatesTable extends Templates
     id,
     name,
     defaultStudyType,
-    defaultAllowancePercent,
     createdAt,
     updatedAt,
   ];
@@ -4799,15 +4292,6 @@ class $TemplatesTable extends Templates
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
-    }
-    if (data.containsKey('default_allowance_percent')) {
-      context.handle(
-        _defaultAllowancePercentMeta,
-        defaultAllowancePercent.isAcceptableOrUnknown(
-          data['default_allowance_percent']!,
-          _defaultAllowancePercentMeta,
-        ),
-      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -4848,10 +4332,6 @@ class $TemplatesTable extends Templates
           data['${effectivePrefix}default_study_type'],
         )!,
       ),
-      defaultAllowancePercent: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}default_allowance_percent'],
-      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -4878,14 +4358,12 @@ class Template extends DataClass implements Insertable<Template> {
   final String id;
   final String name;
   final StudyType defaultStudyType;
-  final double defaultAllowancePercent;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Template({
     required this.id,
     required this.name,
     required this.defaultStudyType,
-    required this.defaultAllowancePercent,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -4899,9 +4377,6 @@ class Template extends DataClass implements Insertable<Template> {
         $TemplatesTable.$converterdefaultStudyType.toSql(defaultStudyType),
       );
     }
-    map['default_allowance_percent'] = Variable<double>(
-      defaultAllowancePercent,
-    );
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -4912,7 +4387,6 @@ class Template extends DataClass implements Insertable<Template> {
       id: Value(id),
       name: Value(name),
       defaultStudyType: Value(defaultStudyType),
-      defaultAllowancePercent: Value(defaultAllowancePercent),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -4929,9 +4403,6 @@ class Template extends DataClass implements Insertable<Template> {
       defaultStudyType: $TemplatesTable.$converterdefaultStudyType.fromJson(
         serializer.fromJson<String>(json['defaultStudyType']),
       ),
-      defaultAllowancePercent: serializer.fromJson<double>(
-        json['defaultAllowancePercent'],
-      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -4945,9 +4416,6 @@ class Template extends DataClass implements Insertable<Template> {
       'defaultStudyType': serializer.toJson<String>(
         $TemplatesTable.$converterdefaultStudyType.toJson(defaultStudyType),
       ),
-      'defaultAllowancePercent': serializer.toJson<double>(
-        defaultAllowancePercent,
-      ),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -4957,15 +4425,12 @@ class Template extends DataClass implements Insertable<Template> {
     String? id,
     String? name,
     StudyType? defaultStudyType,
-    double? defaultAllowancePercent,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Template(
     id: id ?? this.id,
     name: name ?? this.name,
     defaultStudyType: defaultStudyType ?? this.defaultStudyType,
-    defaultAllowancePercent:
-        defaultAllowancePercent ?? this.defaultAllowancePercent,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -4976,9 +4441,6 @@ class Template extends DataClass implements Insertable<Template> {
       defaultStudyType: data.defaultStudyType.present
           ? data.defaultStudyType.value
           : this.defaultStudyType,
-      defaultAllowancePercent: data.defaultAllowancePercent.present
-          ? data.defaultAllowancePercent.value
-          : this.defaultAllowancePercent,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -4990,7 +4452,6 @@ class Template extends DataClass implements Insertable<Template> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('defaultStudyType: $defaultStudyType, ')
-          ..write('defaultAllowancePercent: $defaultAllowancePercent, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -4998,14 +4459,8 @@ class Template extends DataClass implements Insertable<Template> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    name,
-    defaultStudyType,
-    defaultAllowancePercent,
-    createdAt,
-    updatedAt,
-  );
+  int get hashCode =>
+      Object.hash(id, name, defaultStudyType, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5013,7 +4468,6 @@ class Template extends DataClass implements Insertable<Template> {
           other.id == this.id &&
           other.name == this.name &&
           other.defaultStudyType == this.defaultStudyType &&
-          other.defaultAllowancePercent == this.defaultAllowancePercent &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -5022,7 +4476,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
   final Value<String> id;
   final Value<String> name;
   final Value<StudyType> defaultStudyType;
-  final Value<double> defaultAllowancePercent;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -5030,7 +4483,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.defaultStudyType = const Value.absent(),
-    this.defaultAllowancePercent = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -5039,7 +4491,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
     required String id,
     required String name,
     required StudyType defaultStudyType,
-    this.defaultAllowancePercent = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -5052,7 +4503,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? defaultStudyType,
-    Expression<double>? defaultAllowancePercent,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -5061,8 +4511,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (defaultStudyType != null) 'default_study_type': defaultStudyType,
-      if (defaultAllowancePercent != null)
-        'default_allowance_percent': defaultAllowancePercent,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -5073,7 +4521,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
     Value<String>? id,
     Value<String>? name,
     Value<StudyType>? defaultStudyType,
-    Value<double>? defaultAllowancePercent,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -5082,8 +4529,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
       id: id ?? this.id,
       name: name ?? this.name,
       defaultStudyType: defaultStudyType ?? this.defaultStudyType,
-      defaultAllowancePercent:
-          defaultAllowancePercent ?? this.defaultAllowancePercent,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -5106,11 +4551,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
         ),
       );
     }
-    if (defaultAllowancePercent.present) {
-      map['default_allowance_percent'] = Variable<double>(
-        defaultAllowancePercent.value,
-      );
-    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -5129,7 +4569,6 @@ class TemplatesCompanion extends UpdateCompanion<Template> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('defaultStudyType: $defaultStudyType, ')
-          ..write('defaultAllowancePercent: $defaultAllowancePercent, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -6970,8 +6409,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CatalogOperationsTable catalogOperations =
       $CatalogOperationsTable(this);
   late final $StudiesTable studies = $StudiesTable(this);
-  late final $StudyAllowanceOverridesTable studyAllowanceOverrides =
-      $StudyAllowanceOverridesTable(this);
   late final $StudyOperationsTable studyOperations = $StudyOperationsTable(
     this,
   );
@@ -6998,7 +6435,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     operationSubtypes,
     catalogOperations,
     studies,
-    studyAllowanceOverrides,
     studyOperations,
     observations,
     operationInstances,
@@ -7024,15 +6460,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('studies', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'studies',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [
-        TableUpdate('study_allowance_overrides', kind: UpdateKind.delete),
-      ],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -8521,7 +7948,6 @@ typedef $$StudiesTableCreateCompanionBuilder =
       Value<String?> shift,
       Value<String?> workOrderNumber,
       Value<String?> processType,
-      Value<double> allowancePercent,
       Value<String?> notes,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -8543,7 +7969,6 @@ typedef $$StudiesTableUpdateCompanionBuilder =
       Value<String?> shift,
       Value<String?> workOrderNumber,
       Value<String?> processType,
-      Value<double> allowancePercent,
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -8568,31 +7993,6 @@ final class $$StudiesTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $StudyAllowanceOverridesTable,
-    List<StudyAllowanceOverride>
-  >
-  _studyAllowanceOverridesRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.studyAllowanceOverrides,
-        aliasName: 'studies__id__study_allowance_overrides__study_id',
-      );
-
-  $$StudyAllowanceOverridesTableProcessedTableManager
-  get studyAllowanceOverridesRefs {
-    final manager = $$StudyAllowanceOverridesTableTableManager(
-      $_db,
-      $_db.studyAllowanceOverrides,
-    ).filter((f) => f.studyId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _studyAllowanceOverridesRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 
@@ -8710,11 +8110,6 @@ class $$StudiesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get allowancePercent => $composableBuilder(
-    column: $table.allowancePercent,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnFilters(column),
@@ -8751,32 +8146,6 @@ class $$StudiesTableFilterComposer
           ),
     );
     return composer;
-  }
-
-  Expression<bool> studyAllowanceOverridesRefs(
-    Expression<bool> Function($$StudyAllowanceOverridesTableFilterComposer f) f,
-  ) {
-    final $$StudyAllowanceOverridesTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studyAllowanceOverrides,
-          getReferencedColumn: (t) => t.studyId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$StudyAllowanceOverridesTableFilterComposer(
-                $db: $db,
-                $table: $db.studyAllowanceOverrides,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
   }
 
   Expression<bool> studyOperationsRefs(
@@ -8904,11 +8273,6 @@ class $$StudiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get allowancePercent => $composableBuilder(
-    column: $table.allowancePercent,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -9010,11 +8374,6 @@ class $$StudiesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<double> get allowancePercent => $composableBuilder(
-    column: $table.allowancePercent,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
@@ -9045,33 +8404,6 @@ class $$StudiesTableAnnotationComposer
           ),
     );
     return composer;
-  }
-
-  Expression<T> studyAllowanceOverridesRefs<T extends Object>(
-    Expression<T> Function($$StudyAllowanceOverridesTableAnnotationComposer a)
-    f,
-  ) {
-    final $$StudyAllowanceOverridesTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.studyAllowanceOverrides,
-          getReferencedColumn: (t) => t.studyId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$StudyAllowanceOverridesTableAnnotationComposer(
-                $db: $db,
-                $table: $db.studyAllowanceOverrides,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
   }
 
   Expression<T> studyOperationsRefs<T extends Object>(
@@ -9140,7 +8472,6 @@ class $$StudiesTableTableManager
           Study,
           PrefetchHooks Function({
             bool projectId,
-            bool studyAllowanceOverridesRefs,
             bool studyOperationsRefs,
             bool observationsRefs,
           })
@@ -9172,7 +8503,6 @@ class $$StudiesTableTableManager
                 Value<String?> shift = const Value.absent(),
                 Value<String?> workOrderNumber = const Value.absent(),
                 Value<String?> processType = const Value.absent(),
-                Value<double> allowancePercent = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -9192,7 +8522,6 @@ class $$StudiesTableTableManager
                 shift: shift,
                 workOrderNumber: workOrderNumber,
                 processType: processType,
-                allowancePercent: allowancePercent,
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -9214,7 +8543,6 @@ class $$StudiesTableTableManager
                 Value<String?> shift = const Value.absent(),
                 Value<String?> workOrderNumber = const Value.absent(),
                 Value<String?> processType = const Value.absent(),
-                Value<double> allowancePercent = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -9234,7 +8562,6 @@ class $$StudiesTableTableManager
                 shift: shift,
                 workOrderNumber: workOrderNumber,
                 processType: processType,
-                allowancePercent: allowancePercent,
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -9251,14 +8578,12 @@ class $$StudiesTableTableManager
           prefetchHooksCallback:
               ({
                 projectId = false,
-                studyAllowanceOverridesRefs = false,
                 studyOperationsRefs = false,
                 observationsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (studyAllowanceOverridesRefs) db.studyAllowanceOverrides,
                     if (studyOperationsRefs) db.studyOperations,
                     if (observationsRefs) db.observations,
                   ],
@@ -9296,27 +8621,6 @@ class $$StudiesTableTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (studyAllowanceOverridesRefs)
-                        await $_getPrefetchedData<
-                          Study,
-                          $StudiesTable,
-                          StudyAllowanceOverride
-                        >(
-                          currentTable: table,
-                          referencedTable: $$StudiesTableReferences
-                              ._studyAllowanceOverridesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$StudiesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).studyAllowanceOverridesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.studyId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (studyOperationsRefs)
                         await $_getPrefetchedData<
                           Study,
@@ -9381,352 +8685,9 @@ typedef $$StudiesTableProcessedTableManager =
       Study,
       PrefetchHooks Function({
         bool projectId,
-        bool studyAllowanceOverridesRefs,
         bool studyOperationsRefs,
         bool observationsRefs,
       })
-    >;
-typedef $$StudyAllowanceOverridesTableCreateCompanionBuilder =
-    StudyAllowanceOverridesCompanion Function({
-      required String id,
-      required String studyId,
-      required OperationCategory category,
-      required double allowancePercent,
-      required DateTime createdAt,
-      Value<int> rowid,
-    });
-typedef $$StudyAllowanceOverridesTableUpdateCompanionBuilder =
-    StudyAllowanceOverridesCompanion Function({
-      Value<String> id,
-      Value<String> studyId,
-      Value<OperationCategory> category,
-      Value<double> allowancePercent,
-      Value<DateTime> createdAt,
-      Value<int> rowid,
-    });
-
-final class $$StudyAllowanceOverridesTableReferences
-    extends
-        BaseReferences<
-          _$AppDatabase,
-          $StudyAllowanceOverridesTable,
-          StudyAllowanceOverride
-        > {
-  $$StudyAllowanceOverridesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $StudiesTable _studyIdTable(_$AppDatabase db) => db.studies
-      .createAlias('study_allowance_overrides__study_id__studies__id');
-
-  $$StudiesTableProcessedTableManager get studyId {
-    final $_column = $_itemColumn<String>('study_id')!;
-
-    final manager = $$StudiesTableTableManager(
-      $_db,
-      $_db.studies,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_studyIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$StudyAllowanceOverridesTableFilterComposer
-    extends Composer<_$AppDatabase, $StudyAllowanceOverridesTable> {
-  $$StudyAllowanceOverridesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<OperationCategory, OperationCategory, String>
-  get category => $composableBuilder(
-    column: $table.category,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<double> get allowancePercent => $composableBuilder(
-    column: $table.allowancePercent,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$StudiesTableFilterComposer get studyId {
-    final $$StudiesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studyId,
-      referencedTable: $db.studies,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudiesTableFilterComposer(
-            $db: $db,
-            $table: $db.studies,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$StudyAllowanceOverridesTableOrderingComposer
-    extends Composer<_$AppDatabase, $StudyAllowanceOverridesTable> {
-  $$StudyAllowanceOverridesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get category => $composableBuilder(
-    column: $table.category,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get allowancePercent => $composableBuilder(
-    column: $table.allowancePercent,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$StudiesTableOrderingComposer get studyId {
-    final $$StudiesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studyId,
-      referencedTable: $db.studies,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudiesTableOrderingComposer(
-            $db: $db,
-            $table: $db.studies,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$StudyAllowanceOverridesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $StudyAllowanceOverridesTable> {
-  $$StudyAllowanceOverridesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<OperationCategory, String> get category =>
-      $composableBuilder(column: $table.category, builder: (column) => column);
-
-  GeneratedColumn<double> get allowancePercent => $composableBuilder(
-    column: $table.allowancePercent,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  $$StudiesTableAnnotationComposer get studyId {
-    final $$StudiesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.studyId,
-      referencedTable: $db.studies,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudiesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.studies,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$StudyAllowanceOverridesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $StudyAllowanceOverridesTable,
-          StudyAllowanceOverride,
-          $$StudyAllowanceOverridesTableFilterComposer,
-          $$StudyAllowanceOverridesTableOrderingComposer,
-          $$StudyAllowanceOverridesTableAnnotationComposer,
-          $$StudyAllowanceOverridesTableCreateCompanionBuilder,
-          $$StudyAllowanceOverridesTableUpdateCompanionBuilder,
-          (StudyAllowanceOverride, $$StudyAllowanceOverridesTableReferences),
-          StudyAllowanceOverride,
-          PrefetchHooks Function({bool studyId})
-        > {
-  $$StudyAllowanceOverridesTableTableManager(
-    _$AppDatabase db,
-    $StudyAllowanceOverridesTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$StudyAllowanceOverridesTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer: () =>
-              $$StudyAllowanceOverridesTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $$StudyAllowanceOverridesTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> studyId = const Value.absent(),
-                Value<OperationCategory> category = const Value.absent(),
-                Value<double> allowancePercent = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StudyAllowanceOverridesCompanion(
-                id: id,
-                studyId: studyId,
-                category: category,
-                allowancePercent: allowancePercent,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String studyId,
-                required OperationCategory category,
-                required double allowancePercent,
-                required DateTime createdAt,
-                Value<int> rowid = const Value.absent(),
-              }) => StudyAllowanceOverridesCompanion.insert(
-                id: id,
-                studyId: studyId,
-                category: category,
-                allowancePercent: allowancePercent,
-                createdAt: createdAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$StudyAllowanceOverridesTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({studyId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (studyId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.studyId,
-                                referencedTable:
-                                    $$StudyAllowanceOverridesTableReferences
-                                        ._studyIdTable(db),
-                                referencedColumn:
-                                    $$StudyAllowanceOverridesTableReferences
-                                        ._studyIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$StudyAllowanceOverridesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $StudyAllowanceOverridesTable,
-      StudyAllowanceOverride,
-      $$StudyAllowanceOverridesTableFilterComposer,
-      $$StudyAllowanceOverridesTableOrderingComposer,
-      $$StudyAllowanceOverridesTableAnnotationComposer,
-      $$StudyAllowanceOverridesTableCreateCompanionBuilder,
-      $$StudyAllowanceOverridesTableUpdateCompanionBuilder,
-      (StudyAllowanceOverride, $$StudyAllowanceOverridesTableReferences),
-      StudyAllowanceOverride,
-      PrefetchHooks Function({bool studyId})
     >;
 typedef $$StudyOperationsTableCreateCompanionBuilder =
     StudyOperationsCompanion Function({
@@ -10899,7 +9860,6 @@ typedef $$OperationInstancesTableCreateCompanionBuilder =
       required String studyOperationId,
       Value<int?> manualActualMs,
       Value<DateTime?> completedAt,
-      Value<double> ratingPercent,
       Value<String?> notes,
       required DateTime createdAt,
       Value<int> rowid,
@@ -10911,7 +9871,6 @@ typedef $$OperationInstancesTableUpdateCompanionBuilder =
       Value<String> studyOperationId,
       Value<int?> manualActualMs,
       Value<DateTime?> completedAt,
-      Value<double> ratingPercent,
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -11023,11 +9982,6 @@ class $$OperationInstancesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get ratingPercent => $composableBuilder(
-    column: $table.ratingPercent,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnFilters(column),
@@ -11135,11 +10089,6 @@ class $$OperationInstancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get ratingPercent => $composableBuilder(
-    column: $table.ratingPercent,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -11216,11 +10165,6 @@ class $$OperationInstancesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get completedAt => $composableBuilder(
     column: $table.completedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get ratingPercent => $composableBuilder(
-    column: $table.ratingPercent,
     builder: (column) => column,
   );
 
@@ -11345,7 +10289,6 @@ class $$OperationInstancesTableTableManager
                 Value<String> studyOperationId = const Value.absent(),
                 Value<int?> manualActualMs = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
-                Value<double> ratingPercent = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -11355,7 +10298,6 @@ class $$OperationInstancesTableTableManager
                 studyOperationId: studyOperationId,
                 manualActualMs: manualActualMs,
                 completedAt: completedAt,
-                ratingPercent: ratingPercent,
                 notes: notes,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -11367,7 +10309,6 @@ class $$OperationInstancesTableTableManager
                 required String studyOperationId,
                 Value<int?> manualActualMs = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
-                Value<double> ratingPercent = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -11377,7 +10318,6 @@ class $$OperationInstancesTableTableManager
                 studyOperationId: studyOperationId,
                 manualActualMs: manualActualMs,
                 completedAt: completedAt,
-                ratingPercent: ratingPercent,
                 notes: notes,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -11847,7 +10787,6 @@ typedef $$TemplatesTableCreateCompanionBuilder =
       required String id,
       required String name,
       required StudyType defaultStudyType,
-      Value<double> defaultAllowancePercent,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -11857,7 +10796,6 @@ typedef $$TemplatesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<StudyType> defaultStudyType,
-      Value<double> defaultAllowancePercent,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -11912,11 +10850,6 @@ class $$TemplatesTableFilterComposer
   get defaultStudyType => $composableBuilder(
     column: $table.defaultStudyType,
     builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<double> get defaultAllowancePercent => $composableBuilder(
-    column: $table.defaultAllowancePercent,
-    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
@@ -11979,11 +10912,6 @@ class $$TemplatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get defaultAllowancePercent => $composableBuilder(
-    column: $table.defaultAllowancePercent,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -12015,11 +10943,6 @@ class $$TemplatesTableAnnotationComposer
         column: $table.defaultStudyType,
         builder: (column) => column,
       );
-
-  GeneratedColumn<double> get defaultAllowancePercent => $composableBuilder(
-    column: $table.defaultAllowancePercent,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -12085,7 +11008,6 @@ class $$TemplatesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<StudyType> defaultStudyType = const Value.absent(),
-                Value<double> defaultAllowancePercent = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -12093,7 +11015,6 @@ class $$TemplatesTableTableManager
                 id: id,
                 name: name,
                 defaultStudyType: defaultStudyType,
-                defaultAllowancePercent: defaultAllowancePercent,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -12103,7 +11024,6 @@ class $$TemplatesTableTableManager
                 required String id,
                 required String name,
                 required StudyType defaultStudyType,
-                Value<double> defaultAllowancePercent = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -12111,7 +11031,6 @@ class $$TemplatesTableTableManager
                 id: id,
                 name: name,
                 defaultStudyType: defaultStudyType,
-                defaultAllowancePercent: defaultAllowancePercent,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -13454,11 +12373,6 @@ class $AppDatabaseManager {
       $$CatalogOperationsTableTableManager(_db, _db.catalogOperations);
   $$StudiesTableTableManager get studies =>
       $$StudiesTableTableManager(_db, _db.studies);
-  $$StudyAllowanceOverridesTableTableManager get studyAllowanceOverrides =>
-      $$StudyAllowanceOverridesTableTableManager(
-        _db,
-        _db.studyAllowanceOverrides,
-      );
   $$StudyOperationsTableTableManager get studyOperations =>
       $$StudyOperationsTableTableManager(_db, _db.studyOperations);
   $$ObservationsTableTableManager get observations =>

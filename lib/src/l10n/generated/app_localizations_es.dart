@@ -128,9 +128,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get studyDetailsSection => 'Detalles';
 
   @override
-  String get studyFieldAllowance => 'Tolerancia %';
-
-  @override
   String get studyFieldProcessType => 'Tipo de proceso';
 
   @override
@@ -159,10 +156,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get processTypeNone => 'Ninguno';
-
-  @override
-  String get studyAllowanceHelp =>
-      'Tiempo extra para fatiga, esperas y necesidades personales. Tiempo estándar = Tiempo normal × (1 + Tolerancia %).';
 
   @override
   String get navCatalog => 'Catálogo';
@@ -362,7 +355,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get colOperation => 'Operación';
+  String get colOperation => 'Nombre de la operación';
 
   @override
   String get colExpected => 'Previsto';
@@ -448,4 +441,49 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get deletePhotoMessage =>
       '¿Eliminar esta foto? Esto no se puede deshacer.';
+
+  @override
+  String get reportTitle => 'Informe';
+
+  @override
+  String get reportTotalElapsed => 'Tiempo transcurrido';
+
+  @override
+  String get reportSimultaneous => 'Simultáneo';
+
+  @override
+  String get reportEfficiency => 'Eficiencia (%)';
+
+  @override
+  String get reportRollupTitle => 'Distribución por categoría';
+
+  @override
+  String get reportTimelineTitle => 'Línea de tiempo';
+
+  @override
+  String get reportParetoTitle => 'Pareto de desperdicios';
+
+  @override
+  String get timelineStart => 'Inicio';
+
+  @override
+  String get timelineEnd => 'Fin';
+
+  @override
+  String get colObserved => 'Tiempo observado';
+
+  @override
+  String get colReference => 'Tiempo de referencia';
+
+  @override
+  String get colNotes => 'Notas';
+
+  @override
+  String get colImages => 'Imágenes';
+
+  @override
+  String get reportEmpty => 'Cronometra operaciones para ver el informe.';
+
+  @override
+  String get wasteUnlabeled => 'Sin subtipo';
 }

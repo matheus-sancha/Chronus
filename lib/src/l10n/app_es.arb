@@ -38,7 +38,6 @@
   "studyOperationsPending": "Las operaciones se agregan al construir la secuencia.",
   "studyEditTitle": "Editar estudio",
   "studyDetailsSection": "Detalles",
-  "studyFieldAllowance": "Tolerancia %",
   "studyFieldProcessType": "Tipo de proceso",
   "studyFieldPartProduct": "Pieza / Producto",
   "studyFieldProcessOperation": "Proceso / Operación",
@@ -49,7 +48,6 @@
   "studyFieldWorkOrder": "Orden de trabajo",
   "studyFieldNotes": "Notas",
   "processTypeNone": "Ninguno",
-  "studyAllowanceHelp": "Tiempo extra para fatiga, esperas y necesidades personales. Tiempo estándar = Tiempo normal × (1 + Tolerancia %).",
   "navCatalog": "Catálogo",
   "catalogEmpty": "Aún no hay operaciones. Agrega la primera.",
   "catalogNewTitle": "Nueva operación",
@@ -124,7 +122,7 @@
       "total": { "type": "int" }
     }
   },
-  "colOperation": "Operación",
+  "colOperation": "Nombre de la operación",
   "colExpected": "Previsto",
   "colActual": "Real",
   "tooltipStart": "Iniciar",
@@ -156,5 +154,20 @@
   "addPhoto": "Añadir foto",
   "captionLabel": "Leyenda",
   "deletePhotoTitle": "Eliminar foto",
-  "deletePhotoMessage": "¿Eliminar esta foto? Esto no se puede deshacer."
+  "deletePhotoMessage": "¿Eliminar esta foto? Esto no se puede deshacer.",
+  "reportTitle": "Informe",
+  "reportTotalElapsed": "Tiempo transcurrido",
+  "reportSimultaneous": "Simultáneo",
+  "reportEfficiency": "Eficiencia (%)",
+  "reportRollupTitle": "Distribución por categoría",
+  "reportTimelineTitle": "Línea de tiempo",
+  "reportParetoTitle": "Pareto de desperdicios",
+  "timelineStart": "Inicio",
+  "timelineEnd": "Fin",
+  "colObserved": "Tiempo observado",
+  "colReference": "Tiempo de referencia",
+  "colNotes": "Notas",
+  "colImages": "Imágenes",
+  "reportEmpty": "Cronometra operaciones para ver el informe.",
+  "wasteUnlabeled": "Sin subtipo"
 }

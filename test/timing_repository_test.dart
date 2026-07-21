@@ -24,7 +24,6 @@ OperationInstance _inst({int? manual, DateTime? completed}) => OperationInstance
       studyOperationId: 's',
       manualActualMs: manual,
       completedAt: completed,
-      ratingPercent: 100,
       notes: null,
       createdAt: DateTime(2020),
     );
