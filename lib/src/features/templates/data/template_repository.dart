@@ -37,7 +37,6 @@ class TemplateRepository {
   Future<Template> create({
     required String name,
     required StudyType defaultStudyType,
-    double defaultAllowancePercent = 0,
   }) {
     final now = DateTime.now();
     return _db.into(_db.templates).insertReturning(
@@ -45,7 +44,6 @@ class TemplateRepository {
             id: _uuid.v4(),
             name: name,
             defaultStudyType: defaultStudyType,
-            defaultAllowancePercent: Value(defaultAllowancePercent),
             createdAt: now,
             updatedAt: now,
           ),
@@ -56,13 +54,11 @@ class TemplateRepository {
     required String id,
     required String name,
     required StudyType defaultStudyType,
-    required double defaultAllowancePercent,
   }) {
     return (_db.update(_db.templates)..where((t) => t.id.equals(id))).write(
       TemplatesCompanion(
         name: Value(name),
         defaultStudyType: Value(defaultStudyType),
-        defaultAllowancePercent: Value(defaultAllowancePercent),
         updatedAt: Value(DateTime.now()),
       ),
     );
@@ -162,7 +158,6 @@ class TemplateRepository {
               name: name,
               performedAt: now,
               analyst: Value(analyst),
-              allowancePercent: Value(template.defaultAllowancePercent),
               createdAt: now,
               updatedAt: now,
             ),
@@ -205,7 +200,6 @@ class TemplateRepository {
       final template = await create(
         name: name,
         defaultStudyType: study.type,
-        defaultAllowancePercent: study.allowancePercent,
       );
       final ops = await (_db.select(_db.studyOperations)
             ..where((t) => t.studyId.equals(studyId))

@@ -1,6 +1,17 @@
+import 'package:flutter/material.dart';
+
 import '../../../data/database/database.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
+
+/// Semantic colour per fixed category, used for the timing UI and (later)
+/// report roll-ups: amber = setup, green = value-added, red = waste. Fixed
+/// hues (not theme-derived) so the meaning reads the same on any floor.
+Color categoryColor(OperationCategory category) => switch (category) {
+      OperationCategory.setup => const Color(0xFFF59E0B),
+      OperationCategory.productive => const Color(0xFF16A34A),
+      OperationCategory.unproductive => const Color(0xFFDC2626),
+    };
 
 String categoryLabel(AppLocalizations l10n, OperationCategory category) =>
     switch (category) {

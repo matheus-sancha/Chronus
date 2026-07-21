@@ -34,10 +34,7 @@ class TemplatesScreen extends ConsumerWidget {
               return ListTile(
                 leading: const Icon(Icons.description_outlined),
                 title: Text(template.name),
-                subtitle: Text(
-                  '${studyTypeLabel(l10n, template.defaultStudyType)} · '
-                  '${template.defaultAllowancePercent}%',
-                ),
+                subtitle: Text(studyTypeLabel(l10n, template.defaultStudyType)),
                 onTap: () => context.push('/templates/${template.id}/sequence'),
                 trailing: PopupMenuButton<_Action>(
                   onSelected: (action) => switch (action) {
@@ -76,7 +73,7 @@ class TemplatesScreen extends ConsumerWidget {
 
   Future<void> _create(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final result = await showDialog<(String, StudyType, double)>(
+    final result = await showDialog<(String, StudyType)>(
       context: context,
       builder: (context) => TemplateDialog(title: l10n.templateNewTitle),
     );
@@ -84,7 +81,6 @@ class TemplatesScreen extends ConsumerWidget {
     final template = await ref.read(templateRepositoryProvider).create(
           name: result.$1,
           defaultStudyType: result.$2,
-          defaultAllowancePercent: result.$3,
         );
     if (context.mounted) {
       context.push('/templates/${template.id}/sequence');
@@ -97,13 +93,12 @@ class TemplatesScreen extends ConsumerWidget {
     Template template,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final result = await showDialog<(String, StudyType, double)>(
+    final result = await showDialog<(String, StudyType)>(
       context: context,
       builder: (context) => TemplateDialog(
         title: l10n.templateEditTitle,
         initialName: template.name,
         initialType: template.defaultStudyType,
-        initialAllowance: template.defaultAllowancePercent,
       ),
     );
     if (result == null || result.$1.isEmpty) return;
@@ -111,7 +106,6 @@ class TemplatesScreen extends ConsumerWidget {
           id: template.id,
           name: result.$1,
           defaultStudyType: result.$2,
-          defaultAllowancePercent: result.$3,
         );
   }
 
@@ -134,20 +128,18 @@ class TemplatesScreen extends ConsumerWidget {
 enum _Action { createStudy, edit, delete }
 
 /// Create/edit dialog for a template's settings.
-/// Returns (name, defaultStudyType, defaultAllowancePercent).
+/// Returns (name, defaultStudyType).
 class TemplateDialog extends StatefulWidget {
   const TemplateDialog({
     super.key,
     required this.title,
     this.initialName = '',
     this.initialType = StudyType.timeStudy,
-    this.initialAllowance = 0,
   });
 
   final String title;
   final String initialName;
   final StudyType initialType;
-  final double initialAllowance;
 
   @override
   State<TemplateDialog> createState() => _TemplateDialogState();
@@ -155,22 +147,16 @@ class TemplateDialog extends StatefulWidget {
 
 class _TemplateDialogState extends State<TemplateDialog> {
   late final _name = TextEditingController(text: widget.initialName);
-  late final _allowance = TextEditingController(
-    text: widget.initialAllowance == 0 ? '' : '${widget.initialAllowance}',
-  );
   late StudyType _type = widget.initialType;
 
   @override
   void dispose() {
     _name.dispose();
-    _allowance.dispose();
     super.dispose();
   }
 
   void _submit() {
-    final allowance =
-        double.tryParse(_allowance.text.trim().replaceAll(',', '.')) ?? 0.0;
-    Navigator.of(context).pop((_name.text.trim(), _type, allowance));
+    Navigator.of(context).pop((_name.text.trim(), _type));
   }
 
   @override
@@ -201,12 +187,6 @@ class _TemplateDialogState extends State<TemplateDialog> {
             ],
             selected: {_type},
             onSelectionChanged: (s) => setState(() => _type = s.first),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _allowance,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: l10n.studyFieldAllowance),
           ),
         ],
       ),

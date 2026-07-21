@@ -128,9 +128,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get studyDetailsSection => 'Detalles';
 
   @override
-  String get studyFieldAllowance => 'Tolerancia %';
-
-  @override
   String get studyFieldProcessType => 'Tipo de proceso';
 
   @override
@@ -159,10 +156,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get processTypeNone => 'Ninguno';
-
-  @override
-  String get studyAllowanceHelp =>
-      'Tiempo extra para fatiga, esperas y necesidades personales. Tiempo estándar = Tiempo normal × (1 + Tolerancia %).';
 
   @override
   String get navCatalog => 'Catálogo';
@@ -295,4 +288,202 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get searchHint => 'Buscar operaciones';
+
+  @override
+  String get timingTitle => 'Cronometraje';
+
+  @override
+  String get timingStart => 'Iniciar cronometraje';
+
+  @override
+  String get timingContinue => 'Continuar cronometraje';
+
+  @override
+  String get timingView => 'Ver cronometraje';
+
+  @override
+  String timingLapNext(String name) {
+    return 'Terminar e iniciar:\n$name';
+  }
+
+  @override
+  String get timingLapFinal => 'Terminar operación final';
+
+  @override
+  String get timingUnplanned => 'No planificada';
+
+  @override
+  String get timingUnplannedTag => 'no planificada';
+
+  @override
+  String get timingFinish => 'Finalizar';
+
+  @override
+  String get timingInsertUnplannedTitle => 'Insertar operación no planificada';
+
+  @override
+  String get timingComplete => 'Estudio completado';
+
+  @override
+  String get timingTotalTime => 'Tiempo total';
+
+  @override
+  String get timingValueAddedRatio => 'Índice de valor añadido';
+
+  @override
+  String get timingDiscard => 'Descartar cronometraje';
+
+  @override
+  String get timingDiscardTitle => 'Descartar cronometraje';
+
+  @override
+  String get timingDiscardMessage =>
+      '¿Eliminar todos los tiempos registrados de este estudio? Esto no se puede deshacer.';
+
+  @override
+  String get timingNoOperations => 'Añade operaciones antes de cronometrar.';
+
+  @override
+  String get timingNoSegments => 'Aún no hay operaciones registradas.';
+
+  @override
+  String get workspaceTotalLabel => 'Total';
+
+  @override
+  String timedProgress(int done, int total) {
+    return '$done / $total cronometradas';
+  }
+
+  @override
+  String get colOperation => 'Nombre de la operación';
+
+  @override
+  String get colExpected => 'Previsto';
+
+  @override
+  String get colActual => 'Real';
+
+  @override
+  String get tooltipStart => 'Iniciar';
+
+  @override
+  String get tooltipResume => 'Reanudar';
+
+  @override
+  String get tooltipPause => 'Pausar';
+
+  @override
+  String get tooltipStop => 'Detener';
+
+  @override
+  String get tooltipStopNext => 'Detener e iniciar siguiente';
+
+  @override
+  String get tooltipReset => 'Reiniciar';
+
+  @override
+  String get resetConfirmTitle => 'Reiniciar operación';
+
+  @override
+  String resetConfirmMessage(String name) {
+    return '¿Descartar el tiempo medido de $name?';
+  }
+
+  @override
+  String get interruptionTitle => 'Operación pausada';
+
+  @override
+  String get interruptionMessage =>
+      '¿Registrar esta interrupción como una operación no productiva?';
+
+  @override
+  String get interruptionLog => 'Registrar interrupción';
+
+  @override
+  String get interruptionSkip => 'Ahora no';
+
+  @override
+  String get manualTimeTitle => 'Introducir tiempo real';
+
+  @override
+  String get manualClear => 'Quitar ajuste manual';
+
+  @override
+  String get manualBadge => 'manual';
+
+  @override
+  String get actionDuplicate => 'Duplicar';
+
+  @override
+  String get noteAction => 'Nota';
+
+  @override
+  String get noteDialogTitle => 'Nota de la operación';
+
+  @override
+  String get noteHint => 'Comentarios sobre esta operación';
+
+  @override
+  String get photosAction => 'Fotos';
+
+  @override
+  String get photosEmpty => 'Aún no hay fotos.';
+
+  @override
+  String get addPhoto => 'Añadir foto';
+
+  @override
+  String get captionLabel => 'Leyenda';
+
+  @override
+  String get deletePhotoTitle => 'Eliminar foto';
+
+  @override
+  String get deletePhotoMessage =>
+      '¿Eliminar esta foto? Esto no se puede deshacer.';
+
+  @override
+  String get reportTitle => 'Informe';
+
+  @override
+  String get reportTotalElapsed => 'Tiempo transcurrido';
+
+  @override
+  String get reportSimultaneous => 'Simultáneo';
+
+  @override
+  String get reportEfficiency => 'Eficiencia (%)';
+
+  @override
+  String get reportRollupTitle => 'Distribución por categoría';
+
+  @override
+  String get reportTimelineTitle => 'Línea de tiempo';
+
+  @override
+  String get reportParetoTitle => 'Pareto de desperdicios';
+
+  @override
+  String get timelineStart => 'Inicio';
+
+  @override
+  String get timelineEnd => 'Fin';
+
+  @override
+  String get colObserved => 'Tiempo observado';
+
+  @override
+  String get colReference => 'Tiempo de referencia';
+
+  @override
+  String get colNotes => 'Notas';
+
+  @override
+  String get colImages => 'Imágenes';
+
+  @override
+  String get reportEmpty => 'Cronometra operaciones para ver el informe.';
+
+  @override
+  String get wasteUnlabeled => 'Sin subtipo';
 }

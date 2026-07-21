@@ -74,20 +74,30 @@ void main() {
           ),
         );
 
+    final instanceId = uuid.v4();
     await db.into(db.operationInstances).insert(
           OperationInstancesCompanion.insert(
-            id: uuid.v4(),
+            id: instanceId,
             observationId: observationId,
             studyOperationId: studyOpId,
-            startAtMs: const Value(1000),
+            createdAt: now,
+          ),
+        );
+    // Timing is held as one or more segments (observed = sum of durations).
+    await db.into(db.operationTimeSegments).insert(
+          OperationTimeSegmentsCompanion.insert(
+            id: uuid.v4(),
+            operationInstanceId: instanceId,
+            startAtMs: 1000,
             endAtMs: const Value(5500),
             createdAt: now,
           ),
         );
 
     final instance = await db.select(db.operationInstances).getSingle();
-    expect(instance.endAtMs! - instance.startAtMs!, 4500);
-    expect(instance.ratingPercent, 100.0); // default applied
+    expect(instance.manualActualMs, null);
+    final segment = await db.select(db.operationTimeSegments).getSingle();
+    expect(segment.endAtMs! - segment.startAtMs, 4500);
   });
 
   test('foreign keys are enforced (bad projectId is rejected)', () async {

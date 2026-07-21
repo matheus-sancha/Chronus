@@ -83,33 +83,12 @@ class Studies extends Table {
   /// as text so historical studies keep their value if the option changes.
   TextColumn get processType => text().nullable()();
 
-  /// Study-level allowance % for the standard-time chain (per-category overrides
-  /// live in [StudyAllowanceOverrides]). Rating % is per operation-instance.
-  RealColumn get allowancePercent => real().withDefault(const Constant(0.0))();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
-}
-
-/// Optional per-category allowance override. Absence => use the study default.
-class StudyAllowanceOverrides extends Table {
-  TextColumn get id => text()();
-  TextColumn get studyId =>
-      text().references(Studies, #id, onDelete: KeyAction.cascade)();
-  TextColumn get category => textEnum<OperationCategory>()();
-  RealColumn get allowancePercent => real()();
-  DateTimeColumn get createdAt => dateTime()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-
-  @override
-  List<Set<Column<Object>>> get uniqueKeys => [
-        {studyId, category},
-      ];
 }
 
 /// The study's planned operation SEQUENCE — the per-study snapshot of catalog
@@ -162,16 +141,29 @@ class Observations extends Table {
 }
 
 /// The measured timing of one [StudyOperations] row within one [Observations].
-/// observed = endAtMs - startAtMs. Rating % is per instance (default 100).
+///
+/// Timing is per-operation and discrete (snapback): the operation is started,
+/// paused and resumed independently, so its measured time is the SUM of one or
+/// more [OperationTimeSegments] (not a single span). Multiple instances may run
+/// at once (two operators, or man + machine). [manualActualMs], when set,
+/// NON-DESTRUCTIVELY shadows the measured sum (segments are kept); it also lets
+/// a paper study be transcribed with no live timing at all.
 class OperationInstances extends Table {
   TextColumn get id => text()();
   TextColumn get observationId =>
       text().references(Observations, #id, onDelete: KeyAction.cascade)();
   TextColumn get studyOperationId =>
       text().references(StudyOperations, #id, onDelete: KeyAction.cascade)();
-  IntColumn get startAtMs => integer().nullable()();
-  IntColumn get endAtMs => integer().nullable()();
-  RealColumn get ratingPercent => real().withDefault(const Constant(100.0))();
+
+  /// Manual override of the actual time, in milliseconds. Null => use the sum
+  /// of [OperationTimeSegments]. Setting it never deletes segments.
+  IntColumn get manualActualMs => integer().nullable()();
+
+  /// When the operation was **stopped** (marked complete). Null while it is
+  /// still pending, running, or merely paused. Lets the UI tell a paused
+  /// operation (resumable) apart from a finished one, since both have no open
+  /// segment. Cleared if timing resumes.
+  DateTimeColumn get completedAt => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -184,6 +176,22 @@ class OperationInstances extends Table {
       ];
 }
 
+/// One timed interval of an [OperationInstances]. A fresh start or a resume
+/// opens a segment ([endAtMs] null = currently running); a pause or stop closes
+/// it. Absolute epoch milliseconds (exact; survives backgrounding; boundary-
+/// editable). Observed time of the instance = Σ (endAtMs − startAtMs).
+class OperationTimeSegments extends Table {
+  TextColumn get id => text()();
+  TextColumn get operationInstanceId =>
+      text().references(OperationInstances, #id, onDelete: KeyAction.cascade)();
+  IntColumn get startAtMs => integer()();
+  IntColumn get endAtMs => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 // --- Templates ------------------------------------------------------------
 
 /// Reusable ordered sequence + default settings. No measured data, ever.
@@ -191,8 +199,6 @@ class Templates extends Table {
   TextColumn get id => text()();
   TextColumn get name => text().withLength(min: 1, max: 200)();
   TextColumn get defaultStudyType => textEnum<StudyType>()();
-  RealColumn get defaultAllowancePercent =>
-      real().withDefault(const Constant(0.0))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

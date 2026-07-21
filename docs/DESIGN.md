@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** design agreed — pre-implementation.
-**Last updated:** 2026-07-19
+**Status:** in implementation — Phases 1–2 built; Phase 3 (Core) in progress.
+**Last updated:** 2026-07-20
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -22,7 +22,7 @@ Chronus lets a manufacturing engineer or technician stand at a machine and, one-
 | Decision | Choice | Rationale / alternatives |
 |---|---|---|
 | Target platforms | **iOS first** (priority-one), **Windows** later. No Android, no macOS. | Core value is the on-floor stopwatch (touch, handheld). "PC" = Windows (shop-floor offices are Windows shops). |
-| iOS form factor | **Universal — iPhone-first responsive, iPad-capable** | Timing UI is one-handed iPhone; setup/reporting/comparison expand to iPad width. Responsive layout, not a second app. Rehearses Windows responsiveness. |
+| Form factor | **Responsive across phone → tablet → desktop**; one codebase, not a second app. | Live timing is a multi-operation table (concurrent timers, per-row controls, inline edit) — a **wide-layout-first** experience the analyst drives while observing a station on a tablet/laptop, reflowing to stacked cards on a phone. (Supersedes the earlier "one-handed iPhone stopwatch" premise — see §3.5.) |
 | Tech stack | **Flutter** (single codebase) | Targets iOS now + Windows later with a production-grade desktop story. Chosen over native Swift (would require rewrites for Windows) and React Native (weaker Windows target). |
 | Storage engine | **SQLite via Drift** | Domain is deeply relational; reporting/comparison need aggregation queries. Media stored as **files** in the app directory, referenced by id (never DB blobs). |
 | Data safety | Device iCloud/iTunes backup **+ manual `.chronus` backup bundle** (zipped DB + media, re-importable). **No cloud sync in v1.** | Local-first with no accounts means device loss = data loss; the bundle is insurance and the iOS→Windows migration path. Cloud sync would require accounts/servers, deliberately avoided. |
@@ -47,7 +47,7 @@ Template (reusable ordered sequence + default settings)
 ### 3.2 Study types
 
 - **Time Study** — one ordered pass through operations, timed live.
-- **Sampling Study** — a container of **multiple observations**; each observation is one timed pass through the same operation set, **reusing the Time Study stopwatch engine**. Aggregated across passes (mean, min, max, range, std dev, coefficient of variation, % deviation vs standard).
+- **Sampling Study** — a container of **multiple observations**; each observation is one timed pass through the same operation set, **reusing the same per-operation timing engine** (§3.5). Aggregated across passes (mean, min, max, range, std dev, coefficient of variation, % deviation vs standard).
 - **"Standard vs. actual" is a comparison _view_**, shown whenever operations carry standards — **not** a separate study type.
 
 _Alternative rejected:_ three study modes (direct / standard-vs-actual / sampling). Collapsed to two because standard-vs-actual is a view, and sampling is "run the time study K times and roll it up."
@@ -66,28 +66,24 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 
 ### 3.5 Timing
 
-- **Continuous timing** based on **absolute start/end timestamps** stored internally (survives backgrounding/lock; enables post-hoc boundary editing; no tick-drift).
-- **UI:** one large **lap-advance button** — "tap to end current operation & start next." One-handed, glanceable.
-- **Insert unplanned operation mid-run** (e.g. an unplanned _Waiting_) without disturbing the remaining preset sequence.
-- _Snapback (per-element reset) timing rejected for v1_ — loses timeline and time during reset.
+- **Per-operation (snapback) timing.** Each operation is an **independent timer**, started/paused/stopped/reset on its own — _not_ a single continuous cursor. This matches real cronoanálise practice: the clock is not always running, and not every instant belongs to an operation. **Dead time is counted only when explicitly attributed** to an (unproductive) operation.
+- **Absolute timestamps, multi-segment.** An operation's measured time is the **sum of one or more timed segments**, each an absolute start/end epoch-millisecond pair (stored in `OperationTimeSegments`). Pause closes a segment; resume opens a new one. Absolute timestamps survive backgrounding/lock, allow post-hoc boundary editing, and avoid tick-drift.
+- **Concurrency.** Multiple operations may run **simultaneously** — two operators on one assembly, or man + machine (internal-vs-external time). Therefore **total study time = wall-clock span** (first start → last stop), **never the sum** of operation times (which would double-count overlap). Simultaneous time is a first-class reporting output (Phase 4).
+- **Per-operation controls:** ▶ **start** (from zero) · ⏸ **pause** (preserves elapsed; offers to log the interruption as a new _unproductive_ operation) · ⏹ **stop** (complete) · ↺ **reset** (zero & discard, confirmed).
+- **Manual override.** The actual time may be **manually entered**, non-destructively: a `manualActualMs` value **shadows** the measured segment-sum (segments retained; clearing the override restores the measured value). Supports transcribing a paper study where nothing was timed live.
+- **The operation list _is_ the live workspace** — add / reorder / edit / duplicate / delete operations at any time during the study, including inserting an unplanned operation mid-study (see §8.2: the build-sequence and run steps are merged into one study screen).
+- A **timed / not-timed** indicator per operation (plus an in-progress state) tracks study completeness at a glance.
+- _Continuous single-cursor "one big lap button" timing rejected_ — it forces every instant onto some operation and cannot represent concurrency, pauses/interruptions, or discretely re-measured elements. (This reverses the original v1 decision, which had instead rejected snapback; the domain reality is the opposite.)
 
-### 3.6 Standard-time chain (full, in v1)
+### 3.6 Reference standard & efficiency
 
-```
-Observed time
-  × performance Rating %   (default 100)     → Normal time
-  × (1 + Allowance %)      (default 0)        → Computed Standard time
-```
-
-- Rating is per-observation/per-operation; Allowance is study-level with **optional per-category override**. Both optional with sensible defaults.
-- **Two distinct "standard times":**
-  1. **Reference standard** — pre-existing benchmark stored in the catalog (the "standard" in standard-vs-actual).
-  2. **Computed standard** — the study's output from the chain above.
-  The comparison view shows both.
+- Each operation may carry an optional **reference standard** — a pre-existing benchmark time stored in the catalog and snapshotted onto the study operation.
+- **Efficiency = reference standard ÷ observed time** (≥ 100 % = met or beat the benchmark). Reported per operation and in aggregate (Σ reference ÷ Σ observed over operations that have both).
+- _The performance-rating / allowance "standard-time chain" (rating → normal → computed standard) was scrapped_ — it added ceremony without matching how these studies are actually read. Observed-vs-reference and efficiency are the deliverable.
 
 ### 3.7 Templates
 
-- **First-class entity:** an ordered list of catalog-operation references + default study settings (type, allowance %). **No measured data, ever.**
+- **First-class entity:** an ordered list of catalog-operation references + the default study type. **No measured data, ever.**
 - Instantiating a template **snapshots** the sequence into a new study.
 - **"Save as template from study"** strips measurements, keeps sequence + settings.
 - No built-in starter templates in v1.
@@ -114,19 +110,20 @@ Observed time
 **In-app first** (interactive views); export is a separate artifact (§5).
 
 **Time Study**
-- Operation breakdown table: observed / rating / normal / computed-standard / reference-standard / % deviation.
-- Category roll-up: % Setup vs. Value-Added vs. Waste.
+- Summary tiles: total elapsed (wall-clock span), total "simultaneous" (Σ operation times / work content), value-added ratio, **efficiency %**.
+- Operation breakdown table: observed / reference standard / **efficiency %** (+ note & photo indicators).
+- Category roll-up: % Setup vs. Value-Added vs. Waste (by work content).
+- **Timeline:** the operation sequence as one proportional strip, coloured by category.
 - Waste Pareto: time by waste subtype, ranked.
-- Summary card: total cycle time, value-added ratio, computed standard time.
 
 **Sampling Study**
 - Per-operation statistics across observations: mean, min, max, range, std dev, coefficient of variation.
 - **Sample-size adequacy** — given observed variability and chosen confidence/precision, how many observations are needed and whether you're there. (Key cronoanálise deliverable, retained.)
-- Standard comparison: mean vs. reference and computed standard; variability/consistency flags.
+- Reference comparison: mean vs. reference standard + efficiency; variability/consistency flags.
 
 **Cross-study comparison (v1)**
 - Operations matched by **catalog id** (unmatched excluded).
-- Compares each operation's **representative time** (Sampling → mean/computed standard; Time → observed/computed standard) + % deviation vs reference standard.
+- Compares each operation's **representative time** (Sampling → mean; Time → observed) + efficiency vs reference standard.
 - Presentation: **side-by-side table** (operations × studies) + **per-operation trend over time** (ordered by date).
 - **Mixed study types allowed.** **Scoped within a single Project** for v1 (cross-project later).
 
@@ -169,17 +166,19 @@ Two formats, two jobs:
 
 ### 8.1 Validate before building (the core bet)
 
-The single most-unvalidated assumption is: **does the live stopwatch feel right in a technician's hand — one-handed, rapid taps, backgrounding — on a real noisy floor?** Validate this _first_, cheaply:
+The single most-unvalidated assumption is the **live timing interaction**: **can an analyst observing a station capture per-operation times accurately — including _concurrent_ operations (two operators, or man + machine), pauses/interruptions, resets and corrections — on the device actually in hand, without fumbling?** Validate this _first_, cheaply:
 
-1. **Functional "stopwatch spike"** — throwaway-ish mini-app **in Flutter** (the real stack, so timing code carries forward) with **only**: lap-advance button, timestamp engine, insert-unplanned-operation, raw results list. Test on a **real iPhone with a real technician on a real floor.**
-2. **Low-fi Figma clickable flow** — catalog → sequence/template → study → reports — to validate information architecture before building those screens.
+1. **Functional timing spike** — a mini study-workspace **in Flutter** (the real stack, so timing code carries forward) exercising **only**: the per-operation segment engine, concurrent timers, pause → log-interruption, reset, manual override, and inline add/reorder. Test on a **real study** on the device the analyst will really use.
+2. **Low-fi Figma clickable flow** — catalog → study workspace → reports — to validate information architecture before building those screens.
+
+> **Note (2026-07-20):** the original core bet was "does a _one-handed, one-big-button lap stopwatch_ feel right." Domain review with the practitioner rejected that model — real time studies are per-operation, concurrent, and pausable (see §3.5) — so the first lap-stopwatch spike validated the **wrong** model and is superseded.
 
 ### 8.2 Phased build (each phase leaves the app runnable)
 
 1. **Foundations** — Flutter project, Drift schema, i18n scaffold, navigation, settings.
 2. **Structure** — Projects/Studies CRUD, operation Catalog, sequencing, Templates.
-3. **Core** — Time Study live stopwatch (timestamp engine), operation instances, notes + photos.
-4. **Analysis** — standard-time chain (rating/allowances) + Time Study reports.
+3. **Core** — the **study workspace** (one merged screen): per-operation timing engine (multi-segment, concurrency, pause/interruption, reset, manual override), inline add / reorder / edit / duplicate / delete, notes + photos. Retires the separate sequence screen.
+4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. **Licensing** — StoreKit IAP + gating + backup bundle.
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.

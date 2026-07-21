@@ -29,7 +29,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
 
   final _name = TextEditingController();
   final _analyst = TextEditingController();
-  final _allowance = TextEditingController();
   final _partProduct = TextEditingController();
   final _processOperation = TextEditingController();
   final _machine = TextEditingController();
@@ -49,7 +48,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
     for (final c in [
       _name,
       _analyst,
-      _allowance,
       _partProduct,
       _processOperation,
       _machine,
@@ -67,7 +65,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
   void _hydrate(Study study) {
     _name.text = study.name;
     _analyst.text = study.analyst ?? '';
-    _allowance.text = _formatAllowance(study.allowancePercent);
     _partProduct.text = study.partProduct ?? '';
     _processOperation.text = study.processOperation ?? '';
     _machine.text = study.machineWorkstation ?? '';
@@ -81,11 +78,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
     _processType = study.processType;
     _initialized = true;
   }
-
-  static String _formatAllowance(double value) =>
-      value == value.roundToDouble()
-          ? value.toStringAsFixed(0)
-          : value.toString();
 
   String? _nullIfBlank(String value) {
     final trimmed = value.trim();
@@ -114,7 +106,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    final allowance = double.tryParse(_allowance.text.trim().replaceAll(',', '.')) ?? 0.0;
     final changes = StudiesCompanion(
       name: Value(_name.text.trim()),
       type: Value(_type),
@@ -128,7 +119,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
       shift: Value(_nullIfBlank(_shift.text)),
       workOrderNumber: Value(_nullIfBlank(_workOrder.text)),
       processType: Value(_processType),
-      allowancePercent: Value(allowance),
       notes: Value(_nullIfBlank(_notes.text)),
     );
     await ref.read(studyRepositoryProvider).update(widget.studyId, changes);
@@ -193,14 +183,6 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
                   onTap: _pickDate,
                 ),
                 _text(_analyst, l10n.studyFieldAnalyst),
-                _text(
-                  _allowance,
-                  l10n.studyFieldAllowance,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  helpTooltip: l10n.studyAllowanceHelp,
-                ),
                 optionsAsync.when(
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),

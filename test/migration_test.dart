@@ -40,6 +40,16 @@ void main() {
         catalog_operation_id TEXT NOT NULL, order_index REAL NOT NULL,
         created_at INTEGER NOT NULL);
     ''');
+    // operation_instances existed in v1 with a single start/end span; the
+    // 2 -> 3 upgrade rebuilds it into the segment model. Present here so that
+    // migration step has a table to rebuild.
+    v1.execute('''
+      CREATE TABLE operation_instances (
+        id TEXT NOT NULL PRIMARY KEY, observation_id TEXT NOT NULL,
+        study_operation_id TEXT NOT NULL, start_at_ms INTEGER, end_at_ms INTEGER,
+        rating_percent REAL NOT NULL DEFAULT 100, notes TEXT,
+        created_at INTEGER NOT NULL);
+    ''');
     v1.execute("INSERT INTO catalog_operations VALUES "
         "('c1','Load part','productive',NULL,4500,0,0)");
     v1.execute("INSERT INTO templates VALUES ('t1','Cycle','timeStudy',0,0,0)");
