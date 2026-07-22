@@ -249,6 +249,11 @@ pw.Widget _rollup(TimeStudyReport r, AppLocalizations l10n) {
   );
 }
 
+// TODO(export-parity): still the old contiguous strip — it lays operations
+// end-to-end by duration, so it hides concurrency, gaps and pauses, and its
+// width sums to work content under an axis labelled start→end (elapsed). The
+// screen already draws the real Gantt; porting it here (with diagonal hatching
+// for unmeasured blocks, greyscale-safe) is the second half of this change.
 /// The operation sequence as one proportional strip, coloured by category.
 pw.Widget _timeline(TimeStudyReport r, AppLocalizations l10n) => pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -260,7 +265,8 @@ pw.Widget _timeline(TimeStudyReport r, AppLocalizations l10n) => pw.Column(
             for (var i = 0; i < r.timeline.length; i++) ...[
               if (i > 0) pw.Container(width: 1, color: PdfColors.white),
               pw.Expanded(
-                flex: r.timeline[i].observedMs,
+                flex: r.timeline[i].blocks
+                    .fold<int>(0, (sum, b) => sum + b.durationMs),
                 child: pw.Container(
                     color: _categoryPdfColor(r.timeline[i].operation.category)),
               ),

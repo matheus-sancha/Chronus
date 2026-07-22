@@ -449,7 +449,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get reportTotalElapsed => 'Tempo decorrido';
 
   @override
+  String get reportWorkContent => 'Conteúdo de trabalho';
+
+  @override
   String get reportSimultaneous => 'Simultâneo';
+
+  @override
+  String get reportUnattributed => 'Não atribuído';
+
+  @override
+  String get timelineNotMeasured => 'não medido';
+
+  @override
+  String get timelineRelativeAxis =>
+      'Sequência — sem cronometragem ao vivo, tempos relativos';
 
   @override
   String get reportEfficiency => 'Eficiência (%)';

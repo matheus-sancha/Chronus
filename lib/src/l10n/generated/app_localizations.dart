@@ -940,11 +940,35 @@ abstract class AppLocalizations {
   /// **'Total elapsed'**
   String get reportTotalElapsed;
 
+  /// No description provided for @reportWorkContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Work content'**
+  String get reportWorkContent;
+
   /// No description provided for @reportSimultaneous.
   ///
   /// In en, this message translates to:
   /// **'Simultaneous'**
   String get reportSimultaneous;
+
+  /// No description provided for @reportUnattributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unattributed'**
+  String get reportUnattributed;
+
+  /// No description provided for @timelineNotMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'not measured'**
+  String get timelineNotMeasured;
+
+  /// No description provided for @timelineRelativeAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence — no live timing, times are relative'**
+  String get timelineRelativeAxis;
 
   /// No description provided for @reportEfficiency.
   ///

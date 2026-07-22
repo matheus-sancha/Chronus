@@ -14,6 +14,7 @@ import '../../studies/application/studies_providers.dart';
 import '../../studies/application/timing_model.dart';
 import '../../studies/application/timing_providers.dart';
 import '../application/time_study_report.dart';
+import 'timeline_gantt.dart';
 
 /// Time Study report: observed vs reference, efficiency, and the sequence
 /// timeline. Read-only — timing is captured in the workspace. Percentages use
@@ -81,7 +82,7 @@ class TimeStudyReportScreen extends ConsumerWidget {
                 if (report.timeline.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   _sectionTitle(context, l10n.reportTimelineTitle),
-                  _Timeline(report: report),
+                  TimelineGantt(report: report),
                 ],
                 if (report.wastePareto.isNotEmpty) ...[
                   const SizedBox(height: 24),
@@ -102,8 +103,19 @@ class TimeStudyReportScreen extends ConsumerWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        _StatTile(label: l10n.reportTotalElapsed, value: formatHmsd(r.totalElapsedMs)),
-        _StatTile(label: l10n.reportSimultaneous, value: formatHmsd(r.totalWorkContentMs)),
+        _StatTile(
+            label: l10n.reportTotalElapsed, value: formatHmsd(r.totalElapsedMs)),
+        _StatTile(
+            label: l10n.reportWorkContent,
+            value: formatHmsd(r.totalWorkContentMs)),
+        // Real overlap (swept from the segments) — not work content, which
+        // sums operations and double-counts it.
+        _StatTile(
+            label: l10n.reportSimultaneous,
+            value: formatHmsd(r.simultaneousMs)),
+        _StatTile(
+            label: l10n.reportUnattributed,
+            value: formatHmsd(r.unattributedMs)),
         _StatTile(
             label: l10n.timingValueAddedRatio,
             value: '${(r.valueAddedRatio * 100).toStringAsFixed(1)}%'),
@@ -383,57 +395,6 @@ class _RollupBar extends StatelessWidget {
   }
 }
 
-/// The operation sequence as one proportional strip, coloured by category.
-class _Timeline extends StatelessWidget {
-  const _Timeline({required this.report});
-
-  final TimeStudyReport report;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          height: 30,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < report.timeline.length; i++) ...[
-                if (i > 0)
-                  Container(width: 1, color: theme.colorScheme.surface),
-                Expanded(
-                  flex: report.timeline[i].observedMs,
-                  child: Tooltip(
-                    message: report.timeline[i].operation.name,
-                    child: ColoredBox(
-                        color: categoryColor(
-                            report.timeline[i].operation.category)),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(l10n.timelineStart, style: theme.textTheme.bodySmall),
-            Text(l10n.timelineEnd, style: theme.textTheme.bodySmall),
-          ],
-        ),
-      ],
-    );
-  }
-}
 
 /// Ranked waste bars — a single-series magnitude chart, so one hue (the waste
 /// status colour) for every bar; identity is carried by the text label.

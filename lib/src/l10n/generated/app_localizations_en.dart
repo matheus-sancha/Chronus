@@ -447,7 +447,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportTotalElapsed => 'Total elapsed';
 
   @override
+  String get reportWorkContent => 'Work content';
+
+  @override
   String get reportSimultaneous => 'Simultaneous';
+
+  @override
+  String get reportUnattributed => 'Unattributed';
+
+  @override
+  String get timelineNotMeasured => 'not measured';
+
+  @override
+  String get timelineRelativeAxis =>
+      'Sequence — no live timing, times are relative';
 
   @override
   String get reportEfficiency => 'Efficiency (%)';
