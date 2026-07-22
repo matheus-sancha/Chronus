@@ -940,11 +940,35 @@ abstract class AppLocalizations {
   /// **'Total elapsed'**
   String get reportTotalElapsed;
 
+  /// No description provided for @reportWorkContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Work content'**
+  String get reportWorkContent;
+
   /// No description provided for @reportSimultaneous.
   ///
   /// In en, this message translates to:
   /// **'Simultaneous'**
   String get reportSimultaneous;
+
+  /// No description provided for @reportUnattributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unattributed'**
+  String get reportUnattributed;
+
+  /// No description provided for @timelineNotMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'not measured'**
+  String get timelineNotMeasured;
+
+  /// No description provided for @timelineRelativeAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence — no live timing, times are relative'**
+  String get timelineRelativeAxis;
 
   /// No description provided for @reportEfficiency.
   ///
@@ -970,17 +994,17 @@ abstract class AppLocalizations {
   /// **'Waste Pareto'**
   String get reportParetoTitle;
 
-  /// No description provided for @timelineStart.
+  /// No description provided for @colStart.
   ///
   /// In en, this message translates to:
   /// **'Start'**
-  String get timelineStart;
+  String get colStart;
 
-  /// No description provided for @timelineEnd.
+  /// No description provided for @colEnd.
   ///
   /// In en, this message translates to:
   /// **'End'**
-  String get timelineEnd;
+  String get colEnd;
 
   /// No description provided for @colObserved.
   ///
@@ -1017,6 +1041,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlabeled'**
   String get wasteUnlabeled;
+
+  /// No description provided for @settingsDataSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get settingsDataSection;
+
+  /// No description provided for @backupAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up'**
+  String get backupAction;
+
+  /// No description provided for @backupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save everything to a .chronus file'**
+  String get backupSubtitle;
+
+  /// No description provided for @backupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved.'**
+  String get backupDone;
+
+  /// No description provided for @restoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreAction;
+
+  /// No description provided for @restoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all data from a .chronus file'**
+  String get restoreSubtitle;
+
+  /// No description provided for @restoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup?'**
+  String get restoreConfirmTitle;
+
+  /// No description provided for @restoreConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces every project, study and photo currently in Chronus. It cannot be undone — back up first if you are unsure.'**
+  String get restoreConfirmMessage;
+
+  /// No description provided for @restoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored the backup from {date}.'**
+  String restoreDone(String date);
+
+  /// No description provided for @restoreErrorNotBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a Chronus backup.'**
+  String get restoreErrorNotBundle;
+
+  /// No description provided for @restoreErrorDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'That backup is incomplete or damaged, so nothing was changed.'**
+  String get restoreErrorDamaged;
+
+  /// No description provided for @restoreErrorTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'That backup was made by a newer version of Chronus. Update the app, then try again.'**
+  String get restoreErrorTooNew;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportAction;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF — report'**
+  String get exportPdf;
+
+  /// No description provided for @exportXlsx.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel — data'**
+  String get exportXlsx;
+
+  /// No description provided for @exportInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing export…'**
+  String get exportInProgress;
+
+  /// No description provided for @exportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Export ready.'**
+  String get exportDone;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String exportFailed(String error);
 }
 
 class _AppLocalizationsDelegate

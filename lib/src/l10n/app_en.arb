@@ -204,17 +204,49 @@
   "deletePhotoMessage": "Delete this photo? This cannot be undone.",
   "reportTitle": "Report",
   "reportTotalElapsed": "Total elapsed",
+  "reportWorkContent": "Work content",
   "reportSimultaneous": "Simultaneous",
+  "reportUnattributed": "Unattributed",
+  "timelineNotMeasured": "not measured",
+  "timelineRelativeAxis": "Sequence — no live timing, times are relative",
   "reportEfficiency": "Efficiency (%)",
   "reportRollupTitle": "Category breakdown",
   "reportTimelineTitle": "Timeline",
   "reportParetoTitle": "Waste Pareto",
-  "timelineStart": "Start",
-  "timelineEnd": "End",
+  "colStart": "Start",
+  "colEnd": "End",
   "colObserved": "Observed Time",
   "colReference": "Reference Time",
   "colNotes": "Notes",
   "colImages": "Images",
   "reportEmpty": "Time some operations to see the report.",
-  "wasteUnlabeled": "Unlabeled"
+  "wasteUnlabeled": "Unlabeled",
+  "settingsDataSection": "Data",
+  "backupAction": "Back up",
+  "backupSubtitle": "Save everything to a .chronus file",
+  "backupDone": "Backup saved.",
+  "restoreAction": "Restore",
+  "restoreSubtitle": "Replace all data from a .chronus file",
+  "restoreConfirmTitle": "Restore from backup?",
+  "restoreConfirmMessage": "This replaces every project, study and photo currently in Chronus. It cannot be undone — back up first if you are unsure.",
+  "restoreDone": "Restored the backup from {date}.",
+  "@restoreDone": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "restoreErrorNotBundle": "That file is not a Chronus backup.",
+  "restoreErrorDamaged": "That backup is incomplete or damaged, so nothing was changed.",
+  "restoreErrorTooNew": "That backup was made by a newer version of Chronus. Update the app, then try again.",
+  "exportAction": "Export",
+  "exportPdf": "PDF — report",
+  "exportXlsx": "Excel — data",
+  "exportInProgress": "Preparing export…",
+  "exportDone": "Export ready.",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

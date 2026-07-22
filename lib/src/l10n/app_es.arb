@@ -157,17 +157,49 @@
   "deletePhotoMessage": "¿Eliminar esta foto? Esto no se puede deshacer.",
   "reportTitle": "Informe",
   "reportTotalElapsed": "Tiempo transcurrido",
+  "reportWorkContent": "Contenido de trabajo",
   "reportSimultaneous": "Simultáneo",
+  "reportUnattributed": "No atribuido",
+  "timelineNotMeasured": "no medido",
+  "timelineRelativeAxis": "Secuencia — sin cronometraje en vivo, tiempos relativos",
   "reportEfficiency": "Eficiencia (%)",
   "reportRollupTitle": "Distribución por categoría",
   "reportTimelineTitle": "Línea de tiempo",
   "reportParetoTitle": "Pareto de desperdicios",
-  "timelineStart": "Inicio",
-  "timelineEnd": "Fin",
+  "colStart": "Inicio",
+  "colEnd": "Fin",
   "colObserved": "Tiempo observado",
   "colReference": "Tiempo de referencia",
   "colNotes": "Notas",
   "colImages": "Imágenes",
   "reportEmpty": "Cronometra operaciones para ver el informe.",
-  "wasteUnlabeled": "Sin subtipo"
+  "wasteUnlabeled": "Sin subtipo",
+  "settingsDataSection": "Datos",
+  "backupAction": "Crear copia de seguridad",
+  "backupSubtitle": "Guardar todo en un archivo .chronus",
+  "backupDone": "Copia de seguridad guardada.",
+  "restoreAction": "Restaurar",
+  "restoreSubtitle": "Reemplazar todos los datos desde un archivo .chronus",
+  "restoreConfirmTitle": "¿Restaurar desde la copia de seguridad?",
+  "restoreConfirmMessage": "Esto reemplaza todos los proyectos, estudios y fotos que hay en Chronus. No se puede deshacer: crea una copia antes si tienes dudas.",
+  "restoreDone": "Copia de seguridad del {date} restaurada.",
+  "@restoreDone": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "restoreErrorNotBundle": "Ese archivo no es una copia de seguridad de Chronus.",
+  "restoreErrorDamaged": "Esa copia de seguridad está incompleta o dañada; no se cambió nada.",
+  "restoreErrorTooNew": "Esa copia de seguridad se creó con una versión más reciente de Chronus. Actualiza la app e inténtalo de nuevo.",
+  "exportAction": "Exportar",
+  "exportPdf": "PDF — informe",
+  "exportXlsx": "Excel — datos",
+  "exportInProgress": "Preparando la exportación…",
+  "exportDone": "Exportación lista.",
+  "exportFailed": "Error al exportar: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

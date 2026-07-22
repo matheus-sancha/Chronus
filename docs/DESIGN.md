@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–2 built; Phase 3 (Core) in progress.
-**Last updated:** 2026-07-20
+**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export); Phase 6 (Licensing) next.
+**Last updated:** 2026-07-21
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -26,6 +26,13 @@ Chronus lets a manufacturing engineer or technician stand at a machine and, one-
 | Tech stack | **Flutter** (single codebase) | Targets iOS now + Windows later with a production-grade desktop story. Chosen over native Swift (would require rewrites for Windows) and React Native (weaker Windows target). |
 | Storage engine | **SQLite via Drift** | Domain is deeply relational; reporting/comparison need aggregation queries. Media stored as **files** in the app directory, referenced by id (never DB blobs). |
 | Data safety | Device iCloud/iTunes backup **+ manual `.chronus` backup bundle** (zipped DB + media, re-importable). **No cloud sync in v1.** | Local-first with no accounts means device loss = data loss; the bundle is insurance and the iOS→Windows migration path. Cloud sync would require accounts/servers, deliberately avoided. |
+
+**`.chronus` bundle notes (built ahead of the rest of Phase 6):**
+- A ZIP of `manifest.json` + `chronus.sqlite` + `media/`. The manifest carries a **bundle format** version (layout) separately from the **schema** version (rows), because the two move at different rates.
+- The database snapshot comes from **`VACUUM INTO`, never a file copy** — it is transactionally consistent without closing the live database, and folds in un-checkpointed WAL content that a raw copy would silently drop.
+- **Restore is total, not a merge**, and is applied by copying the bundle's tables into the running database in one transaction (via `ATTACH`) rather than swapping the file under a live connection. No restart, no window where the open handle and the file on disk disagree.
+- Validation happens **before** anything is touched, so a rejected bundle always leaves the app exactly as it was. A bundle from a newer schema is refused; an older one is migrated forward on import.
+- Columns are copied **explicitly, never `SELECT *`** — a table rebuilt by a migration can have a different column order than a freshly created one, and positional copying would scramble values.
 
 ---
 
@@ -110,10 +117,15 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 **In-app first** (interactive views); export is a separate artifact (§5).
 
 **Time Study**
-- Summary tiles: total elapsed (wall-clock span), total "simultaneous" (Σ operation times / work content), value-added ratio, **efficiency %**.
+- Summary tiles: **elapsed** (wall-clock span), **work content** (Σ operation times — counts overlap twice), **simultaneous** (time with ≥2 operations running), **unattributed** (span covered by no operation), value-added ratio, **efficiency %**. They reconcile: `elapsed = covered + unattributed`.
+  - _Simultaneous is swept from the segment intervals, **not** `work − elapsed`_ — that identity holds only when the run has no gaps, and goes negative once gaps exceed overlap.
 - Operation breakdown table: observed / reference standard / **efficiency %** (+ note & photo indicators).
 - Category roll-up: % Setup vs. Value-Added vs. Waste (by work content).
-- **Timeline:** the operation sequence as one proportional strip, coloured by category.
+- **Timeline: a wall-clock Gantt** — one row per operation in **planned-sequence order** (so rows line up with the breakdown table), blocks at their true timestamps. Concurrency reads as vertically aligned bars, unattributed dead time as whitespace, pauses as gaps within a row.
+  - Total block width always equals the operation's **reported** time, so chart and table can never disagree: an override longer than measured extends past the evidence, one shorter trims from the end, and an operation with no segments is laid out after the clock ends.
+  - Anything **not backed by a measured segment is hatched**, so an overlap involving it reads as unverified rather than observed. Hatching is diagonal lines, not a lighter tint — a tint is indistinguishable from solid in greyscale print.
+  - A study with **no live timing at all keeps a relative axis** (`0:00…`) rather than inventing clock readings.
+  - _Rejected: order × duration._ Laying operations end-to-end by duration made the strip's width sum to work content under an axis labelled elapsed, and hid concurrency, gaps and pauses entirely.
 - Waste Pareto: time by waste subtype, ranked.
 
 **Sampling Study**
@@ -134,11 +146,18 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 Two formats, two jobs:
 
 - **PDF = presentation artifact.** Study header metadata, report tables, charts (Pareto / roll-up / trend rendered as images), embedded photos. **Single fixed template. No branding/logo in v1.**
-- **XLSX = analysis artifact.** Multi-sheet: Summary, Operation Breakdown, raw Observations (sampling), Statistics. Numbers, not pictures.
+- **XLSX = analysis artifact.** Multi-sheet: Summary, Operations, **Segments** (one row per measured segment — the raw evidence; a paused operation appears as two rows), plus raw Observations + Statistics for sampling. Numbers, not pictures.
+  - The Segments sheet carries exactly the intervals the Gantt draws and `simultaneousMs` is swept from, so **the reported overlap can be recomputed downstream** and cross-referenced against machine logs. Fabricated (manual-override) time is deliberately absent — it is not a segment.
 
 - Exportable at **study level** and **cross-study-comparison level**, both formats.
 - Destination: **iOS → native share sheet**; **Windows → save-file dialog**.
 - Locale drives number/date formatting (decimal comma vs. point).
+
+**Implementation notes (Phase 5):**
+- PDF charts are drawn as **native PDF vector widgets**, not rasterized screenshots — sharper, and it keeps the builder free of any widget tree so it is unit-testable.
+- **Screen and PDF render the same Gantt**, sharing tick computation (`timelineTicks`) so the two artifacts can never label the same chart differently. PDF rows are chunked with a repeated axis, so a long study breaks between rows rather than overflowing a page.
+- The built-in PDF fonts cover **Latin-1** (all of en/pt-BR/es) but silently drop typographic punctuation; `pdfSafeText` folds those to ASCII on the way in. Shipping a Unicode font asset is the fix if a non-Latin-1 language is ever added.
+- XLSX durations are written as **numeric decimal seconds** (formatted strings would be dead text in a spreadsheet); sheet names stay untranslated so downstream formulas survive a language change.
 
 ---
 

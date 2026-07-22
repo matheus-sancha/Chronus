@@ -449,7 +449,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportTotalElapsed => 'Tiempo transcurrido';
 
   @override
+  String get reportWorkContent => 'Contenido de trabajo';
+
+  @override
   String get reportSimultaneous => 'Simultáneo';
+
+  @override
+  String get reportUnattributed => 'No atribuido';
+
+  @override
+  String get timelineNotMeasured => 'no medido';
+
+  @override
+  String get timelineRelativeAxis =>
+      'Secuencia — sin cronometraje en vivo, tiempos relativos';
 
   @override
   String get reportEfficiency => 'Eficiencia (%)';
@@ -464,10 +477,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportParetoTitle => 'Pareto de desperdicios';
 
   @override
-  String get timelineStart => 'Inicio';
+  String get colStart => 'Inicio';
 
   @override
-  String get timelineEnd => 'Fin';
+  String get colEnd => 'Fin';
 
   @override
   String get colObserved => 'Tiempo observado';
@@ -486,4 +499,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get wasteUnlabeled => 'Sin subtipo';
+
+  @override
+  String get settingsDataSection => 'Datos';
+
+  @override
+  String get backupAction => 'Crear copia de seguridad';
+
+  @override
+  String get backupSubtitle => 'Guardar todo en un archivo .chronus';
+
+  @override
+  String get backupDone => 'Copia de seguridad guardada.';
+
+  @override
+  String get restoreAction => 'Restaurar';
+
+  @override
+  String get restoreSubtitle =>
+      'Reemplazar todos los datos desde un archivo .chronus';
+
+  @override
+  String get restoreConfirmTitle => '¿Restaurar desde la copia de seguridad?';
+
+  @override
+  String get restoreConfirmMessage =>
+      'Esto reemplaza todos los proyectos, estudios y fotos que hay en Chronus. No se puede deshacer: crea una copia antes si tienes dudas.';
+
+  @override
+  String restoreDone(String date) {
+    return 'Copia de seguridad del $date restaurada.';
+  }
+
+  @override
+  String get restoreErrorNotBundle =>
+      'Ese archivo no es una copia de seguridad de Chronus.';
+
+  @override
+  String get restoreErrorDamaged =>
+      'Esa copia de seguridad está incompleta o dañada; no se cambió nada.';
+
+  @override
+  String get restoreErrorTooNew =>
+      'Esa copia de seguridad se creó con una versión más reciente de Chronus. Actualiza la app e inténtalo de nuevo.';
+
+  @override
+  String get exportAction => 'Exportar';
+
+  @override
+  String get exportPdf => 'PDF — informe';
+
+  @override
+  String get exportXlsx => 'Excel — datos';
+
+  @override
+  String get exportInProgress => 'Preparando la exportación…';
+
+  @override
+  String get exportDone => 'Exportación lista.';
+
+  @override
+  String exportFailed(String error) {
+    return 'Error al exportar: $error';
+  }
 }

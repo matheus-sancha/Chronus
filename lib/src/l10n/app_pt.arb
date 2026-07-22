@@ -157,17 +157,49 @@
   "deletePhotoMessage": "Excluir esta foto? Isso não pode ser desfeito.",
   "reportTitle": "Relatório",
   "reportTotalElapsed": "Tempo decorrido",
+  "reportWorkContent": "Conteúdo de trabalho",
   "reportSimultaneous": "Simultâneo",
+  "reportUnattributed": "Não atribuído",
+  "timelineNotMeasured": "não medido",
+  "timelineRelativeAxis": "Sequência — sem cronometragem ao vivo, tempos relativos",
   "reportEfficiency": "Eficiência (%)",
   "reportRollupTitle": "Distribuição por categoria",
   "reportTimelineTitle": "Linha do tempo",
   "reportParetoTitle": "Pareto de desperdícios",
-  "timelineStart": "Início",
-  "timelineEnd": "Fim",
+  "colStart": "Início",
+  "colEnd": "Fim",
   "colObserved": "Tempo observado",
   "colReference": "Tempo de referência",
   "colNotes": "Notas",
   "colImages": "Imagens",
   "reportEmpty": "Cronometre operações para ver o relatório.",
-  "wasteUnlabeled": "Sem subtipo"
+  "wasteUnlabeled": "Sem subtipo",
+  "settingsDataSection": "Dados",
+  "backupAction": "Fazer backup",
+  "backupSubtitle": "Salvar tudo em um arquivo .chronus",
+  "backupDone": "Backup salvo.",
+  "restoreAction": "Restaurar",
+  "restoreSubtitle": "Substituir todos os dados de um arquivo .chronus",
+  "restoreConfirmTitle": "Restaurar do backup?",
+  "restoreConfirmMessage": "Isso substitui todos os projetos, estudos e fotos atualmente no Chronus. Não pode ser desfeito — faça um backup antes se tiver dúvida.",
+  "restoreDone": "Backup de {date} restaurado.",
+  "@restoreDone": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "restoreErrorNotBundle": "Esse arquivo não é um backup do Chronus.",
+  "restoreErrorDamaged": "Esse backup está incompleto ou corrompido; nada foi alterado.",
+  "restoreErrorTooNew": "Esse backup foi criado por uma versão mais recente do Chronus. Atualize o app e tente novamente.",
+  "exportAction": "Exportar",
+  "exportPdf": "PDF — relatório",
+  "exportXlsx": "Excel — dados",
+  "exportInProgress": "Preparando exportação…",
+  "exportDone": "Exportação pronta.",
+  "exportFailed": "Falha na exportação: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }
