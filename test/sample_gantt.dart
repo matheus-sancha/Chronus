@@ -153,6 +153,7 @@ void main() {
       TimeStudyReport report, {
       required Size size,
       bool dark = false,
+      bool inListView = false,
     }) async {
       await tester.binding.setSurfaceSize(size);
       final key = GlobalKey();
@@ -172,10 +173,21 @@ void main() {
               // identical to light.
               child: ColoredBox(
                 color: theme.colorScheme.surface,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TimelineGantt(report: report),
-                ),
+                child: inListView
+                    ? ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          const Text('(section above)'),
+                          const SizedBox(height: 24),
+                          TimelineGantt(report: report),
+                          const SizedBox(height: 24),
+                          const Text('(section below)'),
+                        ],
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: TimelineGantt(report: report),
+                      ),
               ),
             ),
           ),
@@ -205,6 +217,11 @@ void main() {
 
     final mixed = _mixed();
     await shot('gantt-mixed', mixed, size: const Size(900, 400));
+    // The report screen puts the chart in a ListView, which hands out
+    // unbounded height and a scroll context — verify it survives that, not
+    // just a standalone Center.
+    await shot('gantt-in-listview', mixed,
+        size: const Size(900, 400), inListView: true);
     await shot('gantt-mixed-dark', mixed,
         size: const Size(900, 400), dark: true);
     await shot('gantt-paper', _paper(), size: const Size(900, 320));
