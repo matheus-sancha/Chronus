@@ -994,17 +994,17 @@ abstract class AppLocalizations {
   /// **'Waste Pareto'**
   String get reportParetoTitle;
 
-  /// No description provided for @timelineStart.
+  /// No description provided for @colStart.
   ///
   /// In en, this message translates to:
   /// **'Start'**
-  String get timelineStart;
+  String get colStart;
 
-  /// No description provided for @timelineEnd.
+  /// No description provided for @colEnd.
   ///
   /// In en, this message translates to:
   /// **'End'**
-  String get timelineEnd;
+  String get colEnd;
 
   /// No description provided for @colObserved.
   ///

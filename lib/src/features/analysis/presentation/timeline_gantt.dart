@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../common/duration_format.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/presentation/classification_labels.dart';
 import '../application/time_study_report.dart';
+import '../application/timeline_axis.dart';
 
 /// The timeline as a Gantt on a real wall-clock axis: one row per operation in
 /// planned-sequence order (so it lines up with the breakdown table below),
@@ -112,23 +112,10 @@ class _Axis extends StatelessWidget {
   final TimeStudyReport report;
   final double labelWidth;
 
-  static const _tickCount = 5;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final span = report.timelineSpanMs;
-
-    String label(int index) {
-      final ms = report.timelineStartMs + (span * index ~/ (_tickCount - 1));
-      if (!report.timelineHasClock) {
-        return formatHmsd(ms - report.timelineStartMs);
-      }
-      final t = DateTime.fromMillisecondsSinceEpoch(ms);
-      return '${t.hour.toString().padLeft(2, '0')}:'
-          '${t.minute.toString().padLeft(2, '0')}:'
-          '${t.second.toString().padLeft(2, '0')}';
-    }
+    final ticks = timelineTicks(report);
 
     return Row(
       children: [
@@ -136,17 +123,17 @@ class _Axis extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              for (var i = 0; i < _tickCount; i++)
+              for (var i = 0; i < ticks.length; i++)
                 Expanded(
                   child: Align(
                     // First tick hugs the origin, last hugs the end, so the
                     // labels bracket the bars instead of floating past them.
                     alignment: i == 0
                         ? Alignment.centerLeft
-                        : i == _tickCount - 1
+                        : i == ticks.length - 1
                             ? Alignment.centerRight
                             : Alignment.center,
-                    child: Text(label(i),
+                    child: Text(ticks[i].label,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         )),

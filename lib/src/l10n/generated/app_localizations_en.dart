@@ -475,10 +475,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportParetoTitle => 'Waste Pareto';
 
   @override
-  String get timelineStart => 'Start';
+  String get colStart => 'Start';
 
   @override
-  String get timelineEnd => 'End';
+  String get colEnd => 'End';
 
   @override
   String get colObserved => 'Observed Time';

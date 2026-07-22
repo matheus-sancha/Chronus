@@ -110,10 +110,15 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 **In-app first** (interactive views); export is a separate artifact (§5).
 
 **Time Study**
-- Summary tiles: total elapsed (wall-clock span), total "simultaneous" (Σ operation times / work content), value-added ratio, **efficiency %**.
+- Summary tiles: **elapsed** (wall-clock span), **work content** (Σ operation times — counts overlap twice), **simultaneous** (time with ≥2 operations running), **unattributed** (span covered by no operation), value-added ratio, **efficiency %**. They reconcile: `elapsed = covered + unattributed`.
+  - _Simultaneous is swept from the segment intervals, **not** `work − elapsed`_ — that identity holds only when the run has no gaps, and goes negative once gaps exceed overlap.
 - Operation breakdown table: observed / reference standard / **efficiency %** (+ note & photo indicators).
 - Category roll-up: % Setup vs. Value-Added vs. Waste (by work content).
-- **Timeline:** the operation sequence as one proportional strip, coloured by category.
+- **Timeline: a wall-clock Gantt** — one row per operation in **planned-sequence order** (so rows line up with the breakdown table), blocks at their true timestamps. Concurrency reads as vertically aligned bars, unattributed dead time as whitespace, pauses as gaps within a row.
+  - Total block width always equals the operation's **reported** time, so chart and table can never disagree: an override longer than measured extends past the evidence, one shorter trims from the end, and an operation with no segments is laid out after the clock ends.
+  - Anything **not backed by a measured segment is hatched**, so an overlap involving it reads as unverified rather than observed. Hatching is diagonal lines, not a lighter tint — a tint is indistinguishable from solid in greyscale print.
+  - A study with **no live timing at all keeps a relative axis** (`0:00…`) rather than inventing clock readings.
+  - _Rejected: order × duration._ Laying operations end-to-end by duration made the strip's width sum to work content under an axis labelled elapsed, and hid concurrency, gaps and pauses entirely.
 - Waste Pareto: time by waste subtype, ranked.
 
 **Sampling Study**
@@ -134,7 +139,8 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 Two formats, two jobs:
 
 - **PDF = presentation artifact.** Study header metadata, report tables, charts (Pareto / roll-up / trend rendered as images), embedded photos. **Single fixed template. No branding/logo in v1.**
-- **XLSX = analysis artifact.** Multi-sheet: Summary, Operation Breakdown, raw Observations (sampling), Statistics. Numbers, not pictures.
+- **XLSX = analysis artifact.** Multi-sheet: Summary, Operations, **Segments** (one row per measured segment — the raw evidence; a paused operation appears as two rows), plus raw Observations + Statistics for sampling. Numbers, not pictures.
+  - The Segments sheet carries exactly the intervals the Gantt draws and `simultaneousMs` is swept from, so **the reported overlap can be recomputed downstream** and cross-referenced against machine logs. Fabricated (manual-override) time is deliberately absent — it is not a segment.
 
 - Exportable at **study level** and **cross-study-comparison level**, both formats.
 - Destination: **iOS → native share sheet**; **Windows → save-file dialog**.
@@ -142,6 +148,7 @@ Two formats, two jobs:
 
 **Implementation notes (Phase 5):**
 - PDF charts are drawn as **native PDF vector widgets**, not rasterized screenshots — sharper, and it keeps the builder free of any widget tree so it is unit-testable.
+- **Screen and PDF render the same Gantt**, sharing tick computation (`timelineTicks`) so the two artifacts can never label the same chart differently. PDF rows are chunked with a repeated axis, so a long study breaks between rows rather than overflowing a page.
 - The built-in PDF fonts cover **Latin-1** (all of en/pt-BR/es) but silently drop typographic punctuation; `pdfSafeText` folds those to ASCII on the way in. Shipping a Unicode font asset is the fix if a non-Latin-1 language is ever added.
 - XLSX durations are written as **numeric decimal seconds** (formatted strings would be dead text in a spreadsheet); sheet names stay untranslated so downstream formulas survive a language change.
 

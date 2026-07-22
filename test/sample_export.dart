@@ -66,6 +66,15 @@ final _rows = <(String, OperationCategory, String?, int, int?, String?)>[
   ('Unload and stage', OperationCategory.productive, null, 55300, 55000, null),
 ];
 
+/// Operations that exercise the hatched (reported-but-not-measured) rendering:
+/// a forgot-to-start override, and one never timed live at all. Real studies
+/// contain both, and they are the cases the PDF most needs to distinguish.
+/// name, category, reference, measured ms (0 = never timed), reported ms
+const _unmeasuredRows = <(String, OperationCategory, int?, int, int)>[
+  ('Re-check dimension', OperationCategory.productive, 60000, 6200, 71000),
+  ('Stage for next cell', OperationCategory.productive, null, 0, 48000),
+];
+
 StudyExportPayload _payload() {
   final operations = <StudyOperation>[];
   final timing = <String, OperationTiming>{};
@@ -116,6 +125,53 @@ StudyExportPayload _payload() {
         createdAt: DateTime(2026),
       ),
       segments: [segment],
+    );
+  }
+
+  for (var j = 0; j < _unmeasuredRows.length; j++) {
+    final (name, category, reference, measuredMs, reportedMs) =
+        _unmeasuredRows[j];
+    final id = 'extra$j';
+
+    operations.add(StudyOperation(
+      id: id,
+      studyId: 'study',
+      catalogOperationId: null,
+      orderIndex: _rows.length + j + 1,
+      name: name,
+      category: category,
+      subtypeId: null,
+      referenceStandardMs: reference,
+      isUnplanned: false,
+      createdAt: DateTime(2026),
+    ));
+
+    final segments = <OperationTimeSegment>[];
+    if (measuredMs > 0) {
+      segments.add(OperationTimeSegment(
+        id: 'segExtra$j',
+        operationInstanceId: 'instExtra$j',
+        startAtMs: cursor,
+        endAtMs: cursor + measuredMs,
+        createdAt: DateTime(2026),
+      ));
+      cursor += measuredMs + 1500;
+      allSegments.addAll(segments);
+    }
+
+    timing[id] = OperationTiming(
+      instance: OperationInstance(
+        id: 'instExtra$j',
+        observationId: 'obs',
+        studyOperationId: id,
+        // The reported time shadows the measurement; the difference is the
+        // part the PDF must draw hatched.
+        manualActualMs: reportedMs,
+        completedAt: DateTime(2026),
+        notes: null,
+        createdAt: DateTime(2026),
+      ),
+      segments: segments,
     );
   }
 

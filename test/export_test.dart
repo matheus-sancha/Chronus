@@ -210,8 +210,9 @@ void main() {
     Excel decode() => Excel.decodeBytes(
         buildStudyXlsx(_payload(), _l10n, localeName: 'en'));
 
-    test('ships exactly the Summary and Operations sheets', () {
-      expect(decode().tables.keys.toSet(), {'Summary', 'Operations'});
+    test('ships exactly the Summary, Operations and Segments sheets', () {
+      expect(decode().tables.keys.toSet(),
+          {'Summary', 'Operations', 'Segments'});
     });
 
     test('writes durations as numeric seconds, not formatted text', () {
@@ -220,17 +221,116 @@ void main() {
       num? at(int column) => _number(
           sheet.cell(CellIndex.indexByColumnRow(columnIndex: column, rowIndex: 1)));
 
-      expect(at(4), 10); // observed
-      expect(at(5), 8); // reference standard
-      expect(at(6), closeTo(0.8, 1e-9)); // efficiency
+      expect(at(6), 10); // observed
+      expect(at(7), 8); // reference standard
+      expect(at(8), closeTo(0.8, 1e-9)); // efficiency
     });
 
     test('leaves cells empty where a value is absent', () {
       final sheet = decode()['Operations'];
       // Operation W has no reference standard, so no efficiency either.
       final reference = sheet.cell(
-          CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 2));
+          CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: 2));
       expect((reference.value as TextCellValue?)?.value.toString() ?? '', '');
+    });
+
+    test('operations sheet carries measured start/end as real timestamps', () {
+      final sheet = decode()['Operations'];
+      // Columns 4/5 are Start/End; row 1 is operation P (segment 0..10 s).
+      final start = sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 1))
+          .value;
+      final end = sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 1))
+          .value;
+
+      expect(start, isA<DateTimeCellValue>());
+      expect(end, isA<DateTimeCellValue>());
+      // Epoch 0..10000 in local time — compare against the same conversion
+      // rather than a hardcoded hour, so the test is timezone-independent.
+      final expected = DateTime.fromMillisecondsSinceEpoch(0);
+      expect((start! as DateTimeCellValue).hour, expected.hour);
+      expect((end! as DateTimeCellValue).second, expected.second + 10);
+    });
+
+    test('segments sheet has one row per measured segment', () {
+      final rows = decode()['Segments'].rows;
+      // Header + two operations with one segment each.
+      expect(rows.length, 3);
+      expect(rows[1][0]?.value.toString(), 'Op P');
+      expect(rows[2][0]?.value.toString(), 'Op W');
+      // Durations in seconds: P ran 10 s, W ran 4 s.
+      expect(_number(rows[1][4]!), 10);
+      expect(_number(rows[2][4]!), 4);
+    });
+
+    test('a paused operation becomes two segment rows', () {
+      final first = _seg('P', 0, 4000);
+      final second = OperationTimeSegment(
+        id: 'gP2',
+        operationInstanceId: 'iP',
+        startAtMs: 6000,
+        endAtMs: 12000,
+        createdAt: DateTime(2026),
+      );
+      final report = buildTimeStudyReport(
+        operations: [_op('P', OperationCategory.productive, 1)],
+        timing: {
+          'P': OperationTiming(instance: _inst('P'), segments: [first, second]),
+        },
+        subtypeById: const {},
+        segments: [first, second],
+      );
+      final payload = StudyExportPayload(
+        study: _study(),
+        report: report,
+        photosByStudyOperationId: const {},
+      );
+
+      final rows = Excel.decodeBytes(
+          buildStudyXlsx(payload, _l10n, localeName: 'en'))['Segments'].rows;
+      expect(rows.length, 3); // header + two segments
+      expect(_number(rows[1][4]!), 4);
+      expect(_number(rows[2][4]!), 6);
+      expect(rows[1][1]?.value.toString(), '1');
+      expect(rows[2][1]?.value.toString(), '2');
+    });
+
+    test('a paper study leaves timestamps blank rather than inventing them',
+        () {
+      final report = buildTimeStudyReport(
+        operations: [_op('P', OperationCategory.productive, 1)],
+        timing: {
+          'P': OperationTiming(
+            instance: OperationInstance(
+              id: 'iP',
+              observationId: 'o',
+              studyOperationId: 'P',
+              manualActualMs: 5000,
+              completedAt: DateTime(2026),
+              notes: null,
+              createdAt: DateTime(2026),
+            ),
+            segments: const [],
+          ),
+        },
+        subtypeById: const {},
+        segments: const [],
+      );
+      final payload = StudyExportPayload(
+        study: _study(),
+        report: report,
+        photosByStudyOperationId: const {},
+      );
+      final book = Excel.decodeBytes(
+          buildStudyXlsx(payload, _l10n, localeName: 'en'));
+
+      final start = book['Operations']
+          .cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 1))
+          .value;
+      expect((start as TextCellValue?)?.value.toString() ?? '', '');
+      // Nothing was measured, so there are no segments to list.
+      expect(book['Segments'].rows.length, 1); // header only
     });
 
     test('summary carries the study header and the totals', () {

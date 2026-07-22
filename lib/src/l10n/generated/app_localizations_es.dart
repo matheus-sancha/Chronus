@@ -477,10 +477,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reportParetoTitle => 'Pareto de desperdicios';
 
   @override
-  String get timelineStart => 'Inicio';
+  String get colStart => 'Inicio';
 
   @override
-  String get timelineEnd => 'Fin';
+  String get colEnd => 'Fin';
 
   @override
   String get colObserved => 'Tiempo observado';

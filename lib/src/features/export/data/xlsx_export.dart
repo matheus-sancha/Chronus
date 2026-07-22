@@ -12,6 +12,7 @@ import '../application/export_payload.dart';
 /// and macros that reference them keep working across app languages.
 const _sheetSummary = 'Summary';
 const _sheetOperations = 'Operations';
+const _sheetSegments = 'Segments';
 
 /// Builds the **analysis artifact**: numbers, not pictures (DESIGN.md §5).
 /// Every duration is written as a numeric value in decimal seconds so the cells
@@ -22,14 +23,17 @@ Uint8List buildStudyXlsx(
   AppLocalizations l10n, {
   String? localeName,
 }) {
+  const ours = {_sheetSummary, _sheetOperations, _sheetSegments};
+
   final excel = Excel.createExcel();
   _writeSummary(excel[_sheetSummary], payload, l10n, localeName);
   _writeOperations(excel[_sheetOperations], payload.report, l10n);
+  _writeSegments(excel[_sheetSegments], payload.report, l10n);
 
   // `createExcel` seeds a default sheet; drop it so only our sheets ship.
   excel.setDefaultSheet(_sheetSummary);
   for (final name in excel.tables.keys.toList()) {
-    if (name != _sheetSummary && name != _sheetOperations) excel.delete(name);
+    if (!ours.contains(name)) excel.delete(name);
   }
 
   final bytes = excel.encode();
@@ -58,8 +62,12 @@ void _writeSummary(
   w.heading(l10n.reportTitle);
   w.labelled(_seconds(l10n, l10n.reportTotalElapsed),
       DoubleCellValue(msToSeconds(r.totalElapsedMs)));
-  w.labelled(_seconds(l10n, l10n.reportSimultaneous),
+  w.labelled(_seconds(l10n, l10n.reportWorkContent),
       DoubleCellValue(msToSeconds(r.totalWorkContentMs)));
+  w.labelled(_seconds(l10n, l10n.reportSimultaneous),
+      DoubleCellValue(msToSeconds(r.simultaneousMs)));
+  w.labelled(_seconds(l10n, l10n.reportUnattributed),
+      DoubleCellValue(msToSeconds(r.unattributedMs)));
   w.labelled(l10n.timingValueAddedRatio, DoubleCellValue(r.valueAddedRatio));
   w.labelled(
     l10n.reportEfficiency,
@@ -97,12 +105,21 @@ void _writeSummary(
 
 void _writeOperations(
     Sheet sheet, TimeStudyReport report, AppLocalizations l10n) {
+  // Measured extent per operation, so Start/End describe what the clock saw
+  // rather than where a fabricated block happens to land.
+  final measured = <String, TimelineRow>{
+    for (final row in report.timeline)
+      if (row.hasMeasured) row.operation.id: row,
+  };
+
   final w = _RowWriter(sheet);
   w.header([
     '#',
     l10n.colOperation,
     l10n.operationCategoryLabel,
     l10n.operationSubtypeLabel,
+    l10n.colStart,
+    l10n.colEnd,
     _seconds(l10n, l10n.colObserved),
     _seconds(l10n, l10n.colReference),
     l10n.reportEfficiency,
@@ -111,11 +128,16 @@ void _writeOperations(
 
   for (var i = 0; i < report.rows.length; i++) {
     final row = report.rows[i];
+    final timed = measured[row.operation.id];
+    final blocks = timed?.blocks.where((b) => b.measured);
+
     w.row([
       IntCellValue(i + 1),
       TextCellValue(row.operation.name),
       TextCellValue(categoryLabel(l10n, row.operation.category)),
       TextCellValue(row.subtype == null ? '' : subtypeName(l10n, row.subtype!)),
+      _clock(report, blocks?.first.startMs),
+      _clock(report, blocks?.last.endMs),
       row.observedMs == null
           ? TextCellValue('')
           : DoubleCellValue(msToSeconds(row.observedMs!)),
@@ -128,6 +150,56 @@ void _writeOperations(
       TextCellValue(row.notes ?? ''),
     ]);
   }
+}
+
+/// One row per **measured** segment — the raw evidence, and the only form that
+/// lets an analyst recompute overlap or cross-reference machine logs.
+///
+/// These are exactly the intervals the Gantt draws and `simultaneousMs` is
+/// swept from, so the reported figure can be reproduced from this sheet.
+/// Fabricated (manual-override) time is deliberately absent: it is not a
+/// segment. A paused operation appears as two rows.
+void _writeSegments(
+    Sheet sheet, TimeStudyReport report, AppLocalizations l10n) {
+  final w = _RowWriter(sheet);
+  w.header([
+    l10n.colOperation,
+    '#',
+    l10n.colStart,
+    l10n.colEnd,
+    _seconds(l10n, l10n.colObserved),
+  ]);
+
+  for (final row in report.timeline) {
+    var index = 0;
+    for (final block in row.blocks) {
+      if (!block.measured) continue;
+      index++;
+      w.row([
+        TextCellValue(row.operation.name),
+        IntCellValue(index),
+        _clock(report, block.startMs),
+        _clock(report, block.endMs),
+        DoubleCellValue(msToSeconds(block.durationMs)),
+      ]);
+    }
+  }
+}
+
+/// A wall-clock timestamp when the study was timed live, otherwise blank — a
+/// transcribed study has no clock readings to report, and inventing them here
+/// would be worse than an empty cell.
+CellValue _clock(TimeStudyReport report, int? epochMs) {
+  if (epochMs == null || !report.timelineHasClock) return TextCellValue('');
+  final t = DateTime.fromMillisecondsSinceEpoch(epochMs);
+  return DateTimeCellValue(
+    year: t.year,
+    month: t.month,
+    day: t.day,
+    hour: t.hour,
+    minute: t.minute,
+    second: t.second,
+  );
 }
 
 /// Marks a duration column with its unit, since the values are raw seconds.

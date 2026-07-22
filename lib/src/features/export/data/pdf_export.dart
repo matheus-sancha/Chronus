@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
@@ -8,6 +9,7 @@ import '../../../common/duration_format.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../analysis/application/time_study_report.dart';
+import '../../analysis/application/timeline_axis.dart';
 import '../../catalog/presentation/classification_labels.dart';
 import '../application/export_payload.dart';
 
@@ -57,7 +59,7 @@ Future<Uint8List> buildStudyPdf(
         if (report.timeline.isNotEmpty) ...[
           pw.SizedBox(height: 20),
           _section(l10n.reportTimelineTitle),
-          _timeline(report, l10n),
+          ..._timeline(report, l10n),
         ],
         if (report.wastePareto.isNotEmpty) ...[
           pw.SizedBox(height: 20),
@@ -193,12 +195,20 @@ pw.Widget _summaryTiles(TimeStudyReport r, AppLocalizations l10n) {
         ),
       );
 
-  return pw.Row(children: [
-    tile(l10n.reportTotalElapsed, formatHmsd(r.totalElapsedMs)),
-    tile(l10n.reportSimultaneous, formatHmsd(r.totalWorkContentMs)),
-    tile(l10n.timingValueAddedRatio, _percent(r.valueAddedRatio, 1)),
-    tile(l10n.reportEfficiency,
-        r.efficiency == null ? '—' : _percent(r.efficiency!, 0)),
+  // Same six figures, in the same order, as the report screen.
+  return pw.Column(children: [
+    pw.Row(children: [
+      tile(l10n.reportTotalElapsed, formatHmsd(r.totalElapsedMs)),
+      tile(l10n.reportWorkContent, formatHmsd(r.totalWorkContentMs)),
+      tile(l10n.reportSimultaneous, formatHmsd(r.simultaneousMs)),
+    ]),
+    pw.SizedBox(height: 8),
+    pw.Row(children: [
+      tile(l10n.reportUnattributed, formatHmsd(r.unattributedMs)),
+      tile(l10n.timingValueAddedRatio, _percent(r.valueAddedRatio, 1)),
+      tile(l10n.reportEfficiency,
+          r.efficiency == null ? '—' : _percent(r.efficiency!, 0)),
+    ]),
   ]);
 }
 
@@ -249,40 +259,163 @@ pw.Widget _rollup(TimeStudyReport r, AppLocalizations l10n) {
   );
 }
 
-// TODO(export-parity): still the old contiguous strip — it lays operations
-// end-to-end by duration, so it hides concurrency, gaps and pauses, and its
-// width sums to work content under an axis labelled start→end (elapsed). The
-// screen already draws the real Gantt; porting it here (with diagonal hatching
-// for unmeasured blocks, greyscale-safe) is the second half of this change.
-/// The operation sequence as one proportional strip, coloured by category.
-pw.Widget _timeline(TimeStudyReport r, AppLocalizations l10n) => pw.Column(
+// --- timeline Gantt ---------------------------------------------------------
+
+const _ganttLabelWidth = 104.0;
+const _ganttRowHeight = 13.0;
+const _ganttBarHeight = 8.0;
+
+/// Rows are chunked so a long study breaks across pages between rows rather
+/// than overflowing, and each chunk repeats the axis — a page of unlabelled
+/// bars would be unreadable.
+const _ganttRowsPerChunk = 22;
+
+/// The same wall-clock Gantt the screen draws: one row per operation in
+/// planned-sequence order, blocks at their true timestamps, concurrency visible
+/// as vertically aligned bars and pauses as gaps.
+///
+/// Positioning uses proportional [pw.Expanded] flex rather than absolute
+/// offsets: every row's cells sum to exactly the timeline span, so rows stay
+/// aligned to one axis at any page width.
+List<pw.Widget> _timeline(TimeStudyReport r, AppLocalizations l10n) {
+  if (r.timelineSpanMs <= 0) return const [];
+
+  final chunks = <pw.Widget>[];
+  for (var start = 0; start < r.timeline.length; start += _ganttRowsPerChunk) {
+    final end =
+        math.min(start + _ganttRowsPerChunk, r.timeline.length);
+    chunks.add(pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
-        pw.Container(
-          height: 20,
-          decoration: pw.BoxDecoration(border: pw.Border.all(color: _rule)),
-          child: pw.Row(children: [
-            for (var i = 0; i < r.timeline.length; i++) ...[
-              if (i > 0) pw.Container(width: 1, color: PdfColors.white),
-              pw.Expanded(
-                flex: r.timeline[i].blocks
-                    .fold<int>(0, (sum, b) => sum + b.durationMs),
-                child: pw.Container(
-                    color: _categoryPdfColor(r.timeline[i].operation.category)),
-              ),
-            ],
-          ]),
-        ),
+        if (start > 0) pw.SizedBox(height: 8),
+        _ganttAxis(r),
         pw.SizedBox(height: 3),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            _text(l10n.timelineStart, fontSize: 8, color: _muted),
-            _text(l10n.timelineEnd, fontSize: 8, color: _muted),
-          ],
-        ),
+        for (final row in r.timeline.sublist(start, end)) _ganttRow(r, row),
       ],
-    );
+    ));
+  }
+
+  if (!r.timelineHasClock) {
+    chunks.add(pw.Padding(
+      padding: const pw.EdgeInsets.only(top: 6),
+      child: _text(l10n.timelineRelativeAxis, fontSize: 7, color: _muted),
+    ));
+  }
+  return chunks;
+}
+
+pw.Widget _ganttAxis(TimeStudyReport r) {
+  final ticks = timelineTicks(r);
+  return pw.Row(children: [
+    pw.SizedBox(width: _ganttLabelWidth),
+    pw.Expanded(
+      child: pw.Row(children: [
+        for (var i = 0; i < ticks.length; i++)
+          pw.Expanded(
+            child: _text(
+              ticks[i].label,
+              fontSize: 6.5,
+              color: _muted,
+              // Bracket the bars: first tick hugs the origin, last the end.
+              align: i == 0
+                  ? pw.TextAlign.left
+                  : i == ticks.length - 1
+                      ? pw.TextAlign.right
+                      : pw.TextAlign.center,
+            ),
+          ),
+      ]),
+    ),
+  ]);
+}
+
+pw.Widget _ganttRow(TimeStudyReport r, TimelineRow row) {
+  final color = _categoryPdfColor(row.operation.category);
+  final cells = <pw.Widget>[];
+  var cursor = r.timelineStartMs;
+
+  for (var i = 0; i < row.blocks.length; i++) {
+    final block = row.blocks[i];
+    final gap = block.startMs - cursor;
+    if (gap > 0) {
+      cells.add(pw.Expanded(
+        flex: gap,
+        // An interior gap is a pause: bridge it so the row still reads as one
+        // operation. A leading gap is just empty axis.
+        child: i == 0
+            ? pw.SizedBox()
+            : pw.Container(height: 0.5, color: color),
+      ));
+    }
+    cells.add(pw.Expanded(
+      // Zero-length blocks would make flex collapse the row's arithmetic.
+      flex: math.max(block.durationMs, 1),
+      child: block.measured
+          ? pw.Container(
+              height: _ganttBarHeight,
+              decoration: pw.BoxDecoration(
+                color: color,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
+              ),
+            )
+          : pw.CustomPaint(
+              painter: (canvas, size) => _paintHatch(canvas, size, color),
+              // CustomPaint with no child collapses to zero, exactly like its
+              // Flutter counterpart — the child is what gives it a box.
+              child: pw.Container(height: _ganttBarHeight),
+            ),
+    ));
+    cursor = block.endMs;
+  }
+
+  final tail = r.timelineEndMs - cursor;
+  if (tail > 0) cells.add(pw.Expanded(flex: tail, child: pw.SizedBox()));
+
+  return pw.Container(
+    height: _ganttRowHeight,
+    child: pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.SizedBox(
+          width: _ganttLabelWidth,
+          child: pw.Padding(
+            padding: const pw.EdgeInsets.only(right: 6),
+            child: _text(row.operation.name, fontSize: 6.5, maxLines: 1),
+          ),
+        ),
+        pw.Expanded(child: pw.Row(children: cells)),
+      ],
+    ),
+  );
+}
+
+/// Diagonal hatching for reported-but-not-measured time.
+///
+/// Real lines, not a lighter tint: a tint of green and a tint of red are the
+/// same grey once the report is printed, which is precisely when the reader
+/// most needs to tell measured from fabricated.
+void _paintHatch(PdfGraphics canvas, PdfPoint size, PdfColor color) {
+  const spacing = 2.5;
+  canvas
+    ..saveContext()
+    ..drawRect(0, 0, size.x, size.y)
+    ..clipPath()
+    ..setStrokeColor(color)
+    ..setLineWidth(0.6);
+  for (var i = -size.y; i < size.x; i += spacing) {
+    canvas
+      ..moveTo(i, 0)
+      ..lineTo(i + size.y, size.y);
+  }
+  canvas
+    ..strokePath()
+    ..restoreContext()
+    // Outline drawn outside the clip so the block keeps a crisp edge.
+    ..setStrokeColor(color)
+    ..setLineWidth(0.5)
+    ..drawRect(0, 0, size.x, size.y)
+    ..strokePath();
+}
 
 /// Ranked waste bars — one hue for the whole single series; identity is in the
 /// text label.
