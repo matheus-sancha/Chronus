@@ -27,6 +27,13 @@ Chronus lets a manufacturing engineer or technician stand at a machine and, one-
 | Storage engine | **SQLite via Drift** | Domain is deeply relational; reporting/comparison need aggregation queries. Media stored as **files** in the app directory, referenced by id (never DB blobs). |
 | Data safety | Device iCloud/iTunes backup **+ manual `.chronus` backup bundle** (zipped DB + media, re-importable). **No cloud sync in v1.** | Local-first with no accounts means device loss = data loss; the bundle is insurance and the iOS→Windows migration path. Cloud sync would require accounts/servers, deliberately avoided. |
 
+**`.chronus` bundle notes (built ahead of the rest of Phase 6):**
+- A ZIP of `manifest.json` + `chronus.sqlite` + `media/`. The manifest carries a **bundle format** version (layout) separately from the **schema** version (rows), because the two move at different rates.
+- The database snapshot comes from **`VACUUM INTO`, never a file copy** — it is transactionally consistent without closing the live database, and folds in un-checkpointed WAL content that a raw copy would silently drop.
+- **Restore is total, not a merge**, and is applied by copying the bundle's tables into the running database in one transaction (via `ATTACH`) rather than swapping the file under a live connection. No restart, no window where the open handle and the file on disk disagree.
+- Validation happens **before** anything is touched, so a rejected bundle always leaves the app exactly as it was. A bundle from a newer schema is refused; an older one is migrated forward on import.
+- Columns are copied **explicitly, never `SELECT *`** — a table rebuilt by a migration can have a different column order than a freshly created one, and positional copying would scramble values.
+
 ---
 
 ## 3. Domain model

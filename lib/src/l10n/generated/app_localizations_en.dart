@@ -499,6 +499,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wasteUnlabeled => 'Unlabeled';
 
   @override
+  String get settingsDataSection => 'Data';
+
+  @override
+  String get backupAction => 'Back up';
+
+  @override
+  String get backupSubtitle => 'Save everything to a .chronus file';
+
+  @override
+  String get backupDone => 'Backup saved.';
+
+  @override
+  String get restoreAction => 'Restore';
+
+  @override
+  String get restoreSubtitle => 'Replace all data from a .chronus file';
+
+  @override
+  String get restoreConfirmTitle => 'Restore from backup?';
+
+  @override
+  String get restoreConfirmMessage =>
+      'This replaces every project, study and photo currently in Chronus. It cannot be undone — back up first if you are unsure.';
+
+  @override
+  String restoreDone(String date) {
+    return 'Restored the backup from $date.';
+  }
+
+  @override
+  String get restoreErrorNotBundle => 'That file is not a Chronus backup.';
+
+  @override
+  String get restoreErrorDamaged =>
+      'That backup is incomplete or damaged, so nothing was changed.';
+
+  @override
+  String get restoreErrorTooNew =>
+      'That backup was made by a newer version of Chronus. Update the app, then try again.';
+
+  @override
   String get exportAction => 'Export';
 
   @override

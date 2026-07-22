@@ -14,6 +14,19 @@ import '../application/export_providers.dart';
 import '../data/pdf_export.dart';
 import '../data/xlsx_export.dart';
 
+/// The two artifacts a *report* can be exported as.
+///
+/// Distinct from [ExportFormat], which describes anything the app hands to the
+/// platform — including the backup bundle, which this menu must never offer.
+enum ReportFormat {
+  pdf(ExportFormat.pdf),
+  xlsx(ExportFormat.xlsx);
+
+  const ReportFormat(this.delivery);
+
+  final ExportFormat delivery;
+}
+
 /// The report's export affordance: pick a format, build the artifact, hand it
 /// to the platform (share sheet on iOS, save dialog on Windows).
 ///
@@ -53,13 +66,13 @@ class _ExportButtonState extends ConsumerState<ExportButton> {
         ),
       );
     }
-    return PopupMenuButton<ExportFormat>(
+    return PopupMenuButton<ReportFormat>(
       icon: const Icon(Icons.ios_share),
       tooltip: l10n.exportAction,
       onSelected: _export,
       itemBuilder: (context) => [
         PopupMenuItem(
-          value: ExportFormat.pdf,
+          value: ReportFormat.pdf,
           child: ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
@@ -68,7 +81,7 @@ class _ExportButtonState extends ConsumerState<ExportButton> {
           ),
         ),
         PopupMenuItem(
-          value: ExportFormat.xlsx,
+          value: ReportFormat.xlsx,
           child: ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
@@ -80,7 +93,7 @@ class _ExportButtonState extends ConsumerState<ExportButton> {
     );
   }
 
-  Future<void> _export(ExportFormat format) async {
+  Future<void> _export(ReportFormat format) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     // Captured before the await: iPadOS anchors the share popover to this rect.
@@ -100,14 +113,14 @@ class _ExportButtonState extends ConsumerState<ExportButton> {
         photosByStudyOperationId: photos,
       );
       final Uint8List bytes = switch (format) {
-        ExportFormat.pdf => await buildStudyPdf(payload, l10n, localeName: locale),
-        ExportFormat.xlsx => buildStudyXlsx(payload, l10n, localeName: locale),
+        ReportFormat.pdf => await buildStudyPdf(payload, l10n, localeName: locale),
+        ReportFormat.xlsx => buildStudyXlsx(payload, l10n, localeName: locale),
       };
 
       final result = await ref.read(exportDeliveryProvider).deliver(
             bytes: bytes,
-            fileName: exportFileName(widget.study, format.extension),
-            format: format,
+            fileName: exportFileName(widget.study, format.delivery.extension),
+            format: format.delivery,
             sharePositionOrigin: origin,
           );
       if (result == ExportResult.delivered) {

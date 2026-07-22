@@ -13,7 +13,11 @@ import 'package:share_plus/share_plus.dart';
 enum ExportFormat {
   pdf('pdf', 'application/pdf'),
   xlsx('xlsx',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+
+  /// The `.chronus` backup bundle. Not a report, but it leaves the app the same
+  /// way, so it reuses this delivery path rather than duplicating it.
+  chronus('chronus', 'application/zip');
 
   const ExportFormat(this.extension, this.mimeType);
 
