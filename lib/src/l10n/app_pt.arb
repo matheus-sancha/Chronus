@@ -169,5 +169,16 @@
   "colNotes": "Notas",
   "colImages": "Imagens",
   "reportEmpty": "Cronometre operações para ver o relatório.",
-  "wasteUnlabeled": "Sem subtipo"
+  "wasteUnlabeled": "Sem subtipo",
+  "exportAction": "Exportar",
+  "exportPdf": "PDF — relatório",
+  "exportXlsx": "Excel — dados",
+  "exportInProgress": "Preparando exportação…",
+  "exportDone": "Exportação pronta.",
+  "exportFailed": "Falha na exportação: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

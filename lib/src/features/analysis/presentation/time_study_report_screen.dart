@@ -7,6 +7,7 @@ import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/application/catalog_providers.dart';
 import '../../catalog/presentation/classification_labels.dart';
+import '../../export/presentation/export_button.dart';
 import '../../media/application/media_providers.dart';
 import '../../media/presentation/media_gallery.dart';
 import '../../studies/application/studies_providers.dart';
@@ -42,6 +43,7 @@ class TimeStudyReportScreen extends ConsumerWidget {
         ? const <OperationTimeSegment>[]
         : (ref.watch(operationSegmentsProvider(observation.id)).value ??
             const <OperationTimeSegment>[]);
+    final study = ref.watch(studyByIdProvider(studyId)).value;
     final subtypes = ref.watch(subtypesProvider).value ?? const [];
     final mediaCounts =
         ref.watch(operationMediaCountsProvider).value ?? const <String, int>{};
@@ -55,7 +57,18 @@ class TimeStudyReportScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportTitle)),
+      appBar: AppBar(
+        title: Text(l10n.reportTitle),
+        actions: [
+          // Same gate as the body: nothing timed, nothing worth exporting.
+          if (study != null && report.totalWorkContentMs > 0)
+            ExportButton(
+              study: study,
+              report: report,
+              timing: timing,
+            ),
+        ],
+      ),
       body: report.totalWorkContentMs == 0
           ? Center(child: Text(l10n.reportEmpty))
           : ListView(

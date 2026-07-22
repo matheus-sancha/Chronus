@@ -1017,6 +1017,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlabeled'**
   String get wasteUnlabeled;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportAction;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF — report'**
+  String get exportPdf;
+
+  /// No description provided for @exportXlsx.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel — data'**
+  String get exportXlsx;
+
+  /// No description provided for @exportInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing export…'**
+  String get exportInProgress;
+
+  /// No description provided for @exportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Export ready.'**
+  String get exportDone;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String exportFailed(String error);
 }
 
 class _AppLocalizationsDelegate

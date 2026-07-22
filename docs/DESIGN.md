@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–2 built; Phase 3 (Core) in progress.
-**Last updated:** 2026-07-20
+**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export); Phase 6 (Licensing) next.
+**Last updated:** 2026-07-21
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -139,6 +139,11 @@ Two formats, two jobs:
 - Exportable at **study level** and **cross-study-comparison level**, both formats.
 - Destination: **iOS → native share sheet**; **Windows → save-file dialog**.
 - Locale drives number/date formatting (decimal comma vs. point).
+
+**Implementation notes (Phase 5):**
+- PDF charts are drawn as **native PDF vector widgets**, not rasterized screenshots — sharper, and it keeps the builder free of any widget tree so it is unit-testable.
+- The built-in PDF fonts cover **Latin-1** (all of en/pt-BR/es) but silently drop typographic punctuation; `pdfSafeText` folds those to ASCII on the way in. Shipping a Unicode font asset is the fix if a non-Latin-1 language is ever added.
+- XLSX durations are written as **numeric decimal seconds** (formatted strings would be dead text in a spreadsheet); sheet names stay untranslated so downstream formulas survive a language change.
 
 ---
 

@@ -486,4 +486,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get wasteUnlabeled => 'Sem subtipo';
+
+  @override
+  String get exportAction => 'Exportar';
+
+  @override
+  String get exportPdf => 'PDF — relatório';
+
+  @override
+  String get exportXlsx => 'Excel — dados';
+
+  @override
+  String get exportInProgress => 'Preparando exportação…';
+
+  @override
+  String get exportDone => 'Exportação pronta.';
+
+  @override
+  String exportFailed(String error) {
+    return 'Falha na exportação: $error';
+  }
 }

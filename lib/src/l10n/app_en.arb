@@ -216,5 +216,16 @@
   "colNotes": "Notes",
   "colImages": "Images",
   "reportEmpty": "Time some operations to see the report.",
-  "wasteUnlabeled": "Unlabeled"
+  "wasteUnlabeled": "Unlabeled",
+  "exportAction": "Export",
+  "exportPdf": "PDF — report",
+  "exportXlsx": "Excel — data",
+  "exportInProgress": "Preparing export…",
+  "exportDone": "Export ready.",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }
