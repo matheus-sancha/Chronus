@@ -41,6 +41,9 @@ class SettingsRepository {
   Future<void> setTimeUnit(TimeUnit unit) =>
       _update(AppSettingsCompanion(timeUnit: Value(unit)));
 
+  Future<void> setAlertSoundsEnabled(bool enabled) =>
+      _update(AppSettingsCompanion(alertSoundsEnabled: Value(enabled)));
+
   Future<void> _update(AppSettingsCompanion changes) {
     return (_db.update(_db.appSettings)..where((t) => t.id.equals(_rowId)))
         .write(changes.copyWith(updatedAt: Value(DateTime.now())));

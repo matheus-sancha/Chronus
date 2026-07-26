@@ -255,6 +255,10 @@ class AppSettings extends Table {
   /// Pre-fills the Analyst field on new studies.
   TextColumn get defaultAnalyst => text().nullable()();
   TextColumn get timeUnit => textEnum<TimeUnit>()();
+
+  /// Sound when an operation nears or passes its reference standard (§3.6).
+  BoolColumn get alertSoundsEnabled =>
+      boolean().withDefault(const Constant(true))();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override

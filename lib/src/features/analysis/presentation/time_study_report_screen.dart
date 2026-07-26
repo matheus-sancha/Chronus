@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../common/duration_format.dart';
+import '../../../common/stat_tile.dart';
 import '../../../data/database/database.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -103,23 +104,23 @@ class TimeStudyReportScreen extends ConsumerWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        _StatTile(
+        StatTile(
             label: l10n.reportTotalElapsed, value: formatHmsd(r.totalElapsedMs)),
-        _StatTile(
+        StatTile(
             label: l10n.reportWorkContent,
             value: formatHmsd(r.totalWorkContentMs)),
         // Real overlap (swept from the segments) — not work content, which
         // sums operations and double-counts it.
-        _StatTile(
+        StatTile(
             label: l10n.reportSimultaneous,
             value: formatHmsd(r.simultaneousMs)),
-        _StatTile(
+        StatTile(
             label: l10n.reportUnattributed,
             value: formatHmsd(r.unattributedMs)),
-        _StatTile(
+        StatTile(
             label: l10n.timingValueAddedRatio,
             value: '${(r.valueAddedRatio * 100).toStringAsFixed(1)}%'),
-        _StatTile(
+        StatTile(
             label: l10n.reportEfficiency,
             value: r.efficiency == null
                 ? '—'
@@ -297,39 +298,6 @@ class TimeStudyReportScreen extends ConsumerWidget {
 }
 
 // --- widgets -----------------------------------------------------------------
-
-class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 4),
-          Text(value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontFeatures: const [FontFeature.tabularFigures()],
-              )),
-        ],
-      ),
-    );
-  }
-}
 
 /// 100% stacked bar of work content by category, with a labelled legend. Each
 /// segment is directly labelled below, so category identity never rests on

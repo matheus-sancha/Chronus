@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../common/confirm_dialog.dart';
 import '../../../common/duration_format.dart';
 import '../../../common/duration_input.dart';
+import '../../../common/stat_tile.dart';
 import '../../../data/database/database.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -16,7 +17,9 @@ import '../../catalog/presentation/operation_fields.dart';
 import '../../catalog/presentation/operation_picker.dart';
 import '../../media/application/media_providers.dart';
 import '../../media/presentation/media_gallery.dart';
+import '../../settings/application/settings_providers.dart';
 import '../../templates/application/templates_providers.dart';
+import '../application/alert_sound.dart';
 import '../application/studies_providers.dart';
 import '../application/timing_model.dart';
 import '../application/timing_providers.dart';
@@ -136,6 +139,19 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
   Timer? _ticker;
   bool _live = false;
 
+  /// Highest pace already announced per operation — the alert latch, so each
+  /// operation sounds at most once for "approaching" and once for "over"
+  /// however long it runs. Cleared only by reset (the one action that actually
+  /// zeroes the clock); resuming a finished overrun stays silent, because the
+  /// crossing already happened.
+  final _announced = <String, OperationPace>{};
+
+  /// False until the first evaluation has run. That first pass records the
+  /// current paces without sounding, so re-entering the screen mid-run — back
+  /// from the report, or after a relaunch — cannot produce a phantom beep for a
+  /// crossing that happened while the widget was not mounted.
+  bool _armed = false;
+
   String get _studyId => widget.studyId;
   TimingRepository get _timing => ref.read(timingRepositoryProvider);
   StudyOperationRepository get _seq =>
@@ -176,12 +192,28 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
 
     final timing = timingByOperation(instances: instances, segments: segments);
     _live = timing.values.any((t) => t.state == OperationTimingState.running);
-    final total = totalWallClockMs(segments);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final total = totalWallClockMs(segments, now);
     final timed = ops.where((o) => timing[o.id]?.isTimed ?? false).length;
+
+    // One pace per operation, shared by the row colours and the alert engine so
+    // that what you see and what you hear can never disagree.
+    final paces = <String, OperationPace?>{
+      for (final op in ops)
+        op.id: paceFor(
+          elapsedMs: timing[op.id]?.actualMs(now),
+          referenceStandardMs: op.referenceStandardMs,
+        ),
+    };
+    // Playing a sound is a side effect, so it waits for the frame to finish
+    // rather than happening during build.
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _evaluateAlerts(ops, timing, paces));
 
     return Column(
       children: [
-        _headerBar(context, l10n, total),
+        _headerBar(context, l10n, total, workContentMs(timing.values, now),
+            expectedTotal(ops)),
         if (ops.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
@@ -215,8 +247,8 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
                     final photoCount = t.instance != null
                         ? (mediaCounts[t.instance!.id] ?? 0)
                         : 0;
-                    return _row(
-                        context, l10n, i, op, t, subtypeById, photoCount);
+                    return _row(context, l10n, i, op, t, subtypeById,
+                        photoCount, paces[op.id]);
                   },
                 ),
         ),
@@ -236,48 +268,97 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     );
   }
 
-  Widget _headerBar(BuildContext context, AppLocalizations l10n, int totalMs) {
+  /// Sounds at most one cue per frame — "over" outranks "approaching" — so
+  /// several operations crossing at once (the concurrency Chronus exists to
+  /// capture) produces a single alert rather than a burst.
+  void _evaluateAlerts(
+    List<StudyOperation> ops,
+    Map<String, OperationTiming> timing,
+    Map<String, OperationPace?> paces,
+  ) {
+    if (!mounted) return;
+
+    OperationPace? loudest;
+    for (final op in ops) {
+      final pace = paces[op.id];
+      if (pace == null || pace == OperationPace.onTrack) continue;
+
+      final announced = _announced[op.id];
+      if (announced != null && announced.index >= pace.index) continue;
+      // Latch every crossing, including the ones that pass silently below, so
+      // a later resume cannot re-announce what was already announced.
+      _announced[op.id] = pace;
+
+      // Only a running operation alerts: a paused or finished one is not racing
+      // anything, and its state is carried by the row colour instead.
+      if (timing[op.id]?.state != OperationTimingState.running) continue;
+      if (!_armed) continue;
+      if (loudest == null || pace.index > loudest.index) loudest = pace;
+    }
+    _armed = true;
+
+    if (loudest == null) return;
+    if (ref.read(appSettingsProvider).value?.alertSoundsEnabled == false) return;
+    ref.read(alertSoundsProvider).play(loudest);
+  }
+
+  Widget _headerBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    int totalMs,
+    int workContent,
+    ({int totalMs, int withReference, int total}) expected,
+  ) {
     final dateFmt = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
+    // Disclosed only when it would otherwise mislead: an operation without a
+    // reference standard silently understates the plan.
+    final coverage = expected.withReference < expected.total
+        ? l10n.workspaceExpectedCoverage(expected.withReference, expected.total)
+        : null;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      // Full width: the Column below shrink-wraps horizontally, and the
+      // workspace Column above centres its children, which would float this.
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${studyTypeLabel(l10n, widget.study.type)} · '
+              '${dateFmt.formatMediumDate(widget.study.performedAt)}'
+              '${widget.study.analyst != null && widget.study.analyst!.isNotEmpty ? ' · ${widget.study.analyst}' : ''}',
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                Text(
-                  '${studyTypeLabel(l10n, widget.study.type)} · '
-                  '${dateFmt.formatMediumDate(widget.study.performedAt)}',
-                  style: theme.textTheme.bodyMedium,
+                // The wall-clock span. Deliberately not compared against the
+                // two sums beside it — see DESIGN.md §3.5.
+                StatTile(
+                  label: l10n.workspaceTotalLabel,
+                  value: formatHmsd(totalMs),
                 ),
-                if (widget.study.analyst != null &&
-                    widget.study.analyst!.isNotEmpty)
-                  Text(
-                    widget.study.analyst!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant),
-                  ),
+                StatTile(
+                  label: l10n.reportWorkContent,
+                  value: formatHmsd(workContent),
+                ),
+                StatTile(
+                  label: l10n.colExpected,
+                  value: expected.withReference == 0
+                      ? '—'
+                      : formatHmsd(expected.totalMs),
+                  footnote: coverage,
+                ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(l10n.workspaceTotalLabel,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
-              Text(
-                formatHmsd(totalMs),
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -290,6 +371,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     OperationTiming t,
     Map<String, OperationSubtype> subtypeById,
     int photoCount,
+    OperationPace? pace,
   ) {
     final theme = Theme.of(context);
     final actual = t.actualMs();
@@ -376,6 +458,9 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
                     Text(
                       actual != null ? formatHmsd(actual) : '—',
                       style: theme.textTheme.titleMedium?.copyWith(
+                        color: paceColor(pace),
+                        fontWeight:
+                            pace == OperationPace.over ? FontWeight.bold : null,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -534,6 +619,9 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     );
     if (!confirmed) return;
     await _timing.reset(studyId: _studyId, studyOperationId: op.id);
+    // Reset is the only action that zeroes the clock, so it is the only one
+    // that re-arms this operation's alerts.
+    _announced.remove(op.id);
   }
 
   Future<void> _editManual(StudyOperation op, OperationTiming t) async {

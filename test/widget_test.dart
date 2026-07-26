@@ -14,6 +14,7 @@ void main() {
     final settings = AppSetting(
       id: 0,
       timeUnit: TimeUnit.seconds,
+      alertSoundsEnabled: true,
       updatedAt: DateTime(2026),
     );
 
