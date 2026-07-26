@@ -40,6 +40,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Packaged release artifacts (the shareable Windows zip) — rebuildable output.
+/dist/
+
 # Symbolication related
 app.*.symbols
 
