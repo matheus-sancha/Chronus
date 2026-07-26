@@ -45,7 +45,7 @@ Requires the Flutter SDK matching `environment.sdk` in `pubspec.yaml`
 
 ```bash
 flutter analyze
-flutter test                                  # 89 tests
+flutter test                                  # 103 tests
 
 dart run build_runner build --delete-conflicting-outputs   # Drift + Riverpod
 flutter gen-l10n                                           # ARB -> AppLocalizations
@@ -119,7 +119,12 @@ flutter test test/sample_export.dart    # PDF/XLSX over a realistic study
 flutter test test/sample_gantt.dart     # timeline Gantt to PNGs
 flutter test test/manual_screens.dart   # manual screenshots from real widgets
 dart run tool/build_manual_html.dart    # manuals -> self-contained HTML
+dart run tool/generate_alert_sounds.dart # regenerate assets/sounds/*.wav
 ```
+
+The alert sounds are committed, so the generator runs only when they need
+changing — it exists so they stay reproducible and licence-free rather than
+being mystery binaries.
 
 `test/live_backup_check.dart` round-trips a **copy** of a real app directory
 through a `.chronus` bundle; see the header for usage.
