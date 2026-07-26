@@ -152,6 +152,8 @@
   "photosAction": "Fotos",
   "photosEmpty": "Aún no hay fotos.",
   "addPhoto": "Añadir foto",
+  "addPhotoCamera": "Tomar foto",
+  "addPhotoLibrary": "Elegir de la galería",
   "captionLabel": "Leyenda",
   "deletePhotoTitle": "Eliminar foto",
   "deletePhotoMessage": "¿Eliminar esta foto? Esto no se puede deshacer.",

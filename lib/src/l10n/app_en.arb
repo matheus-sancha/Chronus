@@ -199,6 +199,8 @@
   "photosAction": "Photos",
   "photosEmpty": "No photos yet.",
   "addPhoto": "Add photo",
+  "addPhotoCamera": "Take photo",
+  "addPhotoLibrary": "Choose from library",
   "captionLabel": "Caption",
   "deletePhotoTitle": "Delete photo",
   "deletePhotoMessage": "Delete this photo? This cannot be undone.",

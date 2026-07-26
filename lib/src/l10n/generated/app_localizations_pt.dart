@@ -433,6 +433,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get addPhoto => 'Adicionar foto';
 
   @override
+  String get addPhotoCamera => 'Tirar foto';
+
+  @override
+  String get addPhotoLibrary => 'Escolher da galeria';
+
+  @override
   String get captionLabel => 'Legenda';
 
   @override

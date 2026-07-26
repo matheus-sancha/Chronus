@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Chronus uses the camera to photograph a workstation or part while you time a study.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Chronus needs access to your photos so you can attach existing pictures to a study.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../common/confirm_dialog.dart';
@@ -15,6 +16,16 @@ const _imageTypeGroup = XTypeGroup(
   label: 'images',
   extensions: ['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp', 'gif', 'bmp'],
 );
+
+/// On-floor photos are documentation, not archival captures. Downscaling on the
+/// way in keeps the media folder — and every PDF and `.chronus` bundle that
+/// carries it — from ballooning on a modern phone sensor.
+const _maxPhotoEdge = 2000.0;
+const _photoQuality = 85;
+
+/// Whether the platform can capture a photo, i.e. whether `image_picker` has a
+/// camera here. It does not on Windows, where it degrades to a file dialog.
+bool get _canCapturePhoto => Platform.isIOS || Platform.isAndroid;
 
 /// Opens the photo gallery for one owner (a study or, most often, an operation
 /// instance). Full-screen so it works the same on desktop and phone.
@@ -64,7 +75,7 @@ class _MediaGalleryScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _addPhoto(ref),
+        onPressed: () => _addPhoto(context, ref),
         icon: const Icon(Icons.add_a_photo_outlined),
         label: Text(l10n.addPhoto),
       ),
@@ -102,15 +113,63 @@ class _MediaGalleryScreen extends ConsumerWidget {
   String _absolute(String basePath, MediaAttachment media) =>
       p.joinAll([basePath, ...media.relativePath.split('/')]);
 
-  Future<void> _addPhoto(WidgetRef ref) async {
-    final file = await openFile(acceptedTypeGroups: [_imageTypeGroup]);
-    if (file == null) return;
+  Future<void> _addPhoto(BuildContext context, WidgetRef ref) async {
+    final sourcePath = await _pickPhoto(context);
+    if (sourcePath == null) return;
     await ref.read(mediaRepositoryProvider).addFile(
           ownerType: ownerType,
           ownerId: ownerId,
           kind: MediaKind.photo,
-          sourcePath: file.path,
+          sourcePath: sourcePath,
         );
+  }
+
+  /// Resolves a source file for a new photo, or null if the user backed out.
+  ///
+  /// On a phone or tablet the analyst is standing at the machine, so capture
+  /// comes first and the library is the fallback. `image_picker` also transcodes
+  /// the iPhone's HEIC to JPEG, which the file dialog does not — and
+  /// `pw.MemoryImage` in the PDF export only decodes JPEG/PNG.
+  Future<String?> _pickPhoto(BuildContext context) async {
+    if (!_canCapturePhoto) {
+      final file = await openFile(acceptedTypeGroups: [_imageTypeGroup]);
+      return file?.path;
+    }
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: Text(l10n.addPhotoCamera),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(l10n.addPhotoLibrary),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (source == null) return null;
+
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: _maxPhotoEdge,
+      maxHeight: _maxPhotoEdge,
+      imageQuality: _photoQuality,
+    );
+    return picked?.path;
   }
 
   Future<void> _viewPhoto(
