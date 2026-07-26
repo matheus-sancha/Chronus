@@ -215,7 +215,7 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
-6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots; then desktop ergonomics (keyboard timing, window state).
+6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry; then keyboard timing.
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.
 8. **Cross-study comparison.**
 9. **Polish** — video, iPad layouts, finalize pt/en/es.
@@ -299,8 +299,18 @@ A text field in **Settings** and in the **study workspace's overflow menu**, app
 - **Ordering comes from the timestamp in the file name, never mtime.** Copying a folder resets modification times, and users do move this directory between PCs; mtime ordering would then prune the wrong files or decide a snapshot was not due when it was. The name is the only record of when a snapshot was really taken. It also means a stray `.sqlite` dropped in the folder is ignored rather than offered as a restore point.
 - **Exposed as a guarded list** in Settings → Data, with the same confirmation as a bundle restore. _Leaving them invisible was rejected_: recovery would then mean walking someone through replacing `chronus.sqlite` in `%APPDATA%` **and** remembering to delete the `-wal` and `-shm` sidecars, where a stale `-wal` beside a replaced database can corrupt it. One button removes that footgun.
 
-### 10.6 Planned next (not yet built)
+### 10.6 Window geometry
+
+Windows does not remember a window's size, position or maximised state for an application — the app must. Without this, every launch opened at the hardcoded 1280×720 at (10, 10) from `windows/runner/main.cpp` and began with a manual maximise, several times a day.
+
+- Stored as a small **json file beside the database**, not in `AppSettings`: window chrome is not domain state, and it would otherwise mean a schema migration whenever a field is added. Values are **type-tested, not cast** — the file is plain text in a folder the readme tells users to open, so a hand-edited value has to be rejected rather than thrown on.
+- **The maximised flag and the frame are independent.** A maximised window's bounds *are* the screen, so storing those would mean unmaximising later restores to the whole screen and the layout is quietly lost. The last unmaximised frame is kept in memory and **seeded at startup**, because a user whose very first action is to maximise has no stored frame yet — and an earlier version, lacking that seed, saved nothing at all in exactly that case.
+- **Restored bounds are checked against the current displays.** A laptop undocked from a second monitor would otherwise open a window nobody can reach, which is indistinguishable from the app failing to launch. Only a title bar's worth of overlap is required, so a window straddling two screens or hanging off an edge is still honoured — users park windows like that deliberately.
+- **Minimum size 900×600**, below which the timing table cannot lay out its columns.
+- **`waitUntilReadyToShow` is called without its callback.** It invokes that callback *without awaiting it*, so anything asynchronous inside races the caller; the geometry work is awaited inline instead.
+- **`win32_window.cpp`'s `Show()` uses `SW_SHOW`, not the template's `SW_SHOWNORMAL`.** The window is created hidden and revealed from the first-frame callback, which is what avoids both a flash and an empty window — but `SW_SHOWNORMAL` *un-maximises*, so it silently cancelled the restore. This is a deliberate deviation from the Flutter template; the reason is recorded at the call site.
+
+### 10.7 Planned next (not yet built)
 
 - **Keyboard timing.** `Space` = lap, driving the existing `stopAndStartNext` — one key, pressed blind, eyes on the machine rather than the screen. Nothing running → start the first pending. **Two or more running → inert with a hint**, because "the current operation" is undefined under the concurrency this app exists to capture, and guessing means stopping the wrong operator's timer. Arrows move row focus, `Enter` start/pause, `S` stop. Documented in an **F1 overlay**, reachable from a keyboard icon in the workspace app bar so the overlay is not itself undiscoverable.
-- **Window geometry.** Persist size/position/maximized (`window_manager`, to a small json — not the database, to avoid schema churn), a minimum size so the timing table cannot be crushed, and **restored bounds clamped to the current monitors** or an undocked laptop opens offscreen. Today `windows/runner/main.cpp` hardcodes 1280×720 at (10,10) every launch, so every session begins with a manual maximize.
 - **Optional backup folder.** Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.

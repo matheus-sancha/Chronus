@@ -16,10 +16,10 @@ Local-first: no accounts, no cloud sync, no server.
 **Phases 1–5 of 9 complete** (Foundations, Structure, Core, Analysis, Export).
 Phase 6 (Licensing) is **skipped** — Windows is internal-only, so there is
 nothing to gate. Current work is Windows operation: build identity, a
-diagnostics log, an in-app feedback channel, recovery for runs left timing, and
-automatic database snapshots ([`docs/DESIGN.md`](docs/DESIGN.md) §10). Then
-desktop ergonomics (keyboard timing, window state), then Phase 7 (Sampling
-Study). Not yet built: Sampling Study, cross-study comparison, video
+diagnostics log, an in-app feedback channel, recovery for runs left timing,
+automatic database snapshots, and remembered window geometry
+([`docs/DESIGN.md`](docs/DESIGN.md) §10). Then keyboard timing, then Phase 7
+(Sampling Study). Not yet built: Sampling Study, cross-study comparison, video
 attachments, iPad layouts.
 
 Distributed internally as a Windows zip. The first public App Store release is
@@ -50,7 +50,7 @@ Requires the Flutter SDK matching `environment.sdk` in `pubspec.yaml`
 
 ```bash
 flutter analyze
-flutter test                                  # 119 tests
+flutter test                                  # 131 tests
 
 dart run build_runner build --delete-conflicting-outputs   # Drift + Riverpod
 flutter gen-l10n                                           # ARB -> AppLocalizations
