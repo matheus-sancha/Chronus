@@ -152,6 +152,8 @@
   "photosAction": "Fotos",
   "photosEmpty": "Nenhuma foto ainda.",
   "addPhoto": "Adicionar foto",
+  "addPhotoCamera": "Tirar foto",
+  "addPhotoLibrary": "Escolher da galeria",
   "captionLabel": "Legenda",
   "deletePhotoTitle": "Excluir foto",
   "deletePhotoMessage": "Excluir esta foto? Isso não pode ser desfeito.",

@@ -1,0 +1,116 @@
+========================================
+CHRONUS - Cronoanalise
+Previa interna
+========================================
+
+COMO USAR
+---------
+1. Descompacte esta pasta inteira em qualquer lugar do seu PC
+   (por exemplo: C:\Chronus). Nao e necessario instalar nada.
+2. Execute chronus.exe.
+3. Na primeira vez, o Windows pode mostrar o aviso
+   "O Windows protegeu o seu PC".
+   Clique em "Mais informacoes" e depois em "Executar assim mesmo".
+   Isso acontece porque o programa ainda nao tem assinatura digital.
+
+IMPORTANTE: mantenha todos os arquivos juntos na mesma pasta.
+O chronus.exe nao funciona sozinho - ele precisa dos outros
+arquivos e da pasta "data".
+
+SEUS DADOS
+----------
+Os dados ficam salvos SOMENTE NESTE COMPUTADOR. Nao ha
+sincronizacao e ninguem mais ve os seus estudos.
+
+Eles NAO ficam na pasta do programa. Ficam em:
+  %APPDATA%\com.matheussancha\chronus
+(cole esse caminho na barra de endereco do Explorador de Arquivos)
+
+Por isso voce pode descompactar uma versao nova por cima da antiga
+sem perder nada.
+
+Para nao perder seus estudos, faca backup: Configuracoes > Backup.
+Isso gera um arquivo .chronus que pode ser guardado em outro lugar
+e restaurado depois, inclusive em outro PC.
+
+MANUAL DE INSTRUCOES
+--------------------
+O manual completo, com imagens, esta nesta mesma pasta:
+  MANUAL-pt.html   (portugues)
+  MANUAL-en.html   (ingles)
+
+De um duplo clique para abrir no navegador. Cada manual e um
+arquivo unico, com as imagens ja embutidas - voce pode copia-lo
+ou envia-lo por e-mail sozinho.
+
+O QUE JA FUNCIONA
+-----------------
+- Projetos, estudos e catalogo de operacoes
+- Cronometragem por operacao (simultanea, com pausa)
+- Relatorio: eficiencia, timeline, Pareto de desperdicios
+- Exportacao em PDF e XLSX
+
+AINDA EM DESENVOLVIMENTO
+------------------------
+- Estudo por amostragem (multiplas observacoes)
+- Comparacao entre estudos
+- Video anexado
+
+PROBLEMAS?
+----------
+Se aparecer erro de DLL faltando, instale o
+"Microsoft Visual C++ Redistributable (x64)":
+https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+Qualquer outro problema, fale com o Matheus.
+
+
+========================================
+ENGLISH
+========================================
+
+HOW TO USE
+----------
+1. Unzip this entire folder anywhere on your PC (e.g. C:\Chronus).
+   No installation needed.
+2. Run chronus.exe.
+3. The first time, Windows may warn "Windows protected your PC".
+   Click "More info", then "Run anyway". This happens because the
+   program is not yet code-signed.
+
+IMPORTANT: keep all files together in the same folder. chronus.exe
+will not run on its own - it needs the other files and the "data"
+folder next to it.
+
+YOUR DATA
+---------
+Data is stored ON THIS COMPUTER ONLY. There is no sync, and nobody
+else can see your studies.
+
+It is NOT kept in the program folder. It lives in:
+  %APPDATA%\com.matheussancha\chronus
+(paste that into the File Explorer address bar)
+
+That means you can unzip a newer version over the old one without
+losing anything.
+
+Back up via Settings > Back up. That produces a .chronus file you
+can store elsewhere and restore later, including on another PC.
+
+MANUAL
+------
+The full illustrated manual is in this same folder:
+  MANUAL-en.html   (English)
+  MANUAL-pt.html   (Portuguese)
+
+Double-click to open it in your browser. Each manual is a single
+file with the images embedded, so you can copy or email it on
+its own.
+
+TROUBLE?
+--------
+If you get a missing-DLL error, install the Microsoft Visual C++
+Redistributable (x64):
+https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+Anything else, contact Matheus.

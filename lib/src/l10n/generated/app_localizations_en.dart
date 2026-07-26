@@ -432,6 +432,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addPhoto => 'Add photo';
 
   @override
+  String get addPhotoCamera => 'Take photo';
+
+  @override
+  String get addPhotoLibrary => 'Choose from library';
+
+  @override
   String get captionLabel => 'Caption';
 
   @override

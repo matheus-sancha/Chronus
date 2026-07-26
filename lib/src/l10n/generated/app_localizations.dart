@@ -910,6 +910,18 @@ abstract class AppLocalizations {
   /// **'Add photo'**
   String get addPhoto;
 
+  /// No description provided for @addPhotoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get addPhotoCamera;
+
+  /// No description provided for @addPhotoLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from library'**
+  String get addPhotoLibrary;
+
   /// No description provided for @captionLabel.
   ///
   /// In en, this message translates to:

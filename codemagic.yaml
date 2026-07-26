@@ -1,0 +1,105 @@
+# Codemagic CI — builds Chronus for iOS and ships it to TestFlight.
+#
+# Why CI at all: iOS builds require macOS/Xcode, and Chronus is developed on
+# Windows. Codemagic supplies the Mac and manages code signing, so no local Mac
+# is needed. Windows releases are still built locally (`flutter build windows`).
+#
+# One-time setup in the Codemagic UI before the first run:
+#   1. Team settings → Integrations → App Store Connect: add an API key.
+#      Name it `Chronus ASC key`, or change `integrations` below to match.
+#   2. Create the app record in App Store Connect for bundle id
+#      `com.matheussancha.chronus`, then put its numeric Apple ID (App
+#      Information → General → Apple ID) into APP_STORE_APPLE_ID below.
+#   3. Create a TestFlight *internal* tester group named `Employees` and add the
+#      team to it. Internal testers skip Beta App Review; external testers do
+#      not. Change `beta_groups` below if you name it something else.
+
+workflows:
+  ios-testflight:
+    name: iOS · TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      app_store_connect: Chronus ASC key
+
+    environment:
+      # Pinned to the local toolchain (`flutter --version`) so CI cannot quietly
+      # build with a different Flutter than the app was developed against.
+      # Fall back to `stable` if Codemagic ever drops this exact version.
+      flutter: 3.44.6
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        # Codemagic fetches (or creates) the distribution profile for this
+        # bundle id using the App Store Connect integration above.
+        distribution_type: app_store
+        bundle_identifier: com.matheussancha.chronus
+      vars:
+        APP_STORE_APPLE_ID: 0000000000 # replace with the numeric Apple ID
+
+    triggering:
+      # Release builds come from a version tag, so an ordinary push to a branch
+      # never lands on someone's phone. Manual builds from the UI still work.
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+
+    scripts:
+      - name: Fetch packages
+        script: flutter pub get
+
+      - name: Regenerate localizations
+        # ARB → AppLocalizations. The output is committed on purpose, but
+        # regenerating here means an edited .arb can never ship against stale
+        # generated Dart. (*.g.dart from build_runner is committed too, so no
+        # code generation step is needed.)
+        script: flutter gen-l10n
+
+      - name: Analyze
+        script: flutter analyze
+
+      - name: Test
+        script: flutter test
+
+      - name: Set up signing
+        # Applies the profile fetched by `ios_signing` and writes
+        # /Users/builder/export_options.plist used by the build below.
+        script: xcode-project use-profiles
+
+      - name: Build IPA
+        # ios/Podfile is deliberately absent from the repo — it has never been
+        # generated, since that needs a Mac. `flutter build ipa` writes it and
+        # runs `pod install` itself on the first build.
+        #
+        # TestFlight rejects a build number it has already accepted, so derive
+        # the next one from what is actually uploaded rather than from pubspec's
+        # `version:` field. The fallback covers the first-ever upload, where
+        # there is no previous build number to read.
+        script: |
+          set -e
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" || echo 0)
+          [ -z "$LATEST" ] && LATEST=0
+          echo "Latest build number on TestFlight: $LATEST"
+          flutter build ipa --release \
+            --build-number=$((LATEST + 1)) \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Employees
+      email:
+        recipients:
+          - matheus.sancha@gmail.com
+        notify:
+          success: true
+          failure: true

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../data/app_directory.dart';
 import '../../../data/database/database.dart';
 import '../../../data/database/database_providers.dart';
 import '../../../data/database/enums.dart';
@@ -13,14 +13,14 @@ part 'media_providers.g.dart';
 MediaRepository mediaRepository(Ref ref) {
   return MediaRepository(
     ref.watch(appDatabaseProvider),
-    getApplicationDocumentsDirectory,
+    appDataDirectory,
   );
 }
 
 /// The app's base directory path, resolved once (for building image file paths).
 @riverpod
 Future<String> appMediaBasePath(Ref ref) async {
-  final dir = await getApplicationDocumentsDirectory();
+  final dir = await appDataDirectory();
   return dir.path;
 }
 
