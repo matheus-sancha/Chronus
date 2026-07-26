@@ -34,6 +34,7 @@ import 'package:chronus/src/features/projects/application/projects_providers.dar
 import 'package:chronus/src/features/projects/presentation/projects_screen.dart';
 import 'package:chronus/src/features/settings/application/settings_providers.dart';
 import 'package:chronus/src/features/settings/presentation/settings_screen.dart';
+import 'package:chronus/src/features/studies/application/alert_sound.dart';
 import 'package:chronus/src/features/studies/application/studies_providers.dart';
 import 'package:chronus/src/features/studies/application/timing_model.dart';
 import 'package:chronus/src/features/studies/application/timing_providers.dart';
@@ -127,6 +128,7 @@ class _Fx {
         id: 0,
         timeUnit: TimeUnit.seconds,
         defaultAnalyst: 'M. Sancha',
+        alertSoundsEnabled: true,
         updatedAt: DateTime(2026),
       );
 
@@ -328,6 +330,8 @@ _overrides(_Fx f) => [
         return db;
       }),
       appSettingsProvider.overrideWith((ref) => Stream.value(f.settings)),
+      // Screenshot renders must never reach an audio device.
+      alertSoundsProvider.overrideWithValue(const SilentAlertSounds()),
       projectsListProvider.overrideWith((ref) => Stream.value(f.projects)),
       projectByIdProvider
           .overrideWith((ref, id) => Stream.value(f.projects.first)),
@@ -514,18 +518,21 @@ void main() {
           locale: locale,
           callouts: const [
             (x: 0.822, y: 0.033, n: 1), // open the report
-            (x: 0.885, y: 0.127, n: 2), // total elapsed
-            (x: 0.093, y: 0.170, n: 3), // timed progress
-            (x: 0.017, y: 0.218, n: 4), // drag handle (row 1)
-            (x: 0.757, y: 0.218, n: 5), // reference time (row 1)
-            (x: 0.040, y: 0.283, n: 6), // state glyph (row 2)
-            (x: 0.833, y: 0.283, n: 7), // observed time (row 2)
-            (x: 0.902, y: 0.348, n: 8), // start (row 3)
-            (x: 0.238, y: 0.365, n: 9), // note + photo indicators (row 4)
-            (x: 0.936, y: 0.413, n: 10), // reset (row 4)
-            (x: 0.971, y: 0.478, n: 11), // row menu (row 5)
-            (x: 0.822, y: 0.560, n: 12), // manual-override tag (row 6)
-            (x: 0.430, y: 0.955, n: 13), // add operation
+            // Header tiles: badges sit in each tile's empty right half.
+            (x: 0.110, y: 0.166, n: 2), // total elapsed
+            (x: 0.255, y: 0.166, n: 3), // work content
+            (x: 0.410, y: 0.166, n: 4), // expected
+            (x: 0.085, y: 0.258, n: 5), // timed progress
+            (x: 0.017, y: 0.307, n: 6), // drag handle (row 1)
+            (x: 0.757, y: 0.307, n: 7), // reference time (row 1)
+            (x: 0.040, y: 0.372, n: 8), // state glyph (row 2)
+            (x: 0.833, y: 0.372, n: 9), // observed time (row 2)
+            (x: 0.902, y: 0.437, n: 10), // start (row 3)
+            (x: 0.238, y: 0.502, n: 11), // note + photo indicators (row 4)
+            (x: 0.936, y: 0.502, n: 12), // reset (row 4)
+            (x: 0.971, y: 0.567, n: 13), // row menu (row 5)
+            (x: 0.812, y: 0.647, n: 14), // manual-override tag (row 6)
+            (x: 0.430, y: 0.955, n: 15), // add operation
           ]);
 
       await shot('report-$locale',

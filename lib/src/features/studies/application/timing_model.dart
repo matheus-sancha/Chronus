@@ -72,6 +72,83 @@ Map<String, OperationTiming> timingByOperation({
   };
 }
 
+/// Where an operation stands against its reference standard. Ordered by
+/// severity — [_evaluateAlerts] and the latch both rely on `index` ranking.
+enum OperationPace { onTrack, approaching, over }
+
+/// Longest lead time the "approaching" alert will ever give.
+const alertWindowCapMs = 30 * 1000;
+
+/// Lead time before the reference standard at which "approaching" fires: a
+/// tenth of the standard, capped at [alertWindowCapMs].
+///
+/// The 30 s is a **cap, not a floor**, and that is what keeps the rule free of
+/// degenerate cases at both ends. As a floor, any operation shorter than the
+/// constant would warn at or before its own start — and element-level
+/// cronoanálise operations are routinely under 30 s. As a cap the window is
+/// always a tenth of the operation, so it can never precede the start, while a
+/// two-hour operation still gets a tight "ready to stop" cue instead of a
+/// distant schedule warning.
+int alertWindowMs(int referenceStandardMs) =>
+    math.min(alertWindowCapMs, referenceStandardMs ~/ 10);
+
+/// [elapsedMs] against [referenceStandardMs]. Null when the comparison does not
+/// apply — no reference standard, or nothing timed yet — which callers render
+/// as no colour and no sound rather than as "on track".
+OperationPace? paceFor({
+  required int? elapsedMs,
+  required int? referenceStandardMs,
+}) {
+  if (elapsedMs == null ||
+      referenceStandardMs == null ||
+      referenceStandardMs <= 0) {
+    return null;
+  }
+  if (elapsedMs >= referenceStandardMs) return OperationPace.over;
+  if (elapsedMs >= referenceStandardMs - alertWindowMs(referenceStandardMs)) {
+    return OperationPace.approaching;
+  }
+  return OperationPace.onTrack;
+}
+
+/// Σ of the operations' reported times — the study's work content, live.
+///
+/// Counts overlap twice by design, exactly like the report's
+/// `totalWorkContentMs`. Compare it against [expectedTotal]; never against the
+/// wall-clock span from [totalWallClockMs], which is not a sum.
+int workContentMs(Iterable<OperationTiming> timings, [int? nowMs]) {
+  var sum = 0;
+  for (final t in timings) {
+    sum += t.actualMs(nowMs) ?? 0;
+  }
+  return sum;
+}
+
+/// The study's planned time: Σ reference standard over **every** operation in
+/// the sequence, with how many of them actually carry a standard.
+///
+/// Summing over all operations (rather than only those already timed) keeps
+/// Expected a fixed target during a run instead of a figure that grows as you
+/// work. The trade-off is that an operation without a standard silently
+/// understates the plan, so [withReference] is reported alongside and the UI
+/// shows the coverage whenever it is short of [total].
+({int totalMs, int withReference, int total}) expectedTotal(
+    List<StudyOperation> operations) {
+  var totalMs = 0;
+  var withReference = 0;
+  for (final op in operations) {
+    final reference = op.referenceStandardMs;
+    if (reference == null) continue;
+    totalMs += reference;
+    withReference++;
+  }
+  return (
+    totalMs: totalMs,
+    withReference: withReference,
+    total: operations.length,
+  );
+}
+
 /// Total study time = the wall-clock span from the first segment start to the
 /// last segment end (or now, for a still-open segment). Overlapping operations
 /// are NOT summed — that would double-count simultaneous work. Zero when

@@ -115,6 +115,15 @@
   "timingNoOperations": "Adicione operações antes de cronometrar.",
   "timingNoSegments": "Nenhuma operação registrada ainda.",
   "workspaceTotalLabel": "Total",
+  "workspaceExpectedCoverage": "{withReference} de {total} operações",
+  "@workspaceExpectedCoverage": {
+    "placeholders": {
+      "withReference": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "settingsAlertSounds": "Alertas sonoros",
+  "settingsAlertSoundsSubtitle": "Tocar um som quando uma operação se aproxima ou ultrapassa o tempo previsto",
   "timedProgress": "{done} / {total} cronometradas",
   "@timedProgress": {
     "placeholders": {

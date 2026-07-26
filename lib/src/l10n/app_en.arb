@@ -162,6 +162,16 @@
   "timingNoOperations": "Add operations before timing.",
   "timingNoSegments": "No operations recorded yet.",
   "workspaceTotalLabel": "Total",
+  "workspaceExpectedCoverage": "{withReference} of {total} ops",
+  "@workspaceExpectedCoverage": {
+    "description": "Shown under the Expected tile when some operations have no reference standard, so the planned total is understated.",
+    "placeholders": {
+      "withReference": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "settingsAlertSounds": "Alert sounds",
+  "settingsAlertSoundsSubtitle": "Sound when an operation nears or passes its expected time",
   "timedProgress": "{done} / {total} timed",
   "@timedProgress": {
     "placeholders": {

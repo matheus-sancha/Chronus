@@ -754,6 +754,24 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get workspaceTotalLabel;
 
+  /// Shown under the Expected tile when some operations have no reference standard, so the planned total is understated.
+  ///
+  /// In en, this message translates to:
+  /// **'{withReference} of {total} ops'**
+  String workspaceExpectedCoverage(int withReference, int total);
+
+  /// No description provided for @settingsAlertSounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert sounds'**
+  String get settingsAlertSounds;
+
+  /// No description provided for @settingsAlertSoundsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound when an operation nears or passes its expected time'**
+  String get settingsAlertSoundsSubtitle;
+
   /// No description provided for @timedProgress.
   ///
   /// In en, this message translates to:

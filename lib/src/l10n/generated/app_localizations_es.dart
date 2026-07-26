@@ -350,6 +350,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get workspaceTotalLabel => 'Total';
 
   @override
+  String workspaceExpectedCoverage(int withReference, int total) {
+    return '$withReference de $total operaciones';
+  }
+
+  @override
+  String get settingsAlertSounds => 'Alertas sonoras';
+
+  @override
+  String get settingsAlertSoundsSubtitle =>
+      'Reproducir un sonido cuando una operación se acerca o supera el tiempo previsto';
+
+  @override
   String timedProgress(int done, int total) {
     return '$done / $total cronometradas';
   }

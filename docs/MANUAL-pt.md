@@ -127,17 +127,21 @@ Esta é a tela que você opera durante o estudo. É uma lista única — você m
 |---|---|
 | **1** | **Relatório** — abre a análise deste estudo |
 | **2** | **Total** — tempo de relógio, do primeiro start ao último stop |
-| **3** | **Progresso** — quantas operações já têm tempo |
-| **4** | **Alça de arraste** — segure e arraste para reordenar a sequência |
-| **5** | **Tempo de referência** — o padrão, se a operação tiver um |
-| **6** | **Indicador de estado** — a cor é a categoria (âmbar preparação, verde produtivo, vermelho improdutivo); a marca mostra se já foi cronometrada |
-| **7** | **Tempo observado** — o que foi realmente medido |
-| **8** | **Iniciar** — começa a cronometrar esta operação, do zero |
-| **9** | **Indicadores de nota e foto** — aparecem quando a linha tem algum dos dois |
-| **10** | **Zerar** — descarta o tempo desta operação e volta a zero (pede confirmação) |
-| **11** | **Menu da linha** — editar, duplicar, excluir, informar o tempo real, adicionar nota ou foto |
-| **12** | **manual** — marca um tempo que foi digitado, e não medido |
-| **13** | **Adicionar operação** — escolha do catálogo ou crie na hora |
+| **3** | **Conteúdo de trabalho** — a soma das operações; fica maior que o Total sempre que houve sobreposição |
+| **4** | **Previsto** — o tempo planejado, somando os tempos de referência. A legenda aparece quando alguma operação não tem referência, porque aí o previsto está subestimado |
+| **5** | **Progresso** — quantas operações já têm tempo |
+| **6** | **Alça de arraste** — segure e arraste para reordenar a sequência |
+| **7** | **Tempo de referência** — o padrão, se a operação tiver um |
+| **8** | **Indicador de estado** — a cor é a categoria (âmbar preparação, verde produtivo, vermelho improdutivo); a marca mostra se já foi cronometrada |
+| **9** | **Tempo observado** — o que foi realmente medido; âmbar perto do tempo de referência, vermelho depois de passar dele |
+| **10** | **Iniciar** — começa a cronometrar esta operação, do zero |
+| **11** | **Indicadores de nota e foto** — aparecem quando a linha tem algum dos dois |
+| **12** | **Zerar** — descarta o tempo desta operação e volta a zero (pede confirmação) |
+| **13** | **Menu da linha** — editar, duplicar, excluir, informar o tempo real, adicionar nota ou foto |
+| **14** | **manual** — marca um tempo que foi digitado, e não medido |
+| **15** | **Adicionar operação** — escolha do catálogo ou crie na hora |
+
+**Total e Previsto não devem ser subtraídos um do outro.** O Total é um tempo de relógio e o Previsto é uma soma, então os dois só batem quando não houve sobreposição nem intervalos. Compare o **Conteúdo de trabalho** com o **Previsto** — os dois são somas, e aí a comparação vale.
 
 ### Controles de cronometragem
 
@@ -149,6 +153,19 @@ Cada operação tem o **seu próprio cronômetro independente**. Não existe um 
 - **↺ Zerar** — descarta a medição e volta a linha para zero. Pede confirmação.
 
 Como cada cronômetro é independente, você pode **rodar vários ao mesmo tempo**. Inicie o ciclo da máquina e inicie "operador aguardando" junto — os dois correm, e a sobreposição é medida e reportada.
+
+### Alertas de ritmo
+
+Quando a operação tem um tempo de referência, o Chronus acompanha o cronômetro contra ele.
+
+- O tempo observado (**9**) fica **âmbar** quando se aproxima da referência e **vermelho** depois de passar dela. A cor permanece, então dá para varrer um estudo concluído e achar os estouros de olho.
+- Um som de **duas notas subindo** toca quando a operação se aproxima da referência; um de **duas notas descendo** toca quando ela passa.
+
+O aviso vem um décimo do tempo de referência antes do fim, e nunca mais de 30 segundos antes. Uma operação de 40 segundos avisa aos 36; uma de duas horas avisa em 1:59:30. É um aviso de *prepare-se para apertar stop*, não um aviso de atraso de cronograma.
+
+Cada som toca **uma vez**. Pausar e retomar não repete, e sair da tela e voltar também não — só o **↺ Zerar**, que descarta o tempo de qualquer forma, rearma a operação. Operações sem tempo de referência nunca ganham cor e nunca emitem som.
+
+Para desligar os sons, use **Configurações → Alertas sonoros**. As cores continuam funcionando, então mesmo sem som os estouros aparecem.
 
 ### Cronometrando mais de uma operação ao mesmo tempo
 
@@ -163,9 +180,9 @@ Os dois tempos são registrados por inteiro, e os 50 segundos em comum aparecem 
 
 ### Digitando um tempo manualmente
 
-Se você esqueceu de apertar o start, ou está transcrevendo um estudo feito no papel, use **Informar tempo real** no menu da linha (**11**).
+Se você esqueceu de apertar o start, ou está transcrevendo um estudo feito no papel, use **Informar tempo real** no menu da linha (**13**).
 
-Um tempo digitado **encobre** a medição em vez de apagá-la — os trechos que você chegou a registrar continuam guardados por baixo. Se você limpar o valor manual, o tempo medido volta. Linhas com tempo digitado recebem a marca **manual** (**12**), e o relatório as desenha hachuradas para que ninguém as confunda com evidência medida.
+Um tempo digitado **encobre** a medição em vez de apagá-la — os trechos que você chegou a registrar continuam guardados por baixo. Se você limpar o valor manual, o tempo medido volta. Linhas com tempo digitado recebem a marca **manual** (**14**), e o relatório as desenha hachuradas para que ninguém as confunda com evidência medida.
 
 ---
 
@@ -178,7 +195,7 @@ Todas as imagens deste manual vêm do mesmo estudo, para você poder acompanhar 
 1. Em **Projetos**, crie *Célula 4 — linha de suportes* e abra.
 2. Adicione um estudo com o nome *Célula 4 — suporte A, referência*. O analista já vem preenchido das Configurações.
 3. Preencha o cabeçalho: peça, máquina, operador, turno, ordem de produção. Todos opcionais, todos impressos no relatório.
-4. Aperte **Adicionar operação** (**13**) sete vezes, escolhendo cada uma do catálogo.
+4. Aperte **Adicionar operação** (**15**) sete vezes, escolhendo cada uma do catálogo.
 
 **Executando**
 
@@ -270,12 +287,12 @@ Tempo total = tempo coberto + tempo não atribuído
 
 ## 11. Notas e fotos
 
-Ambas se anexam a uma operação específica, pelo menu da linha (**11**).
+Ambas se anexam a uma operação específica, pelo menu da linha (**13**).
 
 - **Notas** — texto livre. Saem na coluna Notas do relatório e do PDF.
 - **Fotos** — tire uma com a câmera ou escolha um arquivo existente. Ficam embutidas na exportação em PDF.
 
-Quando a linha passa a ter uma das duas coisas, aparecem pequenos indicadores ao lado do nome (**9**), com a contagem no caso das fotos.
+Quando a linha passa a ter uma das duas coisas, aparecem pequenos indicadores ao lado do nome (**11**), com a contagem no caso das fotos.
 
 Em celular ou tablet, **Adicionar foto** oferece **Tirar foto** ou **Escolher da galeria**. No Windows abre uma janela de arquivos — o desktop não tem câmera.
 
@@ -312,6 +329,7 @@ No Windows, a exportação abre uma janela para salvar o arquivo.
 - **Idioma** — português, inglês ou espanhol. *Padrão do sistema* segue o Windows.
 - **Analista padrão** — preenche automaticamente o campo Analista em estudos novos.
 - **Unidade de tempo** — segundos ou minutos decimais.
+- **Alertas sonoros** — os avisos de ritmo descritos na seção 6. Ligados por padrão; as cores âmbar/vermelho continuam mesmo com o som desligado.
 
 ### Fazendo backup
 

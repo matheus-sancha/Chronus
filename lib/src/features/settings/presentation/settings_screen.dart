@@ -61,6 +61,13 @@ class SettingsScreen extends ConsumerWidget {
                   repo.setTimeUnit,
                 ),
               ),
+              SwitchListTile(
+                secondary: const Icon(Icons.notifications_active_outlined),
+                title: Text(l10n.settingsAlertSounds),
+                subtitle: Text(l10n.settingsAlertSoundsSubtitle),
+                value: settings.alertSoundsEnabled,
+                onChanged: repo.setAlertSoundsEnabled,
+              ),
               const BackupSection(),
             ],
           );

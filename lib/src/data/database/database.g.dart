@@ -6077,6 +6077,20 @@ class $AppSettingsTable extends AppSettings
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<TimeUnit>($AppSettingsTable.$convertertimeUnit);
+  static const VerificationMeta _alertSoundsEnabledMeta =
+      const VerificationMeta('alertSoundsEnabled');
+  @override
+  late final GeneratedColumn<bool> alertSoundsEnabled = GeneratedColumn<bool>(
+    'alert_sounds_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("alert_sounds_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -6094,6 +6108,7 @@ class $AppSettingsTable extends AppSettings
     localeCode,
     defaultAnalyst,
     timeUnit,
+    alertSoundsEnabled,
     updatedAt,
   ];
   @override
@@ -6123,6 +6138,15 @@ class $AppSettingsTable extends AppSettings
         defaultAnalyst.isAcceptableOrUnknown(
           data['default_analyst']!,
           _defaultAnalystMeta,
+        ),
+      );
+    }
+    if (data.containsKey('alert_sounds_enabled')) {
+      context.handle(
+        _alertSoundsEnabledMeta,
+        alertSoundsEnabled.isAcceptableOrUnknown(
+          data['alert_sounds_enabled']!,
+          _alertSoundsEnabledMeta,
         ),
       );
     }
@@ -6161,6 +6185,10 @@ class $AppSettingsTable extends AppSettings
           data['${effectivePrefix}time_unit'],
         )!,
       ),
+      alertSoundsEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}alert_sounds_enabled'],
+      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -6186,12 +6214,16 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   /// Pre-fills the Analyst field on new studies.
   final String? defaultAnalyst;
   final TimeUnit timeUnit;
+
+  /// Sound when an operation nears or passes its reference standard (§3.6).
+  final bool alertSoundsEnabled;
   final DateTime updatedAt;
   const AppSetting({
     required this.id,
     this.localeCode,
     this.defaultAnalyst,
     required this.timeUnit,
+    required this.alertSoundsEnabled,
     required this.updatedAt,
   });
   @override
@@ -6209,6 +6241,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         $AppSettingsTable.$convertertimeUnit.toSql(timeUnit),
       );
     }
+    map['alert_sounds_enabled'] = Variable<bool>(alertSoundsEnabled);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -6223,6 +6256,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ? const Value.absent()
           : Value(defaultAnalyst),
       timeUnit: Value(timeUnit),
+      alertSoundsEnabled: Value(alertSoundsEnabled),
       updatedAt: Value(updatedAt),
     );
   }
@@ -6239,6 +6273,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       timeUnit: $AppSettingsTable.$convertertimeUnit.fromJson(
         serializer.fromJson<String>(json['timeUnit']),
       ),
+      alertSoundsEnabled: serializer.fromJson<bool>(json['alertSoundsEnabled']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -6252,6 +6287,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       'timeUnit': serializer.toJson<String>(
         $AppSettingsTable.$convertertimeUnit.toJson(timeUnit),
       ),
+      'alertSoundsEnabled': serializer.toJson<bool>(alertSoundsEnabled),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -6261,6 +6297,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     Value<String?> localeCode = const Value.absent(),
     Value<String?> defaultAnalyst = const Value.absent(),
     TimeUnit? timeUnit,
+    bool? alertSoundsEnabled,
     DateTime? updatedAt,
   }) => AppSetting(
     id: id ?? this.id,
@@ -6269,6 +6306,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         ? defaultAnalyst.value
         : this.defaultAnalyst,
     timeUnit: timeUnit ?? this.timeUnit,
+    alertSoundsEnabled: alertSoundsEnabled ?? this.alertSoundsEnabled,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   AppSetting copyWithCompanion(AppSettingsCompanion data) {
@@ -6281,6 +6319,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ? data.defaultAnalyst.value
           : this.defaultAnalyst,
       timeUnit: data.timeUnit.present ? data.timeUnit.value : this.timeUnit,
+      alertSoundsEnabled: data.alertSoundsEnabled.present
+          ? data.alertSoundsEnabled.value
+          : this.alertSoundsEnabled,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -6292,14 +6333,21 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('localeCode: $localeCode, ')
           ..write('defaultAnalyst: $defaultAnalyst, ')
           ..write('timeUnit: $timeUnit, ')
+          ..write('alertSoundsEnabled: $alertSoundsEnabled, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, localeCode, defaultAnalyst, timeUnit, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    localeCode,
+    defaultAnalyst,
+    timeUnit,
+    alertSoundsEnabled,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6308,6 +6356,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.localeCode == this.localeCode &&
           other.defaultAnalyst == this.defaultAnalyst &&
           other.timeUnit == this.timeUnit &&
+          other.alertSoundsEnabled == this.alertSoundsEnabled &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -6316,12 +6365,14 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<String?> localeCode;
   final Value<String?> defaultAnalyst;
   final Value<TimeUnit> timeUnit;
+  final Value<bool> alertSoundsEnabled;
   final Value<DateTime> updatedAt;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.localeCode = const Value.absent(),
     this.defaultAnalyst = const Value.absent(),
     this.timeUnit = const Value.absent(),
+    this.alertSoundsEnabled = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   AppSettingsCompanion.insert({
@@ -6329,6 +6380,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.localeCode = const Value.absent(),
     this.defaultAnalyst = const Value.absent(),
     required TimeUnit timeUnit,
+    this.alertSoundsEnabled = const Value.absent(),
     required DateTime updatedAt,
   }) : timeUnit = Value(timeUnit),
        updatedAt = Value(updatedAt);
@@ -6337,6 +6389,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Expression<String>? localeCode,
     Expression<String>? defaultAnalyst,
     Expression<String>? timeUnit,
+    Expression<bool>? alertSoundsEnabled,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -6344,6 +6397,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       if (localeCode != null) 'locale_code': localeCode,
       if (defaultAnalyst != null) 'default_analyst': defaultAnalyst,
       if (timeUnit != null) 'time_unit': timeUnit,
+      if (alertSoundsEnabled != null)
+        'alert_sounds_enabled': alertSoundsEnabled,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -6353,6 +6408,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Value<String?>? localeCode,
     Value<String?>? defaultAnalyst,
     Value<TimeUnit>? timeUnit,
+    Value<bool>? alertSoundsEnabled,
     Value<DateTime>? updatedAt,
   }) {
     return AppSettingsCompanion(
@@ -6360,6 +6416,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       localeCode: localeCode ?? this.localeCode,
       defaultAnalyst: defaultAnalyst ?? this.defaultAnalyst,
       timeUnit: timeUnit ?? this.timeUnit,
+      alertSoundsEnabled: alertSoundsEnabled ?? this.alertSoundsEnabled,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -6381,6 +6438,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
         $AppSettingsTable.$convertertimeUnit.toSql(timeUnit.value),
       );
     }
+    if (alertSoundsEnabled.present) {
+      map['alert_sounds_enabled'] = Variable<bool>(alertSoundsEnabled.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -6394,6 +6454,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('localeCode: $localeCode, ')
           ..write('defaultAnalyst: $defaultAnalyst, ')
           ..write('timeUnit: $timeUnit, ')
+          ..write('alertSoundsEnabled: $alertSoundsEnabled, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -12168,6 +12229,7 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<String?> localeCode,
       Value<String?> defaultAnalyst,
       required TimeUnit timeUnit,
+      Value<bool> alertSoundsEnabled,
       required DateTime updatedAt,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
@@ -12176,6 +12238,7 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<String?> localeCode,
       Value<String?> defaultAnalyst,
       Value<TimeUnit> timeUnit,
+      Value<bool> alertSoundsEnabled,
       Value<DateTime> updatedAt,
     });
 
@@ -12208,6 +12271,11 @@ class $$AppSettingsTableFilterComposer
         column: $table.timeUnit,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
+
+  ColumnFilters<bool> get alertSoundsEnabled => $composableBuilder(
+    column: $table.alertSoundsEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
@@ -12244,6 +12312,11 @@ class $$AppSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get alertSoundsEnabled => $composableBuilder(
+    column: $table.alertSoundsEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12274,6 +12347,11 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<TimeUnit, String> get timeUnit =>
       $composableBuilder(column: $table.timeUnit, builder: (column) => column);
+
+  GeneratedColumn<bool> get alertSoundsEnabled => $composableBuilder(
+    column: $table.alertSoundsEnabled,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -12314,12 +12392,14 @@ class $$AppSettingsTableTableManager
                 Value<String?> localeCode = const Value.absent(),
                 Value<String?> defaultAnalyst = const Value.absent(),
                 Value<TimeUnit> timeUnit = const Value.absent(),
+                Value<bool> alertSoundsEnabled = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
                 localeCode: localeCode,
                 defaultAnalyst: defaultAnalyst,
                 timeUnit: timeUnit,
+                alertSoundsEnabled: alertSoundsEnabled,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
@@ -12328,12 +12408,14 @@ class $$AppSettingsTableTableManager
                 Value<String?> localeCode = const Value.absent(),
                 Value<String?> defaultAnalyst = const Value.absent(),
                 required TimeUnit timeUnit,
+                Value<bool> alertSoundsEnabled = const Value.absent(),
                 required DateTime updatedAt,
               }) => AppSettingsCompanion.insert(
                 id: id,
                 localeCode: localeCode,
                 defaultAnalyst: defaultAnalyst,
                 timeUnit: timeUnit,
+                alertSoundsEnabled: alertSoundsEnabled,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0

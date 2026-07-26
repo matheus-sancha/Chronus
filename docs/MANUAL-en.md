@@ -127,17 +127,21 @@ This is the screen you drive during a study. It is a single list — you build t
 |---|---|
 | **1** | **Report** — opens the analysis for this study |
 | **2** | **Total** — wall-clock span, from the first start to the last stop |
-| **3** | **Timed progress** — how many operations have a time yet |
-| **4** | **Drag handle** — hold and drag to reorder the sequence |
-| **5** | **Reference time** — the benchmark, if this operation has one |
-| **6** | **State glyph** — colour is the category (amber setup, green productive, red unproductive); the mark shows whether it has been timed |
-| **7** | **Observed time** — what was actually measured |
-| **8** | **Start** — begins timing this operation, from zero |
-| **9** | **Note and photo indicators** — appear once a row has either |
-| **10** | **Reset** — discards this operation's time and returns it to zero (asks first) |
-| **11** | **Row menu** — edit, duplicate, delete, enter a time by hand, add a note or photo |
-| **12** | **manual** — flags a time that was typed in rather than measured |
-| **13** | **Add operation** — pick from the catalog, or create one on the spot |
+| **3** | **Work content** — the operations added up; larger than Total whenever work overlapped |
+| **4** | **Expected** — the planned time, adding up the reference times. The caption appears when some operations have no reference, because the plan is then understated |
+| **5** | **Timed progress** — how many operations have a time yet |
+| **6** | **Drag handle** — hold and drag to reorder the sequence |
+| **7** | **Reference time** — the benchmark, if this operation has one |
+| **8** | **State glyph** — colour is the category (amber setup, green productive, red unproductive); the mark shows whether it has been timed |
+| **9** | **Observed time** — what was actually measured; amber near the reference time, red once past it |
+| **10** | **Start** — begins timing this operation, from zero |
+| **11** | **Note and photo indicators** — appear once a row has either |
+| **12** | **Reset** — discards this operation's time and returns it to zero (asks first) |
+| **13** | **Row menu** — edit, duplicate, delete, enter a time by hand, add a note or photo |
+| **14** | **manual** — flags a time that was typed in rather than measured |
+| **15** | **Add operation** — pick from the catalog, or create one on the spot |
+
+**Total and Expected are not meant to be subtracted.** Total is a wall-clock span and Expected is a sum, so they only line up when nothing overlapped and there were no gaps. Compare **Work content** against **Expected** — those are both sums, so the comparison holds.
 
 ### Timing controls
 
@@ -149,6 +153,19 @@ Each operation has its **own independent timer**. There is no single master stop
 - **↺ Reset** — throws the measurement away and returns the row to zero. It asks for confirmation.
 
 Because each timer is independent, you can **run several at once**. Start the machine cycle, then start "operator waiting" alongside it — both run, and the overlap is measured and reported.
+
+### Pace alerts
+
+When an operation has a reference time, Chronus watches the clock against it.
+
+- The observed time (**9**) turns **amber** as it comes within reach of the reference, and **red** once it passes. The colour stays afterwards, so you can scan a finished study for overruns at a glance.
+- A **rising** two-note sound plays as it nears the reference; a **falling** one plays when it passes.
+
+The warning comes one tenth of the reference time before the end, and never earlier than 30 seconds before it. A 40-second operation is flagged at 36 seconds; a two-hour one at 1:59:30. It is a *get ready to press stop* cue, not a schedule warning.
+
+Each sound plays **once**. Pausing and resuming does not repeat it, and neither does leaving the screen and coming back — only **↺ Reset**, which throws the time away anyway, re-arms an operation. Operations without a reference time are never coloured and never make a sound.
+
+Turn the sounds off under **Settings → Alert sounds**. The colours stay either way, so a muted app still shows overruns.
 
 ### Timing more than one operation at a time
 
@@ -163,9 +180,9 @@ Both times are recorded in full, and the 50 seconds they share is reported as **
 
 ### Entering a time by hand
 
-If you forgot to press start, or you are transcribing a paper study, use **Enter actual time** from the row menu (**11**).
+If you forgot to press start, or you are transcribing a paper study, use **Enter actual time** from the row menu (**13**).
 
-A hand-entered time **shadows** the measurement rather than erasing it — any segments you did record are kept underneath. Clear the manual value and the measured time comes back. Rows carrying one are tagged **manual** (**12**), and the report draws them hatched so nobody mistakes them for measured evidence.
+A hand-entered time **shadows** the measurement rather than erasing it — any segments you did record are kept underneath. Clear the manual value and the measured time comes back. Rows carrying one are tagged **manual** (**14**), and the report draws them hatched so nobody mistakes them for measured evidence.
 
 ---
 
@@ -178,7 +195,7 @@ Every screenshot in this manual comes from the same study, so you can follow it 
 1. From **Projects**, create *Cell 4 — bracket line*, and open it.
 2. Add a study, name it *Cell 4 — bracket A baseline*. The analyst is filled in from Settings.
 3. Fill in the header: part, machine, operator, shift, work order. All optional, all printed on the report.
-4. Press **Add operation** (**13**) seven times, picking each from the catalog.
+4. Press **Add operation** (**15**) seven times, picking each from the catalog.
 
 **Running it**
 
@@ -270,12 +287,12 @@ Total elapsed = covered time + unattributed time
 
 ## 11. Notes and photos
 
-Both attach to an individual operation, from the row menu (**11**).
+Both attach to an individual operation, from the row menu (**13**).
 
 - **Notes** — free text. They print in the Notes column of the report and the PDF.
 - **Photos** — take one with the camera, or pick an existing file. They are embedded in the PDF export.
 
-Once a row carries either, small indicators appear next to its name (**9**), with a count for photos.
+Once a row carries either, small indicators appear next to its name (**11**), with a count for photos.
 
 On a phone or tablet, **Add photo** offers **Take photo** or **Choose from library**. On Windows it opens a file dialog — desktop has no camera.
 
@@ -312,6 +329,7 @@ On Windows, export opens a save dialog.
 - **Language** — Portuguese, English or Spanish. *System default* follows Windows.
 - **Default analyst** — pre-fills the Analyst field on new studies.
 - **Time unit** — seconds, or decimal minutes.
+- **Alert sounds** — the pace cues described in §6. On by default; the amber/red colours stay even with sound off.
 
 ### Backing up
 

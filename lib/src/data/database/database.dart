@@ -57,7 +57,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -105,6 +105,11 @@ class AppDatabase extends _$AppDatabase {
             ''');
             await customStatement('DROP TABLE _oi_old');
             await m.createTable(operationTimeSegments);
+          }
+          if (from < 4) {
+            // Workspace pace alerts. Defaults to on, so an existing database
+            // gains the feature rather than silently opting out of it.
+            await m.addColumn(appSettings, appSettings.alertSoundsEnabled);
           }
         },
         beforeOpen: (details) async {
