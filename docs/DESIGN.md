@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export); Phase 6 (Licensing) next.
-**Last updated:** 2026-07-21
+**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is in progress ahead of the first handout, then desktop ergonomics, then Phase 7 (Sampling).
+**Last updated:** 2026-07-26
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -178,8 +178,12 @@ Two formats, two jobs:
   - **Free:** 1 project, 3 studies, **no export**.
   - **Paid (Chronus Pro):** unlimited projects/studies + export.
 - **iOS mechanism:** single **non-consumable StoreKit IAP** + **Restore Purchases** (Apple requires IAP; no accounts, no server). Free tier _is_ the trial — no separate trial.
-- **Per-platform licensing.** Windows mechanism deferred (Microsoft Store IAP or own license key — decided when Windows is built). No cross-platform single license in v1 (would force accounts).
+- **Per-platform licensing.** No cross-platform single license in v1 (would force accounts).
 - **Gating = simple local checks** (count projects/studies, block export). Acceptably bypassable for this market.
+
+**Windows licensing is dropped, not deferred (2026-07-26).** The Windows audience is internal — colleagues at one company, handed a zip — and is expected to stay that way. So there is no free/paid split on Windows, no gating code, no license key and no Microsoft Store IAP: everything in this section applies to iOS only. _This is a stronger statement than "deferred" on purpose_ — a deferred decision invites someone to pick it up, and building gating for an audience that will never be charged is pure cost. §9's open item stays open indefinitely rather than being resolved.
+
+The knock-on effect is that **Phase 6 of §8.2 largely evaporates on Windows**: its backup bundle was built early and its StoreKit half does not apply, so the phase is skipped rather than reordered.
 
 ---
 
@@ -210,10 +214,13 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 3. **Core** — the **study workspace** (one merged screen): per-operation timing engine (multi-segment, concurrency, pause/interruption, reset, manual override), inline add / reorder / edit / duplicate / delete, notes + photos. Retires the separate sequence screen.
 4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
-6. **Licensing** — StoreKit IAP + gating + backup bundle.
+6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
+6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete**, bar the optional backup folder in §10.8.
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.
 8. **Cross-study comparison.**
 9. **Polish** — video, iPad layouts, finalize pt/en/es.
+
+**Why 6b comes before 7.** Sampling Study is "run the Time Study K times" (§3.2) — it is built directly on the study workspace and reuses its timing engine. Real use had not touched that workspace when this order was written, so building Sampling first risks building it twice: any interaction change that the first real studies force would then land in two places instead of one. Hardening the workspace, and being able to *hear* about it, comes first. _Continuing straight to Phase 7 was rejected_ for that reason, not for lack of demand — Sampling is the most-asked-for missing feature.
 
 ### 8.3 Release
 
@@ -224,8 +231,106 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 
 ## 9. Open items (deferred, not blocking)
 
-- Windows licensing mechanism (Microsoft Store IAP vs. own key) — decide when Windows work begins.
-- Whether to ship starter/built-in templates once real usage is observed.
+- ~~Windows licensing mechanism~~ — **closed by dropping it** (§6). Windows is internal-only.
+- Whether to ship starter/built-in templates once real usage is observed. (The catalog is **empty on first run** — only the 7 wastes and the Process Type picklist are seeded — so a new user must author every operation before timing anything.)
 - Audio/voice notes (v2).
 - Cross-project comparison (post-v1).
 - Cloud sync / accounts (explicitly out; revisit only if demanded).
+- **Validating §8.1's core bet with words-only feedback.** The unvalidated assumption is whether an analyst *fumbles*; a written report cannot show that. The in-app feedback channel (§10) is the only signal carrying it, which is thinner than watching someone work.
+- **Stale drops.** Nothing tells a user a newer zip exists. Tolerable only at this scale, because drops can be announced by hand.
+
+---
+
+## 10. Windows operation
+
+_Added 2026-07-26, ahead of the first handout to colleagues (2026-07-27)._
+
+Everything above is about what the app computes. This section is about a build that leaves on a zip and is used where nobody is watching — the failure modes are different, and the plan had nothing to say about them because it was written iOS-first.
+
+The governing fact: **feedback arrives as words, from people running real studies alone.** Words carry no stack trace and no version number.
+
+### 10.1 Build identity
+
+- The build is named by a **date label** in one constant (`kBuildLabel`, `lib/src/app/build_info.dart`), shown in Settings so a user can read it aloud, and **parsed by `tool/package_windows.ps1`** for the zip name — so the string on screen and the name on disk cannot disagree. A second drop the same day gets a letter suffix (`2026-07-27b`).
+- Each packaged commit gets a **`previa/<label>` git tag**, which is what turns a reported date back into code. The script **refuses to package** when the tag already exists, or when the working tree is dirty (`-AllowExistingTag` / `-AllowDirty` to override): both would make the label a lie.
+- _Rejected: `package_info_plus` + pubspec semver._ `1.0.0+1` deliberately does not yet mean what §8.3 means by v1. _Rejected: `--dart-define` stamping._ Dev runs go anonymous, no test can pin the value, and forgetting the flag once produces an unidentifiable zip.
+
+### 10.2 Diagnostics log
+
+`log.txt` in the app data directory, offered to the user as a single file via **Settings → Save diagnostics**, named `chronus-log-<label>-<machine>.txt` so files arriving from several colleagues are not all called `log.txt`.
+
+- **Three error hooks, not one.** `FlutterError.onError`, `PlatformDispatcher.onError`, **and a Riverpod `ProviderObserver`**. The third is the important one: ten screens render a failed provider as `Center(child: Text('$error'))`, so the failure class users are most likely to hit never touches the framework handler.
+- **Session header** (build, host, OS, locale) plus a `db` line from the database's own `beforeOpen` carrying schema version and whether this launch created or upgraded it. "Fresh install or upgrade?" answers a surprising share of reports on its own.
+- **Thin breadcrumbs:** route changes and `timer.start/pause/stop/lap/reset/override`, carrying **ids only, never text the user typed**. That keeps the file something a colleague can forward without wondering what else is in it, and still enough to reconstruct a run's shape — including the concurrency and pauses that are hardest to describe in words. `timer.reset` and `timer.override` are logged precisely because they destroy or fabricate evidence.
+- **Appended immediately, never buffered**, because the lines worth having are the ones written just before a crash. **Trimmed at startup** past ~1 MB, cutting only at session boundaries. _Resetting the log at launch was rejected_: after a crash the user relaunches, so a reset destroys exactly the session that mattered. _Rejected: one file per session_ — the user is then asked to choose, and will send the clean one.
+- **Never throws.** Every failure inside the logger is swallowed; a logger that can take the app down is worse than none.
+
+### 10.3 Feedback channel
+
+A text field in **Settings** and in the **study workspace's overflow menu**, appending stamped entries to `feedback.txt`, which rides along inside the saved diagnostics file.
+
+- In the workspace because **friction is felt during a run and forgotten by the time anyone opens Settings**. Timing is database-backed, so opening the dialog mid-run stops nothing.
+- One file to ask for, and nothing lost if the user never gets around to messaging anyone that day. _Rejected: clipboard-only_ (exists until the next Ctrl+C) and _`mailto:`_ (needs a configured mail client, and cannot attach the log).
+
+### 10.4 Abandoned runs
+
+§3.5's absolute timestamps mean an open segment keeps counting from its original start. That is right for backgrounding on iOS. On Windows **closing the window is how you leave**, so an operation started at 16:40 and abandoned reads sixteen hours the next morning — and the fiction is indistinguishable from measurement: it flows into the report, the wall-clock span, the simultaneous sweep, the Gantt and the XLSX Segments sheet **unhatched**, because it is a real segment.
+
+- At launch, open segments raise a **non-dismissible prompt** naming how many operations and since when. Not a silent repair: only the analyst knows whether a long machine cycle is legitimately still running.
+- The recovery action **deletes the open segment**. §5 already settled the principle — "fabricated time is deliberately absent; it is not a segment" — and a segment whose end was never observed is fabricated by that same standard. _Closing it at `now` and flagging it was rejected_: it persists the fiction as evidence, and a flag cleared without looking (or an export taken before looking) puts a sixteen-hour interval in the Segments sheet indistinguishable from real measurement.
+- Other segments of the same operation survive, so an operation paused twice then abandoned keeps what really was measured; one left with none returns to pending, and the analyst re-times it or enters a manual override.
+
+### 10.5 Automatic snapshots
+
+`app_directory.dart` is explicit that on Windows the manual `.chronus` bundle is the *only* safety net — and it requires a colleague to remember, in Settings, to do a thing with no immediate benefit. Nobody will. So there are now **two nets aimed at two different failures**:
+
+| | `.chronus` bundle | Automatic snapshot |
+|---|---|---|
+| Protects against | losing the machine | **us** — a bug or bad migration |
+| Contents | rows **+ photos** | rows only |
+| Trigger | the user, deliberately | silent, once a day at launch |
+| Leaves the PC | yes, that's the point | no |
+
+- **Database-only, on purpose.** Photos are immutable once written and no migration touches them, so they are not at risk from the failure this protects against — and copying the photo library three times over would cost orders of magnitude more disk to guard something safe. 132 KB per snapshot today; three kept.
+- **`VACUUM INTO`, as with the bundle** (§2): transactionally consistent against a live database, folds in un-checkpointed WAL content, and emits a single file with **no `-wal` sidecar to go stale beside it**.
+- **Silent.** No prompt, no nag, never blocking a launch, and it cannot fail one — whether it ran goes to the diagnostics log, so a data-loss report can be answered with "there is a copy from yesterday" instead of a guess. _A "you haven't backed up in 14 days" banner was rejected_: it is the same ask the user is already ignoring, only louder, and it makes them responsible for our bugs.
+- **Restore leaves `media/` alone** — deliberately asymmetric with the bundle's `_replaceMedia`, which deletes the media directory outright. A snapshot holds no photos, so wiping media would destroy the user's entire library to roll back some rows. Left alone, the files on disk are a superset of what the restored rows reference: a photo added since the snapshot becomes unreferenced clutter, one deleted since renders as a broken thumbnail. Both are strictly better than losing the library.
+- **Restoring never consumes the snapshot** — a copy is what gets migrated and read, because `_migrateToCurrentSchema` opens the file writably and a restore point must survive being used.
+- **Ordering comes from the timestamp in the file name, never mtime.** Copying a folder resets modification times, and users do move this directory between PCs; mtime ordering would then prune the wrong files or decide a snapshot was not due when it was. The name is the only record of when a snapshot was really taken. It also means a stray `.sqlite` dropped in the folder is ignored rather than offered as a restore point.
+- **Exposed as a guarded list** in Settings → Data, with the same confirmation as a bundle restore. _Leaving them invisible was rejected_: recovery would then mean walking someone through replacing `chronus.sqlite` in `%APPDATA%` **and** remembering to delete the `-wal` and `-shm` sidecars, where a stale `-wal` beside a replaced database can corrupt it. One button removes that footgun.
+
+### 10.6 Window geometry
+
+Windows does not remember a window's size, position or maximised state for an application — the app must. Without this, every launch opened at the hardcoded 1280×720 at (10, 10) from `windows/runner/main.cpp` and began with a manual maximise, several times a day.
+
+- Stored as a small **json file beside the database**, not in `AppSettings`: window chrome is not domain state, and it would otherwise mean a schema migration whenever a field is added. Values are **type-tested, not cast** — the file is plain text in a folder the readme tells users to open, so a hand-edited value has to be rejected rather than thrown on.
+- **The maximised flag and the frame are independent.** A maximised window's bounds *are* the screen, so storing those would mean unmaximising later restores to the whole screen and the layout is quietly lost. The last unmaximised frame is kept in memory and **seeded at startup**, because a user whose very first action is to maximise has no stored frame yet — and an earlier version, lacking that seed, saved nothing at all in exactly that case.
+- **Restored bounds are checked against the current displays.** A laptop undocked from a second monitor would otherwise open a window nobody can reach, which is indistinguishable from the app failing to launch. Only a title bar's worth of overlap is required, so a window straddling two screens or hanging off an edge is still honoured — users park windows like that deliberately.
+- **Minimum size 900×600**, below which the timing table cannot lay out its columns.
+- **`waitUntilReadyToShow` is called without its callback.** It invokes that callback *without awaiting it*, so anything asynchronous inside races the caller; the geometry work is awaited inline instead.
+- **`win32_window.cpp`'s `Show()` uses `SW_SHOW`, not the template's `SW_SHOWNORMAL`.** The window is created hidden and revealed from the first-frame callback, which is what avoids both a flash and an empty window — but `SW_SHOWNORMAL` *un-maximises*, so it silently cancelled the restore. This is a deliberate deviation from the Flutter template; the reason is recorded at the call site.
+
+### 10.7 Keyboard timing
+
+The on-floor premise is **eyes on the machine, not on the screen**. An analyst watching a station cannot spare attention for a mouse, so the common case — a straight sequential run — is one key pressed repeatedly.
+
+| Key | Does |
+|---|---|
+| `Space` | Lap: stop the running operation, start the next, gaplessly |
+| `↑` `↓` | Pick a row |
+| `Enter` | Start / pause the picked row |
+| `S` | Stop the picked row |
+| `Esc` | Clear the picked row |
+| `F1` | The shortcuts sheet |
+
+- **`Space` drives the existing `stopAndStartNext`**, which closes one operation and opens the next at the *same instant*, so a run has no gap. With nothing running it starts the first operation never timed.
+- **With two or more running, `Space` does nothing but say so.** Lapping is a sequential-flow action and "the current operation" has no meaning under the concurrency this app exists to capture; guessing means stopping the wrong operator's timer, which destroys evidence that cannot be recovered. Refusing is the only rule that can never do that — and it is what makes the blind press safe, because the one case that needs looking at the screen is the one case it declines to guess. _Acting on the most recently started was rejected_: under man + machine the machine timer is usually started second and runs longest, so a blind lap would repeatedly target the operation you least want to stop.
+- **The rule is a pure function** (`lapActionFor` in `timing_model.dart`) returning a sealed result, so it is tested without a widget. "Do nothing" is two distinct outcomes — nothing *left* to start, versus a refusal to guess — because they mean different things to the analyst and only one says the run is over.
+- **Row selection is tracked in the widget, not Flutter's focus tree, and the row controls are wrapped in `ExcludeFocus`.** `WidgetsApp` maps Space and Enter to activating the focused button, so a ▶ that kept focus after a click would turn the lap key into "press ▶ again" — silently restarting an operation instead of advancing the run. The bindings live on a `Shortcuts` widget *inside* the workspace, which is what makes them win: shortcuts resolve from the focused node upwards, so being nearer than `WidgetsApp` decides it. There is a test that clicks ▶ and then presses Space specifically to hold this.
+- The cost of that choice is that `reset` and the row menu are mouse-only. Accepted: everything on the timing path has a key.
+- **The workspace autofocuses**, so keys work on arrival — an analyst should not have to click into the table first. Clicking a row also picks it, so mouse and keyboard agree on what "the picked row" means.
+- **`F1` only, no `?`.** Typing `?` needs Shift plus a key that moves between layouts — on a Brazilian ABNT2 keyboard it is not where a US layout puts it — and a shortcut that silently does nothing on the keyboards these users actually have is worse than none. The **keyboard icon in the app bar** is what makes the sheet discoverable, and the sheet explains *why* Space goes inert under concurrency, since that behaviour reads as a bug until you know it is a refusal.
+
+### 10.8 Planned next (not yet built)
+
+- **Optional backup folder.** Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.

@@ -576,4 +576,136 @@ class AppLocalizationsEn extends AppLocalizations {
   String exportFailed(String error) {
     return 'Export failed: $error';
   }
+
+  @override
+  String get actionClose => 'Close';
+
+  @override
+  String get shortcutsTitle => 'Keyboard shortcuts';
+
+  @override
+  String get shortcutsTooltip => 'Keyboard shortcuts (F1)';
+
+  @override
+  String get shortcutsKeySpace => 'Space';
+
+  @override
+  String get shortcutsKeyArrows => '↑ ↓';
+
+  @override
+  String get shortcutsKeyEnter => 'Enter';
+
+  @override
+  String get shortcutsKeyS => 'S';
+
+  @override
+  String get shortcutsKeyEsc => 'Esc';
+
+  @override
+  String get shortcutsLap =>
+      'Stop the running operation and start the next one, with no gap between them. If nothing is running, starts the first operation not yet timed.';
+
+  @override
+  String get shortcutsMove => 'Pick a row.';
+
+  @override
+  String get shortcutsToggle => 'Start or pause the picked row.';
+
+  @override
+  String get shortcutsStop => 'Stop the picked row.';
+
+  @override
+  String get shortcutsClear => 'Clear the picked row.';
+
+  @override
+  String get shortcutsConcurrencyNote =>
+      'With two or more operations running at once, Space does nothing: which one is “current” is genuinely ambiguous, and stopping the wrong operator\'s timer would ruin the measurement. Pick the row and press Enter.';
+
+  @override
+  String get lapAmbiguous =>
+      'Several operations running — pick the row and press Enter.';
+
+  @override
+  String get lapNothingToStart => 'Nothing left to start.';
+
+  @override
+  String get snapshotsTitle => 'Automatic copies';
+
+  @override
+  String get snapshotsSubtitle =>
+      'Made on their own, once a day. Studies and projects only — photos are not included, and are never changed by a restore.';
+
+  @override
+  String get snapshotRestoreConfirmTitle => 'Restore this copy?';
+
+  @override
+  String snapshotRestoreConfirmMessage(String date) {
+    return 'This replaces every project and study with the ones from $date. Photos are left as they are. It cannot be undone.';
+  }
+
+  @override
+  String snapshotRestoreDone(String date) {
+    return 'Copy from $date restored.';
+  }
+
+  @override
+  String get orphanedTimingTitle => 'Timers left running';
+
+  @override
+  String orphanedTimingMessage(int count, String since) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count operations have been counting',
+      one: '1 operation has been counting',
+    );
+    return '$_temp0 since $since, because Chronus was closed without stopping the timer. That time was never ended, so it cannot be measured.';
+  }
+
+  @override
+  String get orphanedTimingKeep => 'Keep timing';
+
+  @override
+  String get orphanedTimingDiscard => 'Discard that time';
+
+  @override
+  String get settingsDiagnosticsSection => 'Diagnostics';
+
+  @override
+  String get diagnosticsBuild => 'Version';
+
+  @override
+  String get diagnosticsSave => 'Save diagnostics';
+
+  @override
+  String get diagnosticsSaveSubtitle =>
+      'A text file with the app\'s history, to send on';
+
+  @override
+  String get diagnosticsSaved => 'Diagnostics saved.';
+
+  @override
+  String get diagnosticsOpenFolder => 'Open data folder';
+
+  @override
+  String get diagnosticsOpenFolderSubtitle =>
+      'Where the database, photos and backups live';
+
+  @override
+  String diagnosticsFolderFailed(String error) {
+    return 'Could not open the folder: $error';
+  }
+
+  @override
+  String get feedbackAction => 'Send feedback';
+
+  @override
+  String get feedbackSubtitle =>
+      'Note what got in the way; it travels with the diagnostics';
+
+  @override
+  String get feedbackHint => 'What happened?';
+
+  @override
+  String get feedbackSaved => 'Noted. It goes along when you save diagnostics.';
 }

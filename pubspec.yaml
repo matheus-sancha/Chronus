@@ -56,6 +56,8 @@ dependencies:
   # alerts apart, is silenced by the Windows "No Sounds" scheme, and is a
   # documented no-op on iOS.
   audioplayers: ^6.5.1
+  window_manager: ^0.5.2
+  screen_retriever: ^0.2.2
 
 dev_dependencies:
   flutter_test:

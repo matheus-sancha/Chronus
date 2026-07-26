@@ -62,7 +62,35 @@ Se aparecer erro de DLL faltando, instale o
 "Microsoft Visual C++ Redistributable (x64)":
 https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-Qualquer outro problema, fale com o Matheus.
+Qualquer outro problema, fale com o Matheus. Antes de falar,
+va em Configuracoes > Diagnostico e use "Salvar diagnostico":
+ele gera um arquivo de texto com o historico do programa (e o
+que voce escreveu em "Enviar feedback"). Mande esse arquivo
+junto - com ele da para ver o que aconteceu de verdade, em vez
+de adivinhar.
+
+Nessa mesma tela aparece a "Versao" da sua copia. Diga esse
+numero quando relatar algo: sao entregas frequentes, e ele diz
+exatamente qual voce esta usando.
+
+ATALHOS DE TECLADO
+------------------
+Dentro de um estudo, a tecla ESPACO para a operacao que esta
+rodando e ja inicia a proxima, sem intervalo. E a tecla que voce
+usa sem olhar para a tela.
+
+Aperte F1 (ou o icone de teclado, no alto da tela) para ver a
+lista completa.
+
+O QUE ATRAPALHOU?
+-----------------
+Use "Enviar feedback" (em Configuracoes, ou no menu dos tres
+pontinhos dentro de um estudo) para anotar na hora o que
+incomodou. Nao precisa ser bonito nem completo - o que serve e
+o que voce notou no momento, nao o que voce lembrar depois.
+
+O texto fica salvo no seu PC e vai junto quando voce salvar o
+diagnostico. Nada e enviado automaticamente.
 
 
 ========================================
@@ -113,4 +141,30 @@ If you get a missing-DLL error, install the Microsoft Visual C++
 Redistributable (x64):
 https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-Anything else, contact Matheus.
+Anything else, contact Matheus. Before you do, go to
+Settings > Diagnostics and use "Save diagnostics": it writes a
+text file with the app's history (plus anything you typed under
+"Send feedback"). Send that file along - with it we can see what
+actually happened instead of guessing.
+
+The same screen shows your copy's "Version". Quote it when you
+report something: these drops are frequent, and it says exactly
+which one you are on.
+
+KEYBOARD SHORTCUTS
+------------------
+Inside a study, SPACE stops the running operation and starts the
+next one with no gap between them. That is the key you press
+without looking away from the machine.
+
+Press F1 (or the keyboard icon at the top) for the full list.
+
+WHAT GOT IN THE WAY?
+--------------------
+Use "Send feedback" (in Settings, or the three-dot menu inside a
+study) to note what annoyed you, as it happens. It does not have
+to be polished or complete - what helps is what you noticed at
+the time, not what you can recall later.
+
+The text is saved on your PC and travels with the diagnostics
+file. Nothing is sent automatically.

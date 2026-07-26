@@ -17,7 +17,11 @@ enum ExportFormat {
 
   /// The `.chronus` backup bundle. Not a report, but it leaves the app the same
   /// way, so it reuses this delivery path rather than duplicating it.
-  chronus('chronus', 'application/zip');
+  chronus('chronus', 'application/zip'),
+
+  /// The diagnostics file (log + feedback). Same reasoning as [chronus]: a user
+  /// choosing where to put a file is a solved problem, once.
+  text('txt', 'text/plain');
 
   const ExportFormat(this.extension, this.mimeType);
 

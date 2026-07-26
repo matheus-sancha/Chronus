@@ -57,6 +57,8 @@ Study _study() => Study(
       type: StudyType.timeStudy,
       name: 'Line 3 cycle',
       performedAt: DateTime(2026, 7, 21, 9, 30),
+      confidenceLevel: 0.95,
+      relativePrecision: 0.05,
       analyst: 'M. Sancha',
       partProduct: 'Bracket A',
       processOperation: null,

@@ -1179,6 +1179,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export failed: {error}'**
   String exportFailed(String error);
+
+  /// No description provided for @actionClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get actionClose;
+
+  /// No description provided for @shortcutsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get shortcutsTitle;
+
+  /// No description provided for @shortcutsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts (F1)'**
+  String get shortcutsTooltip;
+
+  /// No description provided for @shortcutsKeySpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get shortcutsKeySpace;
+
+  /// No description provided for @shortcutsKeyArrows.
+  ///
+  /// In en, this message translates to:
+  /// **'↑ ↓'**
+  String get shortcutsKeyArrows;
+
+  /// No description provided for @shortcutsKeyEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter'**
+  String get shortcutsKeyEnter;
+
+  /// No description provided for @shortcutsKeyS.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get shortcutsKeyS;
+
+  /// No description provided for @shortcutsKeyEsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Esc'**
+  String get shortcutsKeyEsc;
+
+  /// No description provided for @shortcutsLap.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the running operation and start the next one, with no gap between them. If nothing is running, starts the first operation not yet timed.'**
+  String get shortcutsLap;
+
+  /// No description provided for @shortcutsMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a row.'**
+  String get shortcutsMove;
+
+  /// No description provided for @shortcutsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start or pause the picked row.'**
+  String get shortcutsToggle;
+
+  /// No description provided for @shortcutsStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the picked row.'**
+  String get shortcutsStop;
+
+  /// No description provided for @shortcutsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the picked row.'**
+  String get shortcutsClear;
+
+  /// No description provided for @shortcutsConcurrencyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'With two or more operations running at once, Space does nothing: which one is “current” is genuinely ambiguous, and stopping the wrong operator\'s timer would ruin the measurement. Pick the row and press Enter.'**
+  String get shortcutsConcurrencyNote;
+
+  /// No description provided for @lapAmbiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'Several operations running — pick the row and press Enter.'**
+  String get lapAmbiguous;
+
+  /// No description provided for @lapNothingToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing left to start.'**
+  String get lapNothingToStart;
+
+  /// No description provided for @snapshotsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic copies'**
+  String get snapshotsTitle;
+
+  /// No description provided for @snapshotsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Made on their own, once a day. Studies and projects only — photos are not included, and are never changed by a restore.'**
+  String get snapshotsSubtitle;
+
+  /// No description provided for @snapshotRestoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this copy?'**
+  String get snapshotRestoreConfirmTitle;
+
+  /// No description provided for @snapshotRestoreConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces every project and study with the ones from {date}. Photos are left as they are. It cannot be undone.'**
+  String snapshotRestoreConfirmMessage(String date);
+
+  /// No description provided for @snapshotRestoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy from {date} restored.'**
+  String snapshotRestoreDone(String date);
+
+  /// No description provided for @orphanedTimingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timers left running'**
+  String get orphanedTimingTitle;
+
+  /// No description provided for @orphanedTimingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 operation has been counting} other{{count} operations have been counting}} since {since}, because Chronus was closed without stopping the timer. That time was never ended, so it cannot be measured.'**
+  String orphanedTimingMessage(int count, String since);
+
+  /// No description provided for @orphanedTimingKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep timing'**
+  String get orphanedTimingKeep;
+
+  /// No description provided for @orphanedTimingDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard that time'**
+  String get orphanedTimingDiscard;
+
+  /// No description provided for @settingsDiagnosticsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settingsDiagnosticsSection;
+
+  /// No description provided for @diagnosticsBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get diagnosticsBuild;
+
+  /// No description provided for @diagnosticsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save diagnostics'**
+  String get diagnosticsSave;
+
+  /// No description provided for @diagnosticsSaveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A text file with the app\'s history, to send on'**
+  String get diagnosticsSaveSubtitle;
+
+  /// No description provided for @diagnosticsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics saved.'**
+  String get diagnosticsSaved;
+
+  /// No description provided for @diagnosticsOpenFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open data folder'**
+  String get diagnosticsOpenFolder;
+
+  /// No description provided for @diagnosticsOpenFolderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the database, photos and backups live'**
+  String get diagnosticsOpenFolderSubtitle;
+
+  /// No description provided for @diagnosticsFolderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the folder: {error}'**
+  String diagnosticsFolderFailed(String error);
+
+  /// No description provided for @feedbackAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get feedbackAction;
+
+  /// No description provided for @feedbackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note what got in the way; it travels with the diagnostics'**
+  String get feedbackSubtitle;
+
+  /// No description provided for @feedbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get feedbackHint;
+
+  /// No description provided for @feedbackSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Noted. It goes along when you save diagnostics.'**
+  String get feedbackSaved;
 }
 
 class _AppLocalizationsDelegate

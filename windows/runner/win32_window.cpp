@@ -150,7 +150,18 @@ bool Win32Window::Create(const std::wstring& title,
 }
 
 bool Win32Window::Show() {
-  return ShowWindow(window_handle_, SW_SHOWNORMAL);
+  // SW_SHOW, not the template's SW_SHOWNORMAL.
+  //
+  // The window is created hidden and revealed from flutter_window.cpp's
+  // first-frame callback, which is what keeps the user from watching it appear
+  // and jump. But by then Dart has already restored the saved geometry
+  // (lib/src/app/window_geometry.dart), and SW_SHOWNORMAL *un-maximizes* a
+  // maximized window - so a user who leaves Chronus maximized would find it
+  // restored to a normal frame on every launch.
+  //
+  // SW_SHOW displays the window at its current size and state, leaving the
+  // restore alone. Do not put SW_SHOWNORMAL back.
+  return ShowWindow(window_handle_, SW_SHOW);
 }
 
 // static

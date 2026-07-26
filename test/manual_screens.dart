@@ -211,6 +211,8 @@ class _Fx {
             ? 'Célula 4 — suporte A, referência'
             : 'Cell 4 — bracket A baseline',
         performedAt: DateTime(2026, 7, 21, 9, 30),
+        confidenceLevel: 0.95,
+        relativePrecision: 0.05,
         analyst: 'M. Sancha',
         partProduct: pt ? 'Suporte A / 55-2201' : 'Bracket A / 55-2201',
         processOperation: pt ? 'Usinar e inspecionar' : 'Mill & inspect',

@@ -29,34 +29,91 @@
     Package whatever is already in build\windows\x64\runner\Release.
 
 .PARAMETER Label
-    Version label used in the zip name. Defaults to today's date, because these
-    are internal previews handed out repeatedly: a date says which drop someone
-    is running, and pubspec's version does not yet mean what DESIGN.md section
-    8.3 says v1 means.
+    Version label used in the zip name. Defaults to kBuildLabel parsed out of
+    lib\src\app\build_info.dart, which is the single source of truth: the app
+    shows that same string in Settings, so the zip on disk and the string a
+    user reads off the screen cannot disagree. These are internal previews
+    handed out repeatedly, so the label is a date - pubspec's version does not
+    yet mean what DESIGN.md section 8.3 says v1 means.
+
+    Override only for throwaway builds. Overriding breaks the guarantee above.
 
 .PARAMETER AllowMissingRuntime
     Package even if the Visual C++ runtime DLLs cannot be found. The zip will
     then only run on PCs that already have the redistributable.
 
+.PARAMETER AllowExistingTag
+    Package even though previa/<label> already exists - i.e. that label has
+    already been handed out. Two different builds will then share one label,
+    which is exactly what the tag check exists to prevent.
+
+.PARAMETER AllowDirty
+    Package even though the working tree has uncommitted changes. The tag will
+    then not describe what is inside the zip.
+
 .EXAMPLE
     .\tool\package_windows.ps1
-    .\tool\package_windows.ps1 -SkipBuild -Label "0.5.0"
+    .\tool\package_windows.ps1 -SkipBuild
+    .\tool\package_windows.ps1 -SkipBuild -Label "scratch" -AllowDirty
 #>
 [CmdletBinding()]
 param(
     [switch]$SkipBuild,
-    [string]$Label = (Get-Date -Format "yyyy-MM-dd"),
-    [switch]$AllowMissingRuntime
+    [string]$Label,
+    [switch]$AllowMissingRuntime,
+    [switch]$AllowExistingTag,
+    [switch]$AllowDirty
 )
 
 $ErrorActionPreference = "Stop"
 
-$repo    = Split-Path -Parent $PSScriptRoot
-$release = Join-Path $repo "build\windows\x64\runner\Release"
-$dist    = Join-Path $repo "dist"
-$stage   = Join-Path $dist "Chronus"
-$readme  = Join-Path $repo "packaging\windows\LEIA-ME.txt"
+$repo      = Split-Path -Parent $PSScriptRoot
+$release   = Join-Path $repo "build\windows\x64\runner\Release"
+$dist      = Join-Path $repo "dist"
+$stage     = Join-Path $dist "Chronus"
+$readme    = Join-Path $repo "packaging\windows\LEIA-ME.txt"
+$buildInfo = Join-Path $repo "lib\src\app\build_info.dart"
+
+# --- resolve the build label ------------------------------------------------
+# kBuildLabel is the single source of truth (see build_info.dart): the app shows
+# it in Settings, so parsing it here is what stops the zip name and the string a
+# user reads off the screen from ever disagreeing.
+if (-not $Label) {
+    $m = [regex]::Match((Get-Content -Raw $buildInfo), "kBuildLabel\s*=\s*'([^']+)'")
+    if (-not $m.Success) {
+        throw "Could not find kBuildLabel in $buildInfo. Packaging without a label would produce an unidentifiable zip."
+    }
+    $Label = $m.Groups[1].Value
+    Write-Host "Build label: $Label (from build_info.dart)" -ForegroundColor Cyan
+} else {
+    Write-Host "Build label: $Label (overridden)" -ForegroundColor Yellow
+}
+
 $zipPath = Join-Path $dist "chronus-previa-$Label-windows-x64.zip"
+$tag     = "previa/$Label"
+
+# A label only leads back to code if the tree that produced the zip is the tree
+# the tag will point at. Both checks below protect that, and both have an escape
+# hatch because sometimes you really are packaging a throwaway.
+$existingTag = git -C $repo tag --list $tag
+if ($existingTag) {
+    $msg = "Tag $tag already exists, so $Label has already been handed out."
+    if ($AllowExistingTag) {
+        Write-Warning "$msg Repackaging anyway; two different builds will share one label."
+    } else {
+        throw "$msg Bump kBuildLabel in build_info.dart (a second drop the same day gets a letter suffix, e.g. ${Label}b), or pass -AllowExistingTag."
+    }
+}
+
+$dirty = git -C $repo status --porcelain
+if ($dirty) {
+    $msg = "Working tree has uncommitted changes, so tag $tag would not describe what is in the zip."
+    if ($AllowDirty) {
+        Write-Warning "$msg Packaging anyway."
+    } else {
+        throw "$msg Commit first, or pass -AllowDirty."
+    }
+}
 
 # --- build ------------------------------------------------------------------
 if ($SkipBuild) {
@@ -156,5 +213,11 @@ Write-Host "Packaged." -ForegroundColor Green
 Write-Host "  zip    : $($zip.FullName)"
 Write-Host "  size   : $([math]::Round($zip.Length / 1MB, 1)) MB"
 Write-Host "  sha256 : $((Get-FileHash $zipPath -Algorithm SHA256).Hash)"
+Write-Host "  label  : $Label"
 Write-Host ""
 Write-Host "Employees unzip the folder anywhere and run chronus.exe."
+Write-Host ""
+# Not tagged automatically: the script does not get to create refs in your repo.
+# But an untagged drop is an unidentifiable drop, so it says the exact command.
+Write-Host "Tag this drop so the label leads back to the code:" -ForegroundColor Cyan
+Write-Host "  git tag $tag"

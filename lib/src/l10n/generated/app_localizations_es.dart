@@ -580,4 +580,137 @@ class AppLocalizationsEs extends AppLocalizations {
   String exportFailed(String error) {
     return 'Error al exportar: $error';
   }
+
+  @override
+  String get actionClose => 'Cerrar';
+
+  @override
+  String get shortcutsTitle => 'Atajos de teclado';
+
+  @override
+  String get shortcutsTooltip => 'Atajos de teclado (F1)';
+
+  @override
+  String get shortcutsKeySpace => 'Espacio';
+
+  @override
+  String get shortcutsKeyArrows => '↑ ↓';
+
+  @override
+  String get shortcutsKeyEnter => 'Enter';
+
+  @override
+  String get shortcutsKeyS => 'S';
+
+  @override
+  String get shortcutsKeyEsc => 'Esc';
+
+  @override
+  String get shortcutsLap =>
+      'Detiene la operación en curso e inicia la siguiente, sin intervalo entre ambas. Si nada está corriendo, inicia la primera operación aún sin cronometrar.';
+
+  @override
+  String get shortcutsMove => 'Elegir la fila.';
+
+  @override
+  String get shortcutsToggle => 'Iniciar o pausar la fila elegida.';
+
+  @override
+  String get shortcutsStop => 'Detener la fila elegida.';
+
+  @override
+  String get shortcutsClear => 'Quitar la selección.';
+
+  @override
+  String get shortcutsConcurrencyNote =>
+      'Con dos o más operaciones corriendo a la vez, Espacio no hace nada: cuál es la “actual” es realmente ambiguo, y detener el cronómetro del operador equivocado arruinaría la medición. Elige la fila y pulsa Enter.';
+
+  @override
+  String get lapAmbiguous =>
+      'Varias operaciones corriendo — elige la fila y pulsa Enter.';
+
+  @override
+  String get lapNothingToStart => 'No queda nada por iniciar.';
+
+  @override
+  String get snapshotsTitle => 'Copias automáticas';
+
+  @override
+  String get snapshotsSubtitle =>
+      'Se hacen solas, una por día. Solo estudios y proyectos — las fotos no se incluyen, y una restauración no las modifica.';
+
+  @override
+  String get snapshotRestoreConfirmTitle => '¿Restaurar esta copia?';
+
+  @override
+  String snapshotRestoreConfirmMessage(String date) {
+    return 'Esto reemplaza todos los proyectos y estudios por los del $date. Las fotos quedan como están. No se puede deshacer.';
+  }
+
+  @override
+  String snapshotRestoreDone(String date) {
+    return 'Copia del $date restaurada.';
+  }
+
+  @override
+  String get orphanedTimingTitle => 'Cronómetros que quedaron activos';
+
+  @override
+  String orphanedTimingMessage(int count, String since) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count operaciones llevan contando',
+      one: '1 operación lleva contando',
+    );
+    return '$_temp0 desde $since, porque Chronus se cerró sin detener el cronómetro. Ese tiempo nunca se cerró, así que no puede medirse.';
+  }
+
+  @override
+  String get orphanedTimingKeep => 'Seguir contando';
+
+  @override
+  String get orphanedTimingDiscard => 'Descartar ese tiempo';
+
+  @override
+  String get settingsDiagnosticsSection => 'Diagnóstico';
+
+  @override
+  String get diagnosticsBuild => 'Versión';
+
+  @override
+  String get diagnosticsSave => 'Guardar diagnóstico';
+
+  @override
+  String get diagnosticsSaveSubtitle =>
+      'Un archivo de texto con el historial de la app, para enviar';
+
+  @override
+  String get diagnosticsSaved => 'Diagnóstico guardado.';
+
+  @override
+  String get diagnosticsOpenFolder => 'Abrir carpeta de datos';
+
+  @override
+  String get diagnosticsOpenFolderSubtitle =>
+      'Donde están la base de datos, las fotos y las copias';
+
+  @override
+  String diagnosticsFolderFailed(String error) {
+    return 'No se pudo abrir la carpeta: $error';
+  }
+
+  @override
+  String get feedbackAction => 'Enviar comentarios';
+
+  @override
+  String get feedbackSubtitle =>
+      'Anota qué te estorbó; va junto con el diagnóstico';
+
+  @override
+  String get feedbackHint => '¿Qué pasó?';
+
+  @override
+  String get feedbackSaved =>
+      'Anotado. Se envía junto al guardar el diagnóstico.';
 }

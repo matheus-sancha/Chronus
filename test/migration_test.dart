@@ -59,6 +59,17 @@ void main() {
         default_analyst TEXT, time_unit TEXT NOT NULL,
         updated_at INTEGER NOT NULL);
     ''');
+    // And `studies`: the 4 -> 5 upgrade adds two columns to it, so it has to
+    // exist here for that step to have something to alter.
+    v1.execute('''
+      CREATE TABLE studies (
+        id TEXT NOT NULL PRIMARY KEY, project_id TEXT NOT NULL,
+        type TEXT NOT NULL, name TEXT NOT NULL, performed_at INTEGER NOT NULL,
+        analyst TEXT, part_product TEXT, process_operation TEXT,
+        machine_workstation TEXT, line_cell TEXT, operator_name TEXT,
+        shift TEXT, work_order_number TEXT, process_type TEXT, notes TEXT,
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
+    ''');
     v1.execute("INSERT INTO app_settings VALUES (0,NULL,NULL,'seconds',0)");
     v1.execute("INSERT INTO catalog_operations VALUES "
         "('c1','Load part','productive',NULL,4500,0,0)");
@@ -96,6 +107,16 @@ void main() {
         updated_at INTEGER NOT NULL);
     ''');
     v3.execute("INSERT INTO app_settings VALUES (0,'pt','M. Sancha','seconds',0)");
+    // Present for the same reason as above: 4 -> 5 alters `studies`.
+    v3.execute('''
+      CREATE TABLE studies (
+        id TEXT NOT NULL PRIMARY KEY, project_id TEXT NOT NULL,
+        type TEXT NOT NULL, name TEXT NOT NULL, performed_at INTEGER NOT NULL,
+        analyst TEXT, part_product TEXT, process_operation TEXT,
+        machine_workstation TEXT, line_cell TEXT, operator_name TEXT,
+        shift TEXT, work_order_number TEXT, process_type TEXT, notes TEXT,
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
+    ''');
     v3.execute('PRAGMA user_version = 3');
     v3.close();
 
@@ -112,5 +133,50 @@ void main() {
     expect(settings.localeCode, 'pt');
     expect(settings.defaultAnalyst, 'M. Sancha');
     expect(settings.timeUnit, TimeUnit.seconds);
+  });
+
+  test('v4 -> v5 gives existing studies the conventional sample-size criteria',
+      () async {
+    final dir = await Directory.systemTemp.createTemp('chronus_migration_v5');
+    final file = File('${dir.path}/chronus.sqlite');
+
+    // A v4 studies row: no confidence_level or relative_precision yet.
+    final v4 = sqlite3.open(file.path);
+    v4.execute('''
+      CREATE TABLE projects (
+        id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, notes TEXT,
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
+    ''');
+    v4.execute('''
+      CREATE TABLE studies (
+        id TEXT NOT NULL PRIMARY KEY, project_id TEXT NOT NULL,
+        type TEXT NOT NULL, name TEXT NOT NULL, performed_at INTEGER NOT NULL,
+        analyst TEXT, part_product TEXT, process_operation TEXT,
+        machine_workstation TEXT, line_cell TEXT, operator_name TEXT,
+        shift TEXT, work_order_number TEXT, process_type TEXT, notes TEXT,
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
+    ''');
+    v4.execute("INSERT INTO projects VALUES ('p1','Cell 4',NULL,0,0)");
+    v4.execute("INSERT INTO studies VALUES "
+        "('s1','p1','samplingStudy','Repeat study',0,'M. Sancha',"
+        "NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0)");
+    v4.execute('PRAGMA user_version = 4');
+    v4.close();
+
+    final db = AppDatabase(NativeDatabase(file));
+    addTearDown(() async {
+      await db.close();
+      await dir.delete(recursive: true);
+    });
+
+    final study = await db.select(db.studies).getSingle();
+    // Defaults, not nulls: there is no "unset" the adequacy calculation could
+    // report on, so an existing study arrives at the conventional criteria.
+    expect(study.confidenceLevel, 0.95);
+    expect(study.relativePrecision, 0.05);
+    // ...and nothing else about the study moved.
+    expect(study.name, 'Repeat study');
+    expect(study.type, StudyType.samplingStudy);
+    expect(study.analyst, 'M. Sancha');
   });
 }

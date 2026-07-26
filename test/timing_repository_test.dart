@@ -83,6 +83,92 @@ void main() {
     });
   });
 
+  // The lap key's rule (DESIGN.md §10.7). Pure, so the decision is tested
+  // without a widget: this is the key an analyst presses blind, so what it does
+  // in each state matters more than how it is wired.
+  group('lap action (pure)', () {
+    StudyOperation op(String id, double order) => StudyOperation(
+          id: id,
+          studyId: 's',
+          orderIndex: order,
+          name: id,
+          category: OperationCategory.productive,
+          isUnplanned: false,
+          createdAt: DateTime(2026),
+        );
+
+    OperationTiming running() => OperationTiming(
+        instance: _inst(), segments: [_seg(0, null)]);
+    OperationTiming paused() =>
+        OperationTiming(instance: _inst(), segments: [_seg(0, 100)]);
+    OperationTiming done() => OperationTiming(
+        instance: _inst(completed: DateTime(2026)), segments: [_seg(0, 100)]);
+    OperationTiming pending() =>
+        OperationTiming(instance: null, segments: const []);
+
+    final a = op('a', 1), b = op('b', 2), c = op('c', 3);
+
+    test('nothing running starts the first operation never timed', () {
+      final action = lapActionFor(
+        ops: [a, b, c],
+        timing: {'a': done(), 'b': pending(), 'c': pending()},
+      );
+      expect(action, isA<LapStart>());
+      expect((action as LapStart).studyOperationId, 'b');
+    });
+
+    test('one running advances from it', () {
+      final action = lapActionFor(
+        ops: [a, b, c],
+        timing: {'a': done(), 'b': running(), 'c': pending()},
+      );
+      expect(action, isA<LapAdvance>());
+      expect((action as LapAdvance).studyOperationId, 'b');
+    });
+
+    test('two running refuses rather than guessing', () {
+      // The whole point: stopping the wrong operator's timer is unrecoverable,
+      // so under concurrency the key does nothing at all.
+      expect(
+        lapActionFor(
+          ops: [a, b, c],
+          timing: {'a': running(), 'b': running(), 'c': pending()},
+        ),
+        isA<LapAmbiguous>(),
+      );
+    });
+
+    test('a paused operation does not count as running', () {
+      // Paused is not running, so the lap key moves on to fresh work rather than
+      // resuming something the analyst deliberately stopped.
+      final action = lapActionFor(
+        ops: [a, b],
+        timing: {'a': paused(), 'b': pending()},
+      );
+      expect(action, isA<LapStart>());
+      expect((action as LapStart).studyOperationId, 'b');
+    });
+
+    test('paused and done are never restarted, so the run ends', () {
+      expect(
+        lapActionFor(ops: [a, b], timing: {'a': paused(), 'b': done()}),
+        isA<LapNothing>(),
+      );
+    });
+
+    test('an empty study has nothing to do', () {
+      expect(lapActionFor(ops: const [], timing: const {}), isA<LapNothing>());
+    });
+
+    test('sequence order decides which operation starts, not map order', () {
+      final action = lapActionFor(
+        ops: [a, b, c],
+        timing: {'c': pending(), 'b': pending(), 'a': done()},
+      );
+      expect((action as LapStart).studyOperationId, 'b');
+    });
+  });
+
   group('timing engine (db)', () {
     late AppDatabase db;
     late StudyOperationRepository sequence;
@@ -288,6 +374,75 @@ void main() {
       final ops = await sequence.watchByStudy(studyId).first;
       expect(ops.where((o) => o.isUnplanned), isEmpty);
       expect(ops.map((o) => o.name), ['A', 'B', 'C']);
+    });
+
+    // --- abandoned runs -----------------------------------------------------
+    // An open segment keeps counting from its original start, which on Windows
+    // means "closed the window and went home" reads as hours of measured work.
+
+    test('orphanedTiming reports nothing when every segment is closed',
+        () async {
+      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.stop(studyId: studyId, studyOperationId: opA);
+      await timing.start(studyId: studyId, studyOperationId: opB);
+      await timing.pause(studyId: studyId, studyOperationId: opB);
+
+      expect(await timing.orphanedTiming(), isNull);
+    });
+
+    test('orphanedTiming counts operations, not segments, and dates the oldest',
+        () async {
+      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.pause(studyId: studyId, studyOperationId: opA);
+      await timing.start(studyId: studyId, studyOperationId: opA); // 2nd open
+      await timing.start(studyId: studyId, studyOperationId: opB);
+
+      final orphaned = await timing.orphanedTiming();
+      expect(orphaned, isNotNull);
+      // A has two segments but is one thing the analyst forgot to stop.
+      expect(orphaned!.operations, 2);
+      expect(
+        orphaned.since.isAfter(DateTime.now().subtract(const Duration(minutes: 1))),
+        isTrue,
+      );
+    });
+
+    test('discarding drops only open segments, keeping what was measured',
+        () async {
+      // A: one measured interval, then resumed and abandoned.
+      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.pause(studyId: studyId, studyOperationId: opA);
+      final measuredA = (await timingOf(opA)).measuredMs();
+      await timing.start(studyId: studyId, studyOperationId: opA);
+      // B: never stopped at all, and nothing else to fall back on.
+      await timing.start(studyId: studyId, studyOperationId: opB);
+
+      await timing.discardOrphanedTiming();
+
+      final a = await timingOf(opA);
+      expect(a.state, OperationTimingState.paused);
+      expect(a.measuredMs(), measuredA); // the fabricated tail is gone
+      // B loses its only segment and goes back to being untimed, so the analyst
+      // re-times it or enters a manual override rather than trusting a fiction.
+      final b = await timingOf(opB);
+      expect(b.state, OperationTimingState.pending);
+      expect(b.actualMs(), isNull);
+      expect(await timing.orphanedTiming(), isNull);
+    });
+
+    test('discarding leaves a manual override untouched', () async {
+      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.setManualActual(
+        studyId: studyId,
+        studyOperationId: opA,
+        milliseconds: 42000,
+      );
+
+      await timing.discardOrphanedTiming();
+
+      final a = await timingOf(opA);
+      expect(a.actualMs(), 42000);
+      expect(a.segments, isEmpty);
     });
   });
 }

@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../features/diagnostics/application/diagnostics.dart';
 import '../app_directory.dart';
 import 'enums.dart';
 import 'tables.dart';
@@ -57,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -111,10 +112,28 @@ class AppDatabase extends _$AppDatabase {
             // gains the feature rather than silently opting out of it.
             await m.addColumn(appSettings, appSettings.alertSoundsEnabled);
           }
+          if (from < 5) {
+            // Sampling Study sample-size criteria, per study (DESIGN.md §10.9).
+            // Both carry defaults, so existing studies arrive at the conventional
+            // 95 % / ±5 % rather than at null — there is no "unset" that the
+            // adequacy calculation could meaningfully report on.
+            await m.addColumn(studies, studies.confidenceLevel);
+            await m.addColumn(studies, studies.relativePrecision);
+          }
         },
         beforeOpen: (details) async {
           // SQLite has foreign keys OFF by default; enforce them every open.
           await customStatement('PRAGMA foreign_keys = ON');
+          // Schema state goes in the log here rather than in the session header,
+          // because the database opens lazily on first query — long after the
+          // header is written. "Fresh install or upgrade?" answers a surprising
+          // share of reports on its own (DESIGN.md §10).
+          Diag.event(
+            'db',
+            'schema ${details.versionNow}'
+                '${details.wasCreated ? ' created' : ''}'
+                '${details.hadUpgrade ? ' upgraded from ${details.versionBefore}' : ''}',
+          );
         },
       );
 
