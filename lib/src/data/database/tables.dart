@@ -84,6 +84,24 @@ class Studies extends Table {
   TextColumn get processType => text().nullable()();
 
   TextColumn get notes => text().nullable()();
+
+  /// Sample-size criteria for a Sampling Study, **stored per study rather than
+  /// as a global preference** (DESIGN.md §10.9).
+  ///
+  /// Same reasoning as snapshotting reference standards (§3.3): the criteria a
+  /// study was judged against belong to that study. A global setting would
+  /// silently re-judge every past study when someone changed it, so a report
+  /// that read "adequate" could later read otherwise with no record of which
+  /// criteria produced the original verdict.
+  ///
+  /// [confidenceLevel] is a probability (0,1) — 0.95 for 95 %. [relativePrecision]
+  /// is a fraction of the mean — 0.05 for ±5 %. Both are meaningless for a Time
+  /// Study and simply unused there.
+  RealColumn get confidenceLevel =>
+      real().withDefault(const Constant(0.95))();
+  RealColumn get relativePrecision =>
+      real().withDefault(const Constant(0.05))();
+
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

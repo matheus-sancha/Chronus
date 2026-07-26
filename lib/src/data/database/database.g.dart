@@ -1395,6 +1395,31 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _confidenceLevelMeta = const VerificationMeta(
+    'confidenceLevel',
+  );
+  @override
+  late final GeneratedColumn<double> confidenceLevel = GeneratedColumn<double>(
+    'confidence_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.95),
+  );
+  static const VerificationMeta _relativePrecisionMeta = const VerificationMeta(
+    'relativePrecision',
+  );
+  @override
+  late final GeneratedColumn<double> relativePrecision =
+      GeneratedColumn<double>(
+        'relative_precision',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0.05),
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1434,6 +1459,8 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
     workOrderNumber,
     processType,
     notes,
+    confidenceLevel,
+    relativePrecision,
     createdAt,
     updatedAt,
   ];
@@ -1559,6 +1586,24 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('confidence_level')) {
+      context.handle(
+        _confidenceLevelMeta,
+        confidenceLevel.isAcceptableOrUnknown(
+          data['confidence_level']!,
+          _confidenceLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('relative_precision')) {
+      context.handle(
+        _relativePrecisionMeta,
+        relativePrecision.isAcceptableOrUnknown(
+          data['relative_precision']!,
+          _relativePrecisionMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1646,6 +1691,14 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      confidenceLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence_level'],
+      )!,
+      relativePrecision: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}relative_precision'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1685,6 +1738,21 @@ class Study extends DataClass implements Insertable<Study> {
   /// as text so historical studies keep their value if the option changes.
   final String? processType;
   final String? notes;
+
+  /// Sample-size criteria for a Sampling Study, **stored per study rather than
+  /// as a global preference** (DESIGN.md §10.9).
+  ///
+  /// Same reasoning as snapshotting reference standards (§3.3): the criteria a
+  /// study was judged against belong to that study. A global setting would
+  /// silently re-judge every past study when someone changed it, so a report
+  /// that read "adequate" could later read otherwise with no record of which
+  /// criteria produced the original verdict.
+  ///
+  /// [confidenceLevel] is a probability (0,1) — 0.95 for 95 %. [relativePrecision]
+  /// is a fraction of the mean — 0.05 for ±5 %. Both are meaningless for a Time
+  /// Study and simply unused there.
+  final double confidenceLevel;
+  final double relativePrecision;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Study({
@@ -1703,6 +1771,8 @@ class Study extends DataClass implements Insertable<Study> {
     this.workOrderNumber,
     this.processType,
     this.notes,
+    required this.confidenceLevel,
+    required this.relativePrecision,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1746,6 +1816,8 @@ class Study extends DataClass implements Insertable<Study> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['confidence_level'] = Variable<double>(confidenceLevel);
+    map['relative_precision'] = Variable<double>(relativePrecision);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1788,6 +1860,8 @@ class Study extends DataClass implements Insertable<Study> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      confidenceLevel: Value(confidenceLevel),
+      relativePrecision: Value(relativePrecision),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1818,6 +1892,8 @@ class Study extends DataClass implements Insertable<Study> {
       workOrderNumber: serializer.fromJson<String?>(json['workOrderNumber']),
       processType: serializer.fromJson<String?>(json['processType']),
       notes: serializer.fromJson<String?>(json['notes']),
+      confidenceLevel: serializer.fromJson<double>(json['confidenceLevel']),
+      relativePrecision: serializer.fromJson<double>(json['relativePrecision']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1843,6 +1919,8 @@ class Study extends DataClass implements Insertable<Study> {
       'workOrderNumber': serializer.toJson<String?>(workOrderNumber),
       'processType': serializer.toJson<String?>(processType),
       'notes': serializer.toJson<String?>(notes),
+      'confidenceLevel': serializer.toJson<double>(confidenceLevel),
+      'relativePrecision': serializer.toJson<double>(relativePrecision),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1864,6 +1942,8 @@ class Study extends DataClass implements Insertable<Study> {
     Value<String?> workOrderNumber = const Value.absent(),
     Value<String?> processType = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    double? confidenceLevel,
+    double? relativePrecision,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Study(
@@ -1888,6 +1968,8 @@ class Study extends DataClass implements Insertable<Study> {
         : this.workOrderNumber,
     processType: processType.present ? processType.value : this.processType,
     notes: notes.present ? notes.value : this.notes,
+    confidenceLevel: confidenceLevel ?? this.confidenceLevel,
+    relativePrecision: relativePrecision ?? this.relativePrecision,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1922,6 +2004,12 @@ class Study extends DataClass implements Insertable<Study> {
           ? data.processType.value
           : this.processType,
       notes: data.notes.present ? data.notes.value : this.notes,
+      confidenceLevel: data.confidenceLevel.present
+          ? data.confidenceLevel.value
+          : this.confidenceLevel,
+      relativePrecision: data.relativePrecision.present
+          ? data.relativePrecision.value
+          : this.relativePrecision,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1945,6 +2033,8 @@ class Study extends DataClass implements Insertable<Study> {
           ..write('workOrderNumber: $workOrderNumber, ')
           ..write('processType: $processType, ')
           ..write('notes: $notes, ')
+          ..write('confidenceLevel: $confidenceLevel, ')
+          ..write('relativePrecision: $relativePrecision, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1968,6 +2058,8 @@ class Study extends DataClass implements Insertable<Study> {
     workOrderNumber,
     processType,
     notes,
+    confidenceLevel,
+    relativePrecision,
     createdAt,
     updatedAt,
   );
@@ -1990,6 +2082,8 @@ class Study extends DataClass implements Insertable<Study> {
           other.workOrderNumber == this.workOrderNumber &&
           other.processType == this.processType &&
           other.notes == this.notes &&
+          other.confidenceLevel == this.confidenceLevel &&
+          other.relativePrecision == this.relativePrecision &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -2010,6 +2104,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
   final Value<String?> workOrderNumber;
   final Value<String?> processType;
   final Value<String?> notes;
+  final Value<double> confidenceLevel;
+  final Value<double> relativePrecision;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -2029,6 +2125,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     this.workOrderNumber = const Value.absent(),
     this.processType = const Value.absent(),
     this.notes = const Value.absent(),
+    this.confidenceLevel = const Value.absent(),
+    this.relativePrecision = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2049,6 +2147,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     this.workOrderNumber = const Value.absent(),
     this.processType = const Value.absent(),
     this.notes = const Value.absent(),
+    this.confidenceLevel = const Value.absent(),
+    this.relativePrecision = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -2075,6 +2175,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     Expression<String>? workOrderNumber,
     Expression<String>? processType,
     Expression<String>? notes,
+    Expression<double>? confidenceLevel,
+    Expression<double>? relativePrecision,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -2095,6 +2197,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
       if (workOrderNumber != null) 'work_order_number': workOrderNumber,
       if (processType != null) 'process_type': processType,
       if (notes != null) 'notes': notes,
+      if (confidenceLevel != null) 'confidence_level': confidenceLevel,
+      if (relativePrecision != null) 'relative_precision': relativePrecision,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2117,6 +2221,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     Value<String?>? workOrderNumber,
     Value<String?>? processType,
     Value<String?>? notes,
+    Value<double>? confidenceLevel,
+    Value<double>? relativePrecision,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -2137,6 +2243,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
       workOrderNumber: workOrderNumber ?? this.workOrderNumber,
       processType: processType ?? this.processType,
       notes: notes ?? this.notes,
+      confidenceLevel: confidenceLevel ?? this.confidenceLevel,
+      relativePrecision: relativePrecision ?? this.relativePrecision,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -2193,6 +2301,12 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (confidenceLevel.present) {
+      map['confidence_level'] = Variable<double>(confidenceLevel.value);
+    }
+    if (relativePrecision.present) {
+      map['relative_precision'] = Variable<double>(relativePrecision.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2223,6 +2337,8 @@ class StudiesCompanion extends UpdateCompanion<Study> {
           ..write('workOrderNumber: $workOrderNumber, ')
           ..write('processType: $processType, ')
           ..write('notes: $notes, ')
+          ..write('confidenceLevel: $confidenceLevel, ')
+          ..write('relativePrecision: $relativePrecision, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -8010,6 +8126,8 @@ typedef $$StudiesTableCreateCompanionBuilder =
       Value<String?> workOrderNumber,
       Value<String?> processType,
       Value<String?> notes,
+      Value<double> confidenceLevel,
+      Value<double> relativePrecision,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -8031,6 +8149,8 @@ typedef $$StudiesTableUpdateCompanionBuilder =
       Value<String?> workOrderNumber,
       Value<String?> processType,
       Value<String?> notes,
+      Value<double> confidenceLevel,
+      Value<double> relativePrecision,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -8173,6 +8293,16 @@ class $$StudiesTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidenceLevel => $composableBuilder(
+    column: $table.confidenceLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get relativePrecision => $composableBuilder(
+    column: $table.relativePrecision,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8339,6 +8469,16 @@ class $$StudiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get confidenceLevel => $composableBuilder(
+    column: $table.confidenceLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get relativePrecision => $composableBuilder(
+    column: $table.relativePrecision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8437,6 +8577,16 @@ class $$StudiesTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<double> get confidenceLevel => $composableBuilder(
+    column: $table.confidenceLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get relativePrecision => $composableBuilder(
+    column: $table.relativePrecision,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8565,6 +8715,8 @@ class $$StudiesTableTableManager
                 Value<String?> workOrderNumber = const Value.absent(),
                 Value<String?> processType = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<double> confidenceLevel = const Value.absent(),
+                Value<double> relativePrecision = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8584,6 +8736,8 @@ class $$StudiesTableTableManager
                 workOrderNumber: workOrderNumber,
                 processType: processType,
                 notes: notes,
+                confidenceLevel: confidenceLevel,
+                relativePrecision: relativePrecision,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -8605,6 +8759,8 @@ class $$StudiesTableTableManager
                 Value<String?> workOrderNumber = const Value.absent(),
                 Value<String?> processType = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<double> confidenceLevel = const Value.absent(),
+                Value<double> relativePrecision = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -8624,6 +8780,8 @@ class $$StudiesTableTableManager
                 workOrderNumber: workOrderNumber,
                 processType: processType,
                 notes: notes,
+                confidenceLevel: confidenceLevel,
+                relativePrecision: relativePrecision,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

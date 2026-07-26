@@ -58,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -111,6 +111,14 @@ class AppDatabase extends _$AppDatabase {
             // Workspace pace alerts. Defaults to on, so an existing database
             // gains the feature rather than silently opting out of it.
             await m.addColumn(appSettings, appSettings.alertSoundsEnabled);
+          }
+          if (from < 5) {
+            // Sampling Study sample-size criteria, per study (DESIGN.md §10.9).
+            // Both carry defaults, so existing studies arrive at the conventional
+            // 95 % / ±5 % rather than at null — there is no "unset" that the
+            // adequacy calculation could meaningfully report on.
+            await m.addColumn(studies, studies.confidenceLevel);
+            await m.addColumn(studies, studies.relativePrecision);
           }
         },
         beforeOpen: (details) async {

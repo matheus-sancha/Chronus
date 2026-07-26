@@ -41,6 +41,8 @@ void main() {
         type: StudyType.timeStudy,
         name: 'Cell 4',
         performedAt: DateTime(2026, 7, 27),
+        confidenceLevel: 0.95,
+        relativePrecision: 0.05,
         createdAt: DateTime(2026, 7, 27),
         updatedAt: DateTime(2026, 7, 27),
       );
