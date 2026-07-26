@@ -260,5 +260,32 @@
     "placeholders": {
       "error": { "type": "String" }
     }
-  }
+  },
+  "orphanedTimingTitle": "Timers left running",
+  "orphanedTimingMessage": "{count, plural, =1{1 operation has been counting} other{{count} operations have been counting}} since {since}, because Chronus was closed without stopping the timer. That time was never ended, so it cannot be measured.",
+  "@orphanedTimingMessage": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "since": { "type": "String" }
+    }
+  },
+  "orphanedTimingKeep": "Keep timing",
+  "orphanedTimingDiscard": "Discard that time",
+  "settingsDiagnosticsSection": "Diagnostics",
+  "diagnosticsBuild": "Version",
+  "diagnosticsSave": "Save diagnostics",
+  "diagnosticsSaveSubtitle": "A text file with the app's history, to send on",
+  "diagnosticsSaved": "Diagnostics saved.",
+  "diagnosticsOpenFolder": "Open data folder",
+  "diagnosticsOpenFolderSubtitle": "Where the database, photos and backups live",
+  "diagnosticsFolderFailed": "Could not open the folder: {error}",
+  "@diagnosticsFolderFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "feedbackAction": "Send feedback",
+  "feedbackSubtitle": "Note what got in the way; it travels with the diagnostics",
+  "feedbackHint": "What happened?",
+  "feedbackSaved": "Noted. It goes along when you save diagnostics."
 }

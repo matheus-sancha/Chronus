@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../features/catalog/presentation/catalog_edit_screen.dart';
 import '../features/catalog/presentation/catalog_screen.dart';
+import '../features/diagnostics/application/diagnostics.dart';
 import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -20,7 +21,7 @@ part 'router.g.dart';
 /// stateful shell so each keeps its own navigation stack.
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/projects',
     routes: [
       StatefulShellRoute.indexedStack(
@@ -125,4 +126,17 @@ GoRouter router(Ref ref) {
       ),
     ],
   );
+
+  // Route breadcrumbs (DESIGN.md §10). Taken from the route information
+  // provider rather than a NavigatorObserver, because that yields the actual
+  // location string — go_router does not guarantee a `Route.settings.name`.
+  // Locations carry ids, never names or notes, per the ids-only rule.
+  final routes = router.routeInformationProvider;
+  // The initial location is logged explicitly: `addListener` only fires on
+  // change, so without this the session's first screen — the one the user was
+  // looking at when something went wrong on launch — is the one route missing.
+  Diag.event('route', routes.value.uri.path);
+  routes.addListener(() => Diag.event('route', routes.value.uri.path));
+
+  return router;
 }

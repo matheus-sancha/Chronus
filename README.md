@@ -14,8 +14,12 @@ Local-first: no accounts, no cloud sync, no server.
 ## Status
 
 **Phases 1–5 of 9 complete** (Foundations, Structure, Core, Analysis, Export).
-Phase 6 (Licensing) is next. Not yet built: Sampling Study, cross-study
-comparison, video attachments, iPad layouts.
+Phase 6 (Licensing) is **skipped** — Windows is internal-only, so there is
+nothing to gate. Current work is Windows operation: build identity, a
+diagnostics log, an in-app feedback channel, recovery for runs left timing
+([`docs/DESIGN.md`](docs/DESIGN.md) §10). Then desktop ergonomics, then Phase 7
+(Sampling Study). Not yet built: Sampling Study, cross-study comparison, video
+attachments, iPad layouts.
 
 Distributed internally as a Windows zip. The first public App Store release is
 deliberately gated on the full v1 — see [`docs/DESIGN.md`](docs/DESIGN.md) §8.3.
@@ -45,7 +49,7 @@ Requires the Flutter SDK matching `environment.sdk` in `pubspec.yaml`
 
 ```bash
 flutter analyze
-flutter test                                  # 103 tests
+flutter test                                  # 112 tests
 
 dart run build_runner build --delete-conflicting-outputs   # Drift + Riverpod
 flutter gen-l10n                                           # ARB -> AppLocalizations

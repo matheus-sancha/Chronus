@@ -212,5 +212,32 @@
     "placeholders": {
       "error": { "type": "String" }
     }
-  }
+  },
+  "orphanedTimingTitle": "Cronómetros que quedaron activos",
+  "orphanedTimingMessage": "{count, plural, =1{1 operación lleva contando} other{{count} operaciones llevan contando}} desde {since}, porque Chronus se cerró sin detener el cronómetro. Ese tiempo nunca se cerró, así que no puede medirse.",
+  "@orphanedTimingMessage": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "since": { "type": "String" }
+    }
+  },
+  "orphanedTimingKeep": "Seguir contando",
+  "orphanedTimingDiscard": "Descartar ese tiempo",
+  "settingsDiagnosticsSection": "Diagnóstico",
+  "diagnosticsBuild": "Versión",
+  "diagnosticsSave": "Guardar diagnóstico",
+  "diagnosticsSaveSubtitle": "Un archivo de texto con el historial de la app, para enviar",
+  "diagnosticsSaved": "Diagnóstico guardado.",
+  "diagnosticsOpenFolder": "Abrir carpeta de datos",
+  "diagnosticsOpenFolderSubtitle": "Donde están la base de datos, las fotos y las copias",
+  "diagnosticsFolderFailed": "No se pudo abrir la carpeta: {error}",
+  "@diagnosticsFolderFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "feedbackAction": "Enviar comentarios",
+  "feedbackSubtitle": "Anota qué te estorbó; va junto con el diagnóstico",
+  "feedbackHint": "¿Qué pasó?",
+  "feedbackSaved": "Anotado. Se envía junto al guardar el diagnóstico."
 }

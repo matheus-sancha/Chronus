@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../features/diagnostics/application/diagnostics.dart';
 import '../app_directory.dart';
 import 'enums.dart';
 import 'tables.dart';
@@ -115,6 +116,16 @@ class AppDatabase extends _$AppDatabase {
         beforeOpen: (details) async {
           // SQLite has foreign keys OFF by default; enforce them every open.
           await customStatement('PRAGMA foreign_keys = ON');
+          // Schema state goes in the log here rather than in the session header,
+          // because the database opens lazily on first query — long after the
+          // header is written. "Fresh install or upgrade?" answers a surprising
+          // share of reports on its own (DESIGN.md §10).
+          Diag.event(
+            'db',
+            'schema ${details.versionNow}'
+                '${details.wasCreated ? ' created' : ''}'
+                '${details.hadUpgrade ? ' upgraded from ${details.versionBefore}' : ''}',
+          );
         },
       );
 

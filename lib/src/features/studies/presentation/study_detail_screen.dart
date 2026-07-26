@@ -15,6 +15,7 @@ import '../../catalog/application/catalog_providers.dart';
 import '../../catalog/presentation/classification_labels.dart';
 import '../../catalog/presentation/operation_fields.dart';
 import '../../catalog/presentation/operation_picker.dart';
+import '../../diagnostics/presentation/feedback_dialog.dart';
 import '../../media/application/media_providers.dart';
 import '../../media/presentation/media_gallery.dart';
 import '../../settings/application/settings_providers.dart';
@@ -76,6 +77,21 @@ class StudyDetailScreen extends ConsumerWidget {
             onPressed: studyAsync.hasValue
                 ? () => _deleteStudy(context, ref, studyAsync.value!.name)
                 : null,
+          ),
+          // Feedback lives here, not only in Settings: friction is felt during a
+          // run and forgotten by the time anyone opens Settings (DESIGN.md §10).
+          // Timing is database-backed, so opening the dialog mid-run stops
+          // nothing.
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'feedback') showFeedbackDialog(context);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'feedback',
+                child: Text(l10n.feedbackAction),
+              ),
+            ],
           ),
         ],
       ),

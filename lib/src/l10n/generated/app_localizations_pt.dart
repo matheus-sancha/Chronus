@@ -580,4 +580,66 @@ class AppLocalizationsPt extends AppLocalizations {
   String exportFailed(String error) {
     return 'Falha na exportação: $error';
   }
+
+  @override
+  String get orphanedTimingTitle => 'Cronômetros deixados rodando';
+
+  @override
+  String orphanedTimingMessage(int count, String since) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count operações estão contando',
+      one: '1 operação está contando',
+    );
+    return '$_temp0 desde $since, porque o Chronus foi fechado sem parar o cronômetro. Esse tempo nunca foi encerrado, então não pode ser medido.';
+  }
+
+  @override
+  String get orphanedTimingKeep => 'Continuar contando';
+
+  @override
+  String get orphanedTimingDiscard => 'Descartar esse tempo';
+
+  @override
+  String get settingsDiagnosticsSection => 'Diagnóstico';
+
+  @override
+  String get diagnosticsBuild => 'Versão';
+
+  @override
+  String get diagnosticsSave => 'Salvar diagnóstico';
+
+  @override
+  String get diagnosticsSaveSubtitle =>
+      'Um arquivo de texto com o histórico do app, para enviar';
+
+  @override
+  String get diagnosticsSaved => 'Diagnóstico salvo.';
+
+  @override
+  String get diagnosticsOpenFolder => 'Abrir pasta de dados';
+
+  @override
+  String get diagnosticsOpenFolderSubtitle =>
+      'Onde ficam o banco de dados, as fotos e os backups';
+
+  @override
+  String diagnosticsFolderFailed(String error) {
+    return 'Não foi possível abrir a pasta: $error';
+  }
+
+  @override
+  String get feedbackAction => 'Enviar feedback';
+
+  @override
+  String get feedbackSubtitle =>
+      'Anote o que atrapalhou; vai junto com o diagnóstico';
+
+  @override
+  String get feedbackHint => 'O que aconteceu?';
+
+  @override
+  String get feedbackSaved =>
+      'Anotado. Vai junto quando você salvar o diagnóstico.';
 }

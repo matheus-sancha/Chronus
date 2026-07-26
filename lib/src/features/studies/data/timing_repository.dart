@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/database/database.dart';
+import '../../diagnostics/application/diagnostics.dart';
 
 /// The **per-operation timing engine** (snapback model). Each operation is
 /// started, paused, stopped and reset independently, and several may run at the
@@ -76,6 +77,10 @@ class TimingRepository {
             ..where((t) => t.id.equals(instanceId)))
           .write(const OperationInstancesCompanion(completedAt: Value(null)));
     });
+    // Breadcrumbs for the diagnostics log (DESIGN.md §10): ids only, never the
+    // operation's name. Enough to reconstruct a run's shape — including the
+    // concurrency and pauses that make timing bugs hard to describe in words.
+    Diag.event('timer.start', 'op=${Diag.shortId(studyOperationId)}');
   }
 
   /// Pause: close the open segment. Elapsed is preserved; the operation stays
@@ -87,6 +92,7 @@ class TimingRepository {
     await _withInstance(studyId, studyOperationId, (instanceId) async {
       await _closeOpenSegment(instanceId);
     });
+    Diag.event('timer.pause', 'op=${Diag.shortId(studyOperationId)}');
   }
 
   /// Stop: close the open segment and mark the operation complete.
@@ -103,6 +109,7 @@ class TimingRepository {
           .write(OperationInstancesCompanion(
               completedAt: Value(DateTime.now())));
     });
+    Diag.event('timer.stop', 'op=${Diag.shortId(studyOperationId)}');
   }
 
   /// Convenience for the common sequential path: stop the current operation and
@@ -113,6 +120,7 @@ class TimingRepository {
     required String studyId,
     required String studyOperationId,
   }) async {
+    String? startedNext;
     await _db.transaction(() async {
       final observationId = await _ensureObservation(studyId);
       final currentId = await _ensureInstance(observationId, studyOperationId);
@@ -140,8 +148,17 @@ class TimingRepository {
                 createdAt: DateTime.now(),
               ),
             );
+        startedNext = next.id;
       }
     });
+    // Logged as one event, because it is one action: the pair is what makes a
+    // run gapless, and splitting it would read as a stop that happened to be
+    // followed by a start.
+    Diag.event(
+      'timer.lap',
+      'op=${Diag.shortId(studyOperationId)} '
+          'next=${startedNext == null ? 'none' : Diag.shortId(startedNext!)}',
+    );
   }
 
   /// Reset: zero & discard the operation's measured segments and clear its
@@ -158,6 +175,9 @@ class TimingRepository {
             ..where((t) => t.id.equals(instanceId)))
           .write(const OperationInstancesCompanion(completedAt: Value(null)));
     });
+    // Worth a breadcrumb precisely because it destroys evidence: a report of
+    // "the time was wrong" reads very differently once the log shows a reset.
+    Diag.event('timer.reset', 'op=${Diag.shortId(studyOperationId)}');
   }
 
   // --- manual override ------------------------------------------------------
@@ -177,6 +197,9 @@ class TimingRepository {
           .write(OperationInstancesCompanion(
               manualActualMs: Value(milliseconds)));
     });
+    // The one number in a report that was typed rather than measured, so the log
+    // records that it was typed — not what it said.
+    Diag.event('timer.override', 'op=${Diag.shortId(studyOperationId)}');
   }
 
   /// Ensures a timing instance exists for an operation and returns its id, so
@@ -238,6 +261,52 @@ class TimingRepository {
                 (t) => t.studyId.equals(studyId) & t.isUnplanned.equals(true)))
           .go();
     });
+  }
+
+  // --- orphaned segments ----------------------------------------------------
+
+  /// Segments left open because the app closed while they were still running.
+  ///
+  /// This exists because §3.5's absolute timestamps mean an open segment keeps
+  /// counting from its original start — which is right for backgrounding on iOS,
+  /// and a trap on Windows, where **closing the window is how you leave**. An
+  /// operation started at 16:40 and abandoned reads sixteen hours the next
+  /// morning, and that fiction is indistinguishable from measurement: it flows
+  /// into the report, the wall-clock span, the simultaneous sweep, the Gantt and
+  /// the XLSX Segments sheet **unhatched**, because it is a real segment.
+  ///
+  /// Checked at startup so the analyst is told rather than silently handed wrong
+  /// numbers (DESIGN.md §10).
+  Future<OrphanedTiming?> orphanedTiming() async {
+    final rows = await (_db.select(_db.operationTimeSegments)
+          ..where((t) => t.endAtMs.isNull()))
+        .get();
+    if (rows.isEmpty) return null;
+    final earliest =
+        rows.map((s) => s.startAtMs).reduce((a, b) => a < b ? a : b);
+    return OrphanedTiming(
+      operations: rows.map((s) => s.operationInstanceId).toSet().length,
+      since: DateTime.fromMillisecondsSinceEpoch(earliest),
+    );
+  }
+
+  /// Deletes every open segment.
+  ///
+  /// Deliberately a delete and not a close-at-now. DESIGN.md §5 already settled
+  /// the principle for the Segments sheet — "fabricated time is deliberately
+  /// absent; it is not a segment" — and a segment whose end was never observed
+  /// is fabricated by that same standard. Closing it at `now` would persist the
+  /// fiction as evidence, flagged at best.
+  ///
+  /// Other segments of the same operation survive, so an operation paused twice
+  /// and then abandoned keeps the two intervals that really were measured. An
+  /// operation left with none returns to pending, and the analyst re-times it or
+  /// enters a manual override.
+  Future<void> discardOrphanedTiming() async {
+    final deleted = await (_db.delete(_db.operationTimeSegments)
+          ..where((t) => t.endAtMs.isNull()))
+        .go();
+    Diag.event('orphan.discarded', 'segments=$deleted');
   }
 
   // --- internals ------------------------------------------------------------
@@ -373,4 +442,20 @@ class TimingRepository {
         .write(OperationTimeSegmentsCompanion(
             endAtMs: Value(DateTime.now().millisecondsSinceEpoch)));
   }
+}
+
+/// What was left running when the app last closed.
+///
+/// Counted by **operation**, not by segment, because that is what the analyst
+/// recognises — one operation paused and resumed twice is still one thing they
+/// forgot to stop.
+class OrphanedTiming {
+  const OrphanedTiming({required this.operations, required this.since});
+
+  final int operations;
+
+  /// When the earliest of them started — i.e. how long the app has been
+  /// counting. Shown to the analyst, because the age is what makes it obvious
+  /// the time is not real.
+  final DateTime since;
 }

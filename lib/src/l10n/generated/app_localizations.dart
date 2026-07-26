@@ -1179,6 +1179,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export failed: {error}'**
   String exportFailed(String error);
+
+  /// No description provided for @orphanedTimingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timers left running'**
+  String get orphanedTimingTitle;
+
+  /// No description provided for @orphanedTimingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 operation has been counting} other{{count} operations have been counting}} since {since}, because Chronus was closed without stopping the timer. That time was never ended, so it cannot be measured.'**
+  String orphanedTimingMessage(int count, String since);
+
+  /// No description provided for @orphanedTimingKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep timing'**
+  String get orphanedTimingKeep;
+
+  /// No description provided for @orphanedTimingDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard that time'**
+  String get orphanedTimingDiscard;
+
+  /// No description provided for @settingsDiagnosticsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settingsDiagnosticsSection;
+
+  /// No description provided for @diagnosticsBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get diagnosticsBuild;
+
+  /// No description provided for @diagnosticsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save diagnostics'**
+  String get diagnosticsSave;
+
+  /// No description provided for @diagnosticsSaveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A text file with the app\'s history, to send on'**
+  String get diagnosticsSaveSubtitle;
+
+  /// No description provided for @diagnosticsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics saved.'**
+  String get diagnosticsSaved;
+
+  /// No description provided for @diagnosticsOpenFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open data folder'**
+  String get diagnosticsOpenFolder;
+
+  /// No description provided for @diagnosticsOpenFolderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the database, photos and backups live'**
+  String get diagnosticsOpenFolderSubtitle;
+
+  /// No description provided for @diagnosticsFolderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the folder: {error}'**
+  String diagnosticsFolderFailed(String error);
+
+  /// No description provided for @feedbackAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get feedbackAction;
+
+  /// No description provided for @feedbackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note what got in the way; it travels with the diagnostics'**
+  String get feedbackSubtitle;
+
+  /// No description provided for @feedbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get feedbackHint;
+
+  /// No description provided for @feedbackSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Noted. It goes along when you save diagnostics.'**
+  String get feedbackSaved;
 }
 
 class _AppLocalizationsDelegate

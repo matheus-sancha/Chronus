@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../backup/presentation/backup_section.dart';
+import '../../diagnostics/presentation/diagnostics_section.dart';
 import '../application/settings_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -69,6 +70,7 @@ class SettingsScreen extends ConsumerWidget {
                 onChanged: repo.setAlertSoundsEnabled,
               ),
               const BackupSection(),
+              const DiagnosticsSection(),
             ],
           );
         },
