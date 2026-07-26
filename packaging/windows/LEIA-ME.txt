@@ -73,6 +73,15 @@ Nessa mesma tela aparece a "Versao" da sua copia. Diga esse
 numero quando relatar algo: sao entregas frequentes, e ele diz
 exatamente qual voce esta usando.
 
+ATALHOS DE TECLADO
+------------------
+Dentro de um estudo, a tecla ESPACO para a operacao que esta
+rodando e ja inicia a proxima, sem intervalo. E a tecla que voce
+usa sem olhar para a tela.
+
+Aperte F1 (ou o icone de teclado, no alto da tela) para ver a
+lista completa.
+
 O QUE ATRAPALHOU?
 -----------------
 Use "Enviar feedback" (em Configuracoes, ou no menu dos tres
@@ -141,6 +150,14 @@ actually happened instead of guessing.
 The same screen shows your copy's "Version". Quote it when you
 report something: these drops are frequent, and it says exactly
 which one you are on.
+
+KEYBOARD SHORTCUTS
+------------------
+Inside a study, SPACE stops the running operation and starts the
+next one with no gap between them. That is the key you press
+without looking away from the machine.
+
+Press F1 (or the keyboard icon at the top) for the full list.
 
 WHAT GOT IN THE WAY?
 --------------------

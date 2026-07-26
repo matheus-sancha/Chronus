@@ -1180,6 +1180,102 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String exportFailed(String error);
 
+  /// No description provided for @actionClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get actionClose;
+
+  /// No description provided for @shortcutsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get shortcutsTitle;
+
+  /// No description provided for @shortcutsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts (F1)'**
+  String get shortcutsTooltip;
+
+  /// No description provided for @shortcutsKeySpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get shortcutsKeySpace;
+
+  /// No description provided for @shortcutsKeyArrows.
+  ///
+  /// In en, this message translates to:
+  /// **'↑ ↓'**
+  String get shortcutsKeyArrows;
+
+  /// No description provided for @shortcutsKeyEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter'**
+  String get shortcutsKeyEnter;
+
+  /// No description provided for @shortcutsKeyS.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get shortcutsKeyS;
+
+  /// No description provided for @shortcutsKeyEsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Esc'**
+  String get shortcutsKeyEsc;
+
+  /// No description provided for @shortcutsLap.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the running operation and start the next one, with no gap between them. If nothing is running, starts the first operation not yet timed.'**
+  String get shortcutsLap;
+
+  /// No description provided for @shortcutsMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a row.'**
+  String get shortcutsMove;
+
+  /// No description provided for @shortcutsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start or pause the picked row.'**
+  String get shortcutsToggle;
+
+  /// No description provided for @shortcutsStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the picked row.'**
+  String get shortcutsStop;
+
+  /// No description provided for @shortcutsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the picked row.'**
+  String get shortcutsClear;
+
+  /// No description provided for @shortcutsConcurrencyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'With two or more operations running at once, Space does nothing: which one is “current” is genuinely ambiguous, and stopping the wrong operator\'s timer would ruin the measurement. Pick the row and press Enter.'**
+  String get shortcutsConcurrencyNote;
+
+  /// No description provided for @lapAmbiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'Several operations running — pick the row and press Enter.'**
+  String get lapAmbiguous;
+
+  /// No description provided for @lapNothingToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing left to start.'**
+  String get lapNothingToStart;
+
   /// No description provided for @snapshotsTitle.
   ///
   /// In en, this message translates to:

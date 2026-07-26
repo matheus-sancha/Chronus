@@ -582,6 +582,57 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get actionClose => 'Cerrar';
+
+  @override
+  String get shortcutsTitle => 'Atajos de teclado';
+
+  @override
+  String get shortcutsTooltip => 'Atajos de teclado (F1)';
+
+  @override
+  String get shortcutsKeySpace => 'Espacio';
+
+  @override
+  String get shortcutsKeyArrows => '↑ ↓';
+
+  @override
+  String get shortcutsKeyEnter => 'Enter';
+
+  @override
+  String get shortcutsKeyS => 'S';
+
+  @override
+  String get shortcutsKeyEsc => 'Esc';
+
+  @override
+  String get shortcutsLap =>
+      'Detiene la operación en curso e inicia la siguiente, sin intervalo entre ambas. Si nada está corriendo, inicia la primera operación aún sin cronometrar.';
+
+  @override
+  String get shortcutsMove => 'Elegir la fila.';
+
+  @override
+  String get shortcutsToggle => 'Iniciar o pausar la fila elegida.';
+
+  @override
+  String get shortcutsStop => 'Detener la fila elegida.';
+
+  @override
+  String get shortcutsClear => 'Quitar la selección.';
+
+  @override
+  String get shortcutsConcurrencyNote =>
+      'Con dos o más operaciones corriendo a la vez, Espacio no hace nada: cuál es la “actual” es realmente ambiguo, y detener el cronómetro del operador equivocado arruinaría la medición. Elige la fila y pulsa Enter.';
+
+  @override
+  String get lapAmbiguous =>
+      'Varias operaciones corriendo — elige la fila y pulsa Enter.';
+
+  @override
+  String get lapNothingToStart => 'No queda nada por iniciar.';
+
+  @override
   String get snapshotsTitle => 'Copias automáticas';
 
   @override

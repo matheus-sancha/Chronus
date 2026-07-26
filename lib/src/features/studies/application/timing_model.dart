@@ -72,6 +72,68 @@ Map<String, OperationTiming> timingByOperation({
   };
 }
 
+/// What the lap key should do, given the state of a run (DESIGN.md §10.7).
+///
+/// A sealed result rather than a nullable operation id, because "do nothing"
+/// comes in two kinds that have to be told apart: nothing *left* to start, and a
+/// deliberate refusal to guess. They read differently to the analyst, and only
+/// one of them means the run is finished.
+sealed class LapAction {
+  const LapAction();
+}
+
+/// Stop [studyOperationId] and start the next pending operation at the same
+/// instant.
+class LapAdvance extends LapAction {
+  const LapAdvance(this.studyOperationId);
+
+  final String studyOperationId;
+}
+
+/// Nothing was running; begin [studyOperationId].
+class LapStart extends LapAction {
+  const LapStart(this.studyOperationId);
+
+  final String studyOperationId;
+}
+
+/// Two or more operations are running, so "the current one" has no meaning.
+class LapAmbiguous extends LapAction {
+  const LapAmbiguous();
+}
+
+/// Nothing is running and nothing is left untimed.
+class LapNothing extends LapAction {
+  const LapNothing();
+}
+
+/// Decides what one press of the lap key means.
+///
+/// Pure, so the rule can be tested without a widget or a database — and so the
+/// rule has exactly one definition. The interesting case is [LapAmbiguous]:
+/// under concurrency the key deliberately does nothing, because guessing which
+/// of two running operations to stop risks stopping the wrong operator's timer,
+/// which destroys evidence that cannot be recovered.
+LapAction lapActionFor({
+  required List<StudyOperation> ops,
+  required Map<String, OperationTiming> timing,
+}) {
+  OperationTimingState stateOf(StudyOperation op) =>
+      timing[op.id]?.state ?? OperationTimingState.pending;
+
+  final running = [
+    for (final op in ops)
+      if (stateOf(op) == OperationTimingState.running) op,
+  ];
+  if (running.length > 1) return const LapAmbiguous();
+  if (running.length == 1) return LapAdvance(running.single.id);
+
+  for (final op in ops) {
+    if (stateOf(op) == OperationTimingState.pending) return LapStart(op.id);
+  }
+  return const LapNothing();
+}
+
 /// Where an operation stands against its reference standard. Ordered by
 /// severity — [_evaluateAlerts] and the latch both rely on `index` ranking.
 enum OperationPace { onTrack, approaching, over }

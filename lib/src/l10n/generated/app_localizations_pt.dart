@@ -582,6 +582,57 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get actionClose => 'Fechar';
+
+  @override
+  String get shortcutsTitle => 'Atalhos de teclado';
+
+  @override
+  String get shortcutsTooltip => 'Atalhos de teclado (F1)';
+
+  @override
+  String get shortcutsKeySpace => 'Espaço';
+
+  @override
+  String get shortcutsKeyArrows => '↑ ↓';
+
+  @override
+  String get shortcutsKeyEnter => 'Enter';
+
+  @override
+  String get shortcutsKeyS => 'S';
+
+  @override
+  String get shortcutsKeyEsc => 'Esc';
+
+  @override
+  String get shortcutsLap =>
+      'Para a operação que está rodando e inicia a próxima, sem intervalo entre as duas. Se nada estiver rodando, inicia a primeira operação ainda não cronometrada.';
+
+  @override
+  String get shortcutsMove => 'Escolher a linha.';
+
+  @override
+  String get shortcutsToggle => 'Iniciar ou pausar a linha escolhida.';
+
+  @override
+  String get shortcutsStop => 'Parar a linha escolhida.';
+
+  @override
+  String get shortcutsClear => 'Desmarcar a linha escolhida.';
+
+  @override
+  String get shortcutsConcurrencyNote =>
+      'Com duas ou mais operações rodando ao mesmo tempo, o Espaço não faz nada: qual delas é a “atual” fica realmente ambíguo, e parar o cronômetro do operador errado estragaria a medição. Escolha a linha e aperte Enter.';
+
+  @override
+  String get lapAmbiguous =>
+      'Várias operações rodando — escolha a linha e aperte Enter.';
+
+  @override
+  String get lapNothingToStart => 'Não há mais nada para iniciar.';
+
+  @override
   String get snapshotsTitle => 'Cópias automáticas';
 
   @override

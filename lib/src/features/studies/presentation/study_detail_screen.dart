@@ -27,6 +27,7 @@ import '../application/timing_providers.dart';
 import '../data/study_operation_repository.dart';
 import '../data/timing_repository.dart';
 import 'study_formatting.dart';
+import 'timing_shortcuts.dart';
 
 /// The study workspace: build the operation sequence and time it, all in one
 /// place. Each row is an independent per-operation timer (start / pause / stop /
@@ -77,6 +78,13 @@ class StudyDetailScreen extends ConsumerWidget {
             onPressed: studyAsync.hasValue
                 ? () => _deleteStudy(context, ref, studyAsync.value!.name)
                 : null,
+          ),
+          // What makes the F1 sheet discoverable. An overlay nobody knows to ask
+          // for teaches nobody (DESIGN.md §10.7).
+          IconButton(
+            icon: const Icon(Icons.keyboard_outlined),
+            tooltip: l10n.shortcutsTooltip,
+            onPressed: () => showTimingShortcuts(context),
           ),
           // Feedback lives here, not only in Settings: friction is felt during a
           // run and forgotten by the time anyone opens Settings (DESIGN.md §10).
@@ -168,6 +176,20 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
   /// crossing that happened while the widget was not mounted.
   bool _armed = false;
 
+  /// The row the keyboard acts on, or null for none.
+  ///
+  /// Deliberately *not* Flutter's focus tree. Rows contain buttons, and letting
+  /// focus land on one would mean Space and Enter activate that button instead
+  /// of lapping — so the row controls are excluded from traversal and selection
+  /// is tracked here instead (DESIGN.md §10.7).
+  String? _selectedOpId;
+
+  /// The last built operation list and timing, so keyboard actions read exactly
+  /// what the visible rows were built from. Safe because an action can only fire
+  /// from user input, which is always after a build.
+  List<StudyOperation> _ops = const [];
+  Map<String, OperationTiming> _timingByOp = const {};
+
   String get _studyId => widget.studyId;
   TimingRepository get _timing => ref.read(timingRepositoryProvider);
   StudyOperationRepository get _seq =>
@@ -207,6 +229,12 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
         ref.watch(operationMediaCountsProvider).value ?? const <String, int>{};
 
     final timing = timingByOperation(instances: instances, segments: segments);
+    _ops = ops;
+    _timingByOp = timing;
+    // An operation can be deleted from under the selection.
+    if (_selectedOpId != null && !ops.any((o) => o.id == _selectedOpId)) {
+      _selectedOpId = null;
+    }
     _live = timing.values.any((t) => t.state == OperationTimingState.running);
     final now = DateTime.now().millisecondsSinceEpoch;
     final total = totalWallClockMs(segments, now);
@@ -226,6 +254,49 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _evaluateAlerts(ops, timing, paces));
 
+    // Keys are bound here rather than app-wide, and inside the workspace rather
+    // than above it: shortcuts resolve from the focused node upwards, so being
+    // nearer than WidgetsApp's defaults is what makes Space mean "lap" instead of
+    // "activate the focused button" (DESIGN.md §10.7).
+    return Shortcuts(
+      shortcuts: timingShortcuts,
+      child: Actions(
+        actions: {
+          LapIntent: CallbackAction<LapIntent>(onInvoke: (_) => _lap()),
+          MoveRowFocusIntent: CallbackAction<MoveRowFocusIntent>(
+              onInvoke: (intent) => _moveSelection(intent.delta)),
+          ToggleFocusedRowIntent: CallbackAction<ToggleFocusedRowIntent>(
+              onInvoke: (_) => _toggleSelected()),
+          StopFocusedRowIntent: CallbackAction<StopFocusedRowIntent>(
+              onInvoke: (_) => _stopSelected()),
+          ClearRowFocusIntent: CallbackAction<ClearRowFocusIntent>(
+              onInvoke: (_) => setState(() => _selectedOpId = null)),
+          ShowTimingShortcutsIntent: CallbackAction<ShowTimingShortcutsIntent>(
+              onInvoke: (_) => showTimingShortcuts(context)),
+        },
+        // Autofocus, so the keys work on arrival: an analyst should not have to
+        // click into the table before the one key they need does anything.
+        child: Focus(
+          autofocus: true,
+          child: _body(context, l10n, ops, timing, subtypeById, mediaCounts,
+              paces, total, now, timed),
+        ),
+      ),
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<StudyOperation> ops,
+    Map<String, OperationTiming> timing,
+    Map<String, OperationSubtype> subtypeById,
+    Map<String, int> mediaCounts,
+    Map<String, OperationPace?> paces,
+    int total,
+    int now,
+    int timed,
+  ) {
     return Column(
       children: [
         _headerBar(context, l10n, total, workContentMs(timing.values, now),
@@ -282,6 +353,81 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
         ),
       ],
     );
+  }
+
+  // --- keyboard control (DESIGN.md §10.7) -----------------------------------
+
+  void _hint(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 2),
+    ));
+  }
+
+  /// The lap key: stop what is running, start the next thing, with no gap.
+  ///
+  /// With **two or more operations running it does nothing but say so.** Lapping
+  /// is a sequential-flow action, and "the current operation" has no meaning
+  /// under the concurrency this app exists to capture; guessing would mean
+  /// stopping the wrong operator's timer, destroying evidence that cannot be
+  /// recovered. Refusing is the only rule that can never do that — and it is what
+  /// keeps a blind, eyes-off-screen press safe, because the one case that needs
+  /// looking at the screen is the one case it declines to guess.
+  void _lap() {
+    final l10n = AppLocalizations.of(context);
+    switch (lapActionFor(ops: _ops, timing: _timingByOp)) {
+      case LapAdvance(:final studyOperationId):
+        _timing.stopAndStartNext(
+            studyId: _studyId, studyOperationId: studyOperationId);
+      case LapStart(:final studyOperationId):
+        _timing.start(studyId: _studyId, studyOperationId: studyOperationId);
+      case LapAmbiguous():
+        _hint(l10n.lapAmbiguous);
+      case LapNothing():
+        _hint(l10n.lapNothingToStart);
+    }
+  }
+
+  void _moveSelection(int delta) {
+    if (_ops.isEmpty) return;
+    final current = _ops.indexWhere((o) => o.id == _selectedOpId);
+    // With nothing selected, arrive at the end the key points from.
+    final next = current < 0
+        ? (delta > 0 ? 0 : _ops.length - 1)
+        : (current + delta).clamp(0, _ops.length - 1);
+    setState(() => _selectedOpId = _ops[next].id);
+  }
+
+  StudyOperation? get _selected {
+    for (final op in _ops) {
+      if (op.id == _selectedOpId) return op;
+    }
+    return null;
+  }
+
+  void _toggleSelected() {
+    final op = _selected;
+    if (op == null) return;
+    final state = _timingByOp[op.id]?.state ?? OperationTimingState.pending;
+    if (state == OperationTimingState.running) {
+      // Routed through the same handler as the button, so the offer to log the
+      // interruption appears whether you paused by key or by click.
+      _pause(op);
+    } else {
+      _timing.start(studyId: _studyId, studyOperationId: op.id);
+    }
+  }
+
+  void _stopSelected() {
+    final op = _selected;
+    if (op == null) return;
+    final state = _timingByOp[op.id]?.state ?? OperationTimingState.pending;
+    // Nothing to stop on an operation that never started — that would only mark
+    // it complete with no measurement behind it.
+    if (state == OperationTimingState.pending) return;
+    _timing.stop(studyId: _studyId, studyOperationId: op.id);
   }
 
   /// Sounds at most one cue per frame — "over" outranks "approaching" — so
@@ -393,15 +539,34 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     final actual = t.actualMs();
     final isPending = t.state == OperationTimingState.pending;
     final hasNote = t.instance?.notes?.isNotEmpty ?? false;
+    final selected = op.id == _selectedOpId;
 
-    return Padding(
+    return Container(
       key: ValueKey(op.id),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: selected
+          ? BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(8),
+              // A left bar as well as a tint: at arm's length on a bright
+              // shop-floor screen, the tint alone is easy to miss.
+              border: Border(
+                left: BorderSide(color: theme.colorScheme.primary, width: 3),
+              ),
+            )
+          : null,
       child: Opacity(
         opacity: isPending && !t.isTimed ? 0.65 : 1,
-        child: Row(
-          children: [
-            ReorderableDragStartListener(
+        // Clicking a row picks it, so mouse and keyboard agree on what "the
+        // picked row" is rather than each having its own idea. Translucent, so
+        // the controls and the tappable time cell still receive their own taps.
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => setState(() => _selectedOpId = op.id),
+          child: Row(
+            children: [
+              ReorderableDragStartListener(
               index: index,
               child: Icon(Icons.drag_indicator,
                   color: theme.colorScheme.onSurfaceVariant),
@@ -488,9 +653,23 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
                 ),
               ),
             ),
-            _controls(l10n, op, t),
-            _menu(l10n, op, t.instance?.notes),
-          ],
+              // Excluded from focus traversal deliberately. WidgetsApp maps
+              // Space and Enter to activating the focused button, so a control
+              // that kept focus after a click would turn the lap key into "press
+              // ▶ again" — silently restarting an operation instead of advancing
+              // the run. Everything these offer has its own key, except reset and
+              // the row menu, which stay mouse-only.
+              ExcludeFocus(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _controls(l10n, op, t),
+                    _menu(l10n, op, t.instance?.notes),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

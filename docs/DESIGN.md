@@ -215,7 +215,7 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
-6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry; then keyboard timing.
+6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete**, bar the optional backup folder in §10.8.
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.
 8. **Cross-study comparison.**
 9. **Polish** — video, iPad layouts, finalize pt/en/es.
@@ -310,7 +310,27 @@ Windows does not remember a window's size, position or maximised state for an ap
 - **`waitUntilReadyToShow` is called without its callback.** It invokes that callback *without awaiting it*, so anything asynchronous inside races the caller; the geometry work is awaited inline instead.
 - **`win32_window.cpp`'s `Show()` uses `SW_SHOW`, not the template's `SW_SHOWNORMAL`.** The window is created hidden and revealed from the first-frame callback, which is what avoids both a flash and an empty window — but `SW_SHOWNORMAL` *un-maximises*, so it silently cancelled the restore. This is a deliberate deviation from the Flutter template; the reason is recorded at the call site.
 
-### 10.7 Planned next (not yet built)
+### 10.7 Keyboard timing
 
-- **Keyboard timing.** `Space` = lap, driving the existing `stopAndStartNext` — one key, pressed blind, eyes on the machine rather than the screen. Nothing running → start the first pending. **Two or more running → inert with a hint**, because "the current operation" is undefined under the concurrency this app exists to capture, and guessing means stopping the wrong operator's timer. Arrows move row focus, `Enter` start/pause, `S` stop. Documented in an **F1 overlay**, reachable from a keyboard icon in the workspace app bar so the overlay is not itself undiscoverable.
+The on-floor premise is **eyes on the machine, not on the screen**. An analyst watching a station cannot spare attention for a mouse, so the common case — a straight sequential run — is one key pressed repeatedly.
+
+| Key | Does |
+|---|---|
+| `Space` | Lap: stop the running operation, start the next, gaplessly |
+| `↑` `↓` | Pick a row |
+| `Enter` | Start / pause the picked row |
+| `S` | Stop the picked row |
+| `Esc` | Clear the picked row |
+| `F1` | The shortcuts sheet |
+
+- **`Space` drives the existing `stopAndStartNext`**, which closes one operation and opens the next at the *same instant*, so a run has no gap. With nothing running it starts the first operation never timed.
+- **With two or more running, `Space` does nothing but say so.** Lapping is a sequential-flow action and "the current operation" has no meaning under the concurrency this app exists to capture; guessing means stopping the wrong operator's timer, which destroys evidence that cannot be recovered. Refusing is the only rule that can never do that — and it is what makes the blind press safe, because the one case that needs looking at the screen is the one case it declines to guess. _Acting on the most recently started was rejected_: under man + machine the machine timer is usually started second and runs longest, so a blind lap would repeatedly target the operation you least want to stop.
+- **The rule is a pure function** (`lapActionFor` in `timing_model.dart`) returning a sealed result, so it is tested without a widget. "Do nothing" is two distinct outcomes — nothing *left* to start, versus a refusal to guess — because they mean different things to the analyst and only one says the run is over.
+- **Row selection is tracked in the widget, not Flutter's focus tree, and the row controls are wrapped in `ExcludeFocus`.** `WidgetsApp` maps Space and Enter to activating the focused button, so a ▶ that kept focus after a click would turn the lap key into "press ▶ again" — silently restarting an operation instead of advancing the run. The bindings live on a `Shortcuts` widget *inside* the workspace, which is what makes them win: shortcuts resolve from the focused node upwards, so being nearer than `WidgetsApp` decides it. There is a test that clicks ▶ and then presses Space specifically to hold this.
+- The cost of that choice is that `reset` and the row menu are mouse-only. Accepted: everything on the timing path has a key.
+- **The workspace autofocuses**, so keys work on arrival — an analyst should not have to click into the table first. Clicking a row also picks it, so mouse and keyboard agree on what "the picked row" means.
+- **`F1` only, no `?`.** Typing `?` needs Shift plus a key that moves between layouts — on a Brazilian ABNT2 keyboard it is not where a US layout puts it — and a shortcut that silently does nothing on the keyboards these users actually have is worse than none. The **keyboard icon in the app bar** is what makes the sheet discoverable, and the sheet explains *why* Space goes inert under concurrency, since that behaviour reads as a bug until you know it is a refusal.
+
+### 10.8 Planned next (not yet built)
+
 - **Optional backup folder.** Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.

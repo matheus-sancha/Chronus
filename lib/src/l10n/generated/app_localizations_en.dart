@@ -578,6 +578,57 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get actionClose => 'Close';
+
+  @override
+  String get shortcutsTitle => 'Keyboard shortcuts';
+
+  @override
+  String get shortcutsTooltip => 'Keyboard shortcuts (F1)';
+
+  @override
+  String get shortcutsKeySpace => 'Space';
+
+  @override
+  String get shortcutsKeyArrows => '↑ ↓';
+
+  @override
+  String get shortcutsKeyEnter => 'Enter';
+
+  @override
+  String get shortcutsKeyS => 'S';
+
+  @override
+  String get shortcutsKeyEsc => 'Esc';
+
+  @override
+  String get shortcutsLap =>
+      'Stop the running operation and start the next one, with no gap between them. If nothing is running, starts the first operation not yet timed.';
+
+  @override
+  String get shortcutsMove => 'Pick a row.';
+
+  @override
+  String get shortcutsToggle => 'Start or pause the picked row.';
+
+  @override
+  String get shortcutsStop => 'Stop the picked row.';
+
+  @override
+  String get shortcutsClear => 'Clear the picked row.';
+
+  @override
+  String get shortcutsConcurrencyNote =>
+      'With two or more operations running at once, Space does nothing: which one is “current” is genuinely ambiguous, and stopping the wrong operator\'s timer would ruin the measurement. Pick the row and press Enter.';
+
+  @override
+  String get lapAmbiguous =>
+      'Several operations running — pick the row and press Enter.';
+
+  @override
+  String get lapNothingToStart => 'Nothing left to start.';
+
+  @override
   String get snapshotsTitle => 'Automatic copies';
 
   @override
