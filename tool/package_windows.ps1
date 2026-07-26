@@ -129,27 +129,21 @@ if (Test-Path $readme) {
 }
 
 # --- manuals ----------------------------------------------------------------
-# The .md files land at the root of the folder and the images under manual\,
-# because each manual links its screenshots as "manual/images/foo.png" relative
-# to itself. Moving the .md into a subfolder would break every image link.
-$manualImages = Join-Path $repo "docs\manual\images"
-$manualFiles  = @("docs\MANUAL-pt.md", "docs\MANUAL-en.md")
+# Ship the HTML, not the markdown: a .md double-clicked on a stock Windows PC
+# opens in Notepad, where the screenshots are just link text. The HTML has every
+# image embedded as a data URI, so it is one file that opens in any browser with
+# nothing to keep beside it.
+#
+# Regenerate with: dart run tool/build_manual_html.dart
+$manualFiles = @("docs\MANUAL-pt.html", "docs\MANUAL-en.html")
 
 foreach ($manual in $manualFiles) {
     $src = Join-Path $repo $manual
     if (Test-Path $src) {
         Copy-Item $src $stage
     } else {
-        Write-Warning "Manual missing at $src. Packaging without it."
+        Write-Warning "Manual missing at $src. Run: dart run tool/build_manual_html.dart"
     }
-}
-
-if (Test-Path $manualImages) {
-    $imageDest = Join-Path $stage "manual\images"
-    New-Item -ItemType Directory -Force -Path $imageDest | Out-Null
-    Copy-Item (Join-Path $manualImages "*") $imageDest -Recurse -Force
-} else {
-    Write-Warning "Manual images missing at $manualImages. Screenshots will not resolve."
 }
 
 # --- zip --------------------------------------------------------------------

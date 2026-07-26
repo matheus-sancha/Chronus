@@ -36,11 +36,12 @@ e restaurado depois, inclusive em outro PC.
 MANUAL DE INSTRUCOES
 --------------------
 O manual completo, com imagens, esta nesta mesma pasta:
-  MANUAL-pt.md   (portugues)
-  MANUAL-en.md   (ingles)
+  MANUAL-pt.html   (portugues)
+  MANUAL-en.html   (ingles)
 
-As imagens ficam na subpasta manual\images. Mantenha os
-arquivos juntos para que as figuras aparecam.
+De um duplo clique para abrir no navegador. Cada manual e um
+arquivo unico, com as imagens ja embutidas - voce pode copia-lo
+ou envia-lo por e-mail sozinho.
 
 O QUE JA FUNCIONA
 -----------------
@@ -99,11 +100,12 @@ can store elsewhere and restore later, including on another PC.
 MANUAL
 ------
 The full illustrated manual is in this same folder:
-  MANUAL-en.md   (English)
-  MANUAL-pt.md   (Portuguese)
+  MANUAL-en.html   (English)
+  MANUAL-pt.html   (Portuguese)
 
-Images live in the manual\images subfolder. Keep the files
-together so the screenshots resolve.
+Double-click to open it in your browser. Each manual is a single
+file with the images embedded, so you can copy or email it on
+its own.
 
 TROUBLE?
 --------
