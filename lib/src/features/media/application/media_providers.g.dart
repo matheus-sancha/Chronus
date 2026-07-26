@@ -49,7 +49,7 @@ final class MediaRepositoryProvider
   }
 }
 
-String _$mediaRepositoryHash() => r'79e923c49958d468c26d6a5fd6437424102ac342';
+String _$mediaRepositoryHash() => r'b629abe5d7ca91fe5868aacaf882459f2fdccf35';
 
 /// The app's base directory path, resolved once (for building image file paths).
 
@@ -87,4 +87,4 @@ final class AppMediaBasePathProvider
   }
 }
 
-String _$appMediaBasePathHash() => r'cf4c84b4d60cc6a903b114706ee2e41f12f1bb0e';
+String _$appMediaBasePathHash() => r'aec9aeabacf56a0030ad74f50ae545b5f4ebbf74';

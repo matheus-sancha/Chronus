@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../app_directory.dart';
 import 'enums.dart';
 import 'tables.dart';
 
@@ -152,7 +152,7 @@ class AppDatabase extends _$AppDatabase {
 
   static QueryExecutor _openOnDevice() {
     return LazyDatabase(() async {
-      final dir = await getApplicationDocumentsDirectory();
+      final dir = await appDataDirectory();
       final file = File(p.join(dir.path, 'chronus.sqlite'));
       return NativeDatabase.createInBackground(file);
     });
