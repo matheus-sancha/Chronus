@@ -215,7 +215,7 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
-6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery; then desktop ergonomics and automatic data safety.
+6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots; then desktop ergonomics (keyboard timing, window state).
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.
 8. **Cross-study comparison.**
 9. **Polish** — video, iPad layouts, finalize pt/en/es.
@@ -280,8 +280,27 @@ A text field in **Settings** and in the **study workspace's overflow menu**, app
 - The recovery action **deletes the open segment**. §5 already settled the principle — "fabricated time is deliberately absent; it is not a segment" — and a segment whose end was never observed is fabricated by that same standard. _Closing it at `now` and flagging it was rejected_: it persists the fiction as evidence, and a flag cleared without looking (or an export taken before looking) puts a sixteen-hour interval in the Segments sheet indistinguishable from real measurement.
 - Other segments of the same operation survive, so an operation paused twice then abandoned keeps what really was measured; one left with none returns to pending, and the analyst re-times it or enters a manual override.
 
-### 10.5 Planned next (not yet built)
+### 10.5 Automatic snapshots
+
+`app_directory.dart` is explicit that on Windows the manual `.chronus` bundle is the *only* safety net — and it requires a colleague to remember, in Settings, to do a thing with no immediate benefit. Nobody will. So there are now **two nets aimed at two different failures**:
+
+| | `.chronus` bundle | Automatic snapshot |
+|---|---|---|
+| Protects against | losing the machine | **us** — a bug or bad migration |
+| Contents | rows **+ photos** | rows only |
+| Trigger | the user, deliberately | silent, once a day at launch |
+| Leaves the PC | yes, that's the point | no |
+
+- **Database-only, on purpose.** Photos are immutable once written and no migration touches them, so they are not at risk from the failure this protects against — and copying the photo library three times over would cost orders of magnitude more disk to guard something safe. 132 KB per snapshot today; three kept.
+- **`VACUUM INTO`, as with the bundle** (§2): transactionally consistent against a live database, folds in un-checkpointed WAL content, and emits a single file with **no `-wal` sidecar to go stale beside it**.
+- **Silent.** No prompt, no nag, never blocking a launch, and it cannot fail one — whether it ran goes to the diagnostics log, so a data-loss report can be answered with "there is a copy from yesterday" instead of a guess. _A "you haven't backed up in 14 days" banner was rejected_: it is the same ask the user is already ignoring, only louder, and it makes them responsible for our bugs.
+- **Restore leaves `media/` alone** — deliberately asymmetric with the bundle's `_replaceMedia`, which deletes the media directory outright. A snapshot holds no photos, so wiping media would destroy the user's entire library to roll back some rows. Left alone, the files on disk are a superset of what the restored rows reference: a photo added since the snapshot becomes unreferenced clutter, one deleted since renders as a broken thumbnail. Both are strictly better than losing the library.
+- **Restoring never consumes the snapshot** — a copy is what gets migrated and read, because `_migrateToCurrentSchema` opens the file writably and a restore point must survive being used.
+- **Ordering comes from the timestamp in the file name, never mtime.** Copying a folder resets modification times, and users do move this directory between PCs; mtime ordering would then prune the wrong files or decide a snapshot was not due when it was. The name is the only record of when a snapshot was really taken. It also means a stray `.sqlite` dropped in the folder is ignored rather than offered as a restore point.
+- **Exposed as a guarded list** in Settings → Data, with the same confirmation as a bundle restore. _Leaving them invisible was rejected_: recovery would then mean walking someone through replacing `chronus.sqlite` in `%APPDATA%` **and** remembering to delete the `-wal` and `-shm` sidecars, where a stale `-wal` beside a replaced database can corrupt it. One button removes that footgun.
+
+### 10.6 Planned next (not yet built)
 
 - **Keyboard timing.** `Space` = lap, driving the existing `stopAndStartNext` — one key, pressed blind, eyes on the machine rather than the screen. Nothing running → start the first pending. **Two or more running → inert with a hint**, because "the current operation" is undefined under the concurrency this app exists to capture, and guessing means stopping the wrong operator's timer. Arrows move row focus, `Enter` start/pause, `S` stop. Documented in an **F1 overlay**, reachable from a keyboard icon in the workspace app bar so the overlay is not itself undiscoverable.
 - **Window geometry.** Persist size/position/maximized (`window_manager`, to a small json — not the database, to avoid schema churn), a minimum size so the timing table cannot be crushed, and **restored bounds clamped to the current monitors** or an undocked laptop opens offscreen. Today `windows/runner/main.cpp` hardcodes 1280×720 at (10,10) every launch, so every session begins with a manual maximize.
-- **Automatic data safety.** `app_directory.dart` is explicit that the manual `.chronus` bundle is the *only* Windows net, and it requires a colleague to remember to do a thing with no immediate benefit. Silent rotating `VACUUM INTO` snapshots (keep 3) cover the failure we would cause — a bug or bad migration — and an optional **backup folder** setting on a network drive covers the one that loses a month of work: the PC dies. A closed bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`.
+- **Optional backup folder.** Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.

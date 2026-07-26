@@ -213,6 +213,21 @@
       "error": { "type": "String" }
     }
   },
+  "snapshotsTitle": "Copias automáticas",
+  "snapshotsSubtitle": "Se hacen solas, una por día. Solo estudios y proyectos — las fotos no se incluyen, y una restauración no las modifica.",
+  "snapshotRestoreConfirmTitle": "¿Restaurar esta copia?",
+  "snapshotRestoreConfirmMessage": "Esto reemplaza todos los proyectos y estudios por los del {date}. Las fotos quedan como están. No se puede deshacer.",
+  "@snapshotRestoreConfirmMessage": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "snapshotRestoreDone": "Copia del {date} restaurada.",
+  "@snapshotRestoreDone": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
   "orphanedTimingTitle": "Cronómetros que quedaron activos",
   "orphanedTimingMessage": "{count, plural, =1{1 operación lleva contando} other{{count} operaciones llevan contando}} desde {since}, porque Chronus se cerró sin detener el cronómetro. Ese tiempo nunca se cerró, así que no puede medirse.",
   "@orphanedTimingMessage": {

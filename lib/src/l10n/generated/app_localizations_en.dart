@@ -578,6 +578,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get snapshotsTitle => 'Automatic copies';
+
+  @override
+  String get snapshotsSubtitle =>
+      'Made on their own, once a day. Studies and projects only — photos are not included, and are never changed by a restore.';
+
+  @override
+  String get snapshotRestoreConfirmTitle => 'Restore this copy?';
+
+  @override
+  String snapshotRestoreConfirmMessage(String date) {
+    return 'This replaces every project and study with the ones from $date. Photos are left as they are. It cannot be undone.';
+  }
+
+  @override
+  String snapshotRestoreDone(String date) {
+    return 'Copy from $date restored.';
+  }
+
+  @override
   String get orphanedTimingTitle => 'Timers left running';
 
   @override

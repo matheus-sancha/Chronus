@@ -1180,6 +1180,36 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String exportFailed(String error);
 
+  /// No description provided for @snapshotsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic copies'**
+  String get snapshotsTitle;
+
+  /// No description provided for @snapshotsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Made on their own, once a day. Studies and projects only — photos are not included, and are never changed by a restore.'**
+  String get snapshotsSubtitle;
+
+  /// No description provided for @snapshotRestoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this copy?'**
+  String get snapshotRestoreConfirmTitle;
+
+  /// No description provided for @snapshotRestoreConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces every project and study with the ones from {date}. Photos are left as they are. It cannot be undone.'**
+  String snapshotRestoreConfirmMessage(String date);
+
+  /// No description provided for @snapshotRestoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy from {date} restored.'**
+  String snapshotRestoreDone(String date);
+
   /// No description provided for @orphanedTimingTitle.
   ///
   /// In en, this message translates to:

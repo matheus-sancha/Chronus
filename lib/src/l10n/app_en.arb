@@ -261,6 +261,21 @@
       "error": { "type": "String" }
     }
   },
+  "snapshotsTitle": "Automatic copies",
+  "snapshotsSubtitle": "Made on their own, once a day. Studies and projects only — photos are not included, and are never changed by a restore.",
+  "snapshotRestoreConfirmTitle": "Restore this copy?",
+  "snapshotRestoreConfirmMessage": "This replaces every project and study with the ones from {date}. Photos are left as they are. It cannot be undone.",
+  "@snapshotRestoreConfirmMessage": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "snapshotRestoreDone": "Copy from {date} restored.",
+  "@snapshotRestoreDone": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
   "orphanedTimingTitle": "Timers left running",
   "orphanedTimingMessage": "{count, plural, =1{1 operation has been counting} other{{count} operations have been counting}} since {since}, because Chronus was closed without stopping the timer. That time was never ended, so it cannot be measured.",
   "@orphanedTimingMessage": {

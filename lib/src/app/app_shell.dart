@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/backup/application/automatic_snapshot.dart';
 import '../features/studies/presentation/orphaned_timing_prompt.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -33,7 +34,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     // After the first frame: the shell must be mounted and painted before a
     // dialog goes over it, or the analyst sees a question with no context.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) promptForOrphanedTiming(context, ref);
+      if (!mounted) return;
+      promptForOrphanedTiming(context, ref);
+      // Unawaited on purpose, and after the prompt: a background copy must not
+      // hold up the UI, and neither task depends on the other.
+      takeStartupSnapshot(ref);
     });
   }
 

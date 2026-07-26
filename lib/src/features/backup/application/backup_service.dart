@@ -7,8 +7,18 @@ import 'package:path/path.dart' as p;
 import '../../../data/database/database.dart';
 import '../data/backup_bundle.dart';
 
-/// Creates and restores `.chronus` bundles — the app's only insurance against
-/// device loss, and the iOS↔Windows migration path (DESIGN.md §2).
+/// Two safety nets, aimed at two different failures.
+///
+/// * **`.chronus` bundles** (manual, user-driven) — insurance against device
+///   loss, and the iOS↔Windows migration path (DESIGN.md §2). Everything: rows
+///   and photos.
+/// * **Automatic snapshots** (silent, database-only) — insurance against *us*: a
+///   bug or a bad migration eating rows. See [snapshotIfDue] (DESIGN.md §10).
+///
+/// The split exists because the two failures need different things. Device loss
+/// needs the photos and a copy that leaves the machine; our own bugs need
+/// something frequent, free and unattended, and photos are not at risk from
+/// them.
 ///
 /// The base directory is injected so tests can point at a temp dir.
 class BackupService {
@@ -42,6 +52,138 @@ class BackupService {
       if (staging.existsSync()) staging.deleteSync(recursive: true);
     }
   }
+
+  // --- automatic snapshots --------------------------------------------------
+
+  /// Directory holding automatic snapshots, beside the live database.
+  static const snapshotsDirName = 'snapshots';
+
+  /// How many to keep. Three spans a long weekend, which is the realistic gap
+  /// between "something went wrong" and anyone noticing.
+  static const snapshotsToKeep = 3;
+
+  /// Minimum age of the newest snapshot before another is taken.
+  static const snapshotInterval = Duration(days: 1);
+
+  /// Takes a snapshot if the newest one is older than [snapshotInterval], then
+  /// prunes to [snapshotsToKeep]. Returns the file written, or null if one was
+  /// not due.
+  ///
+  /// **Database only, no media.** Photos are immutable once written and no
+  /// migration touches them, so the database is the only thing a bug of ours can
+  /// corrupt — and copying the photo library three times over would cost orders
+  /// of magnitude more disk to protect something that is not at risk. Device
+  /// loss is what the manual `.chronus` bundle is for (DESIGN.md §2); this is
+  /// insurance against *us*.
+  ///
+  /// Silent by design: it must never interrupt a launch, and a user who is asked
+  /// about backups is a user who is being made responsible for our bugs.
+  Future<File?> snapshotIfDue({DateTime? now}) async {
+    final at = now ?? DateTime.now();
+    final dir = await _snapshotsDirectory();
+    final existing = await listSnapshots();
+
+    if (existing.isNotEmpty) {
+      final newest = snapshotTakenAt(existing.first);
+      if (newest != null && at.difference(newest) < snapshotInterval) {
+        return null;
+      }
+    }
+
+    final stamp = '${at.year}${_two(at.month)}${_two(at.day)}'
+        '-${_two(at.hour)}${_two(at.minute)}${_two(at.second)}';
+    final target = File(p.join(dir.path, 'chronus-$stamp.sqlite'));
+    if (target.existsSync()) target.deleteSync();
+
+    // Same reasoning as export(): VACUUM INTO is transactionally consistent
+    // against a live database and folds in un-checkpointed WAL content, and it
+    // emits a single file with no -wal sidecar to go stale beside it.
+    await _db.customStatement('VACUUM INTO ?', [target.path]);
+
+    for (final stale in (await listSnapshots()).skip(snapshotsToKeep)) {
+      try {
+        stale.deleteSync();
+      } catch (_) {
+        // A snapshot we cannot delete is only wasted disk.
+      }
+    }
+    return target;
+  }
+
+  /// Snapshots, newest first.
+  ///
+  /// Ordered by the timestamp **in the file name**, not by modification time.
+  /// Copying a folder resets mtimes, and users do move this directory between
+  /// PCs — mtime ordering would then prune the wrong files, or decide a snapshot
+  /// is not due when it is. The name is the only record of when a snapshot was
+  /// actually taken, so it is the one to trust.
+  Future<List<File>> listSnapshots() async {
+    final dir = Directory(p.join((await _appDir()).path, snapshotsDirName));
+    if (!dir.existsSync()) return const [];
+    final files = [
+      for (final entity in dir.listSync())
+        if (entity is File && snapshotTakenAt(entity) != null) entity,
+    ];
+    // Zero-padded stamps, so lexicographic order is chronological order.
+    files.sort((a, b) => p.basename(b.path).compareTo(p.basename(a.path)));
+    return files;
+  }
+
+  static final _snapshotName =
+      RegExp(r'^chronus-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})\.sqlite$');
+
+  /// When a snapshot was taken, read from its name. Null if the file is not one
+  /// of ours — which is also what keeps [listSnapshots] from offering to restore
+  /// some unrelated `.sqlite` a user dropped in the folder.
+  static DateTime? snapshotTakenAt(File file) {
+    final match = _snapshotName.firstMatch(p.basename(file.path));
+    if (match == null) return null;
+    int group(int i) => int.parse(match.group(i)!);
+    return DateTime(
+        group(1), group(2), group(3), group(4), group(5), group(6));
+  }
+
+  /// Replaces the database contents with a snapshot's, **leaving `media/`
+  /// alone**.
+  ///
+  /// That asymmetry with [import] is deliberate, not an oversight. A snapshot
+  /// holds no photos, so wiping media the way a bundle restore does would delete
+  /// every photo the user has. Left alone, the files on disk are a superset of
+  /// what the restored rows reference: photos added since the snapshot become
+  /// unreferenced clutter, and one deleted since it renders as a broken
+  /// thumbnail — both strictly better than losing the library.
+  ///
+  /// Destructive as to rows. Callers must confirm with the user first.
+  Future<void> restoreSnapshot(File snapshot) async {
+    if (!snapshot.existsSync()) {
+      throw ArgumentError('Snapshot not found: ${snapshot.path}');
+    }
+    // Copied first: _migrateToCurrentSchema opens it writably to run pending
+    // migrations, and a snapshot must stay a valid restore point afterwards
+    // rather than being consumed by the attempt.
+    final staging = Directory(p.join((await _appDir()).path, '.snapshot-staging'));
+    if (staging.existsSync()) staging.deleteSync(recursive: true);
+    staging.createSync(recursive: true);
+    try {
+      final working = snapshot.copySync(p.join(staging.path, 'snapshot.sqlite'));
+      await _migrateToCurrentSchema(working);
+      await _copyTablesFrom(working);
+      _db.notifyUpdates({
+        for (final table in _db.allTables)
+          TableUpdate(table.actualTableName, kind: UpdateKind.update),
+      });
+    } finally {
+      if (staging.existsSync()) staging.deleteSync(recursive: true);
+    }
+  }
+
+  Future<Directory> _snapshotsDirectory() async {
+    final base = await _appDir();
+    return Directory(p.join(base.path, snapshotsDirName))
+        .create(recursive: true);
+  }
+
+  static String _two(int n) => n.toString().padLeft(2, '0');
 
   /// Everything under `media/`, keyed by the relative path the database stores.
   ///

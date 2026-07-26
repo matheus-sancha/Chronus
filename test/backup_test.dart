@@ -9,6 +9,7 @@ import 'package:chronus/src/features/backup/data/backup_bundle.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   late AppDatabase db;
@@ -208,6 +209,115 @@ void main() {
       );
 
       expect(File('${appDir.path}/escaped.png').existsSync(), isFalse);
+    });
+  });
+
+  // Automatic snapshots (DESIGN.md §10): database-only insurance against our own
+  // bugs, as distinct from the bundle's insurance against losing the machine.
+  group('automatic snapshots', () {
+    test('the first launch takes one; a second the same day does not', () async {
+      await addProject('p1', 'Cell 4 baseline');
+
+      final first = await backup.snapshotIfDue();
+      expect(first, isNotNull);
+      expect(first!.existsSync(), isTrue);
+
+      expect(await backup.snapshotIfDue(), isNull);
+      expect((await backup.listSnapshots()).length, 1);
+    });
+
+    test('a day later another is taken, keeping only the newest three',
+        () async {
+      await addProject('p1', 'Cell 4 baseline');
+      var day = DateTime(2026, 7, 27, 8);
+      for (var i = 0; i < 5; i++) {
+        expect(await backup.snapshotIfDue(now: day), isNotNull,
+            reason: 'snapshot $i should be due');
+        day = day.add(const Duration(days: 1));
+      }
+
+      final kept = await backup.listSnapshots();
+      expect(kept.length, BackupService.snapshotsToKeep);
+      // Newest first, and the two oldest are gone. Read from the names, so this
+      // holds regardless of what the filesystem did to the mtimes.
+      expect(BackupService.snapshotTakenAt(kept.first), DateTime(2026, 7, 31, 8));
+      expect(BackupService.snapshotTakenAt(kept.last), DateTime(2026, 7, 29, 8));
+    });
+
+    test('ordering survives mtimes that no longer reflect when files were made',
+        () async {
+      // What a folder copy does: every file stamped at once, in arbitrary order.
+      await addProject('p1', 'Cell 4 baseline');
+      var day = DateTime(2026, 7, 27, 8);
+      for (var i = 0; i < 3; i++) {
+        final file = await backup.snapshotIfDue(now: day);
+        file!.setLastModifiedSync(DateTime(2026, 8, 10, 12 - i));
+        day = day.add(const Duration(days: 1));
+      }
+
+      final kept = await backup.listSnapshots();
+      expect(BackupService.snapshotTakenAt(kept.first), DateTime(2026, 7, 29, 8));
+      // And a snapshot is still correctly judged not due on the same day.
+      expect(await backup.snapshotIfDue(now: DateTime(2026, 7, 29, 20)), isNull);
+    });
+
+    test('a foreign .sqlite dropped in the folder is ignored', () async {
+      await addProject('p1', 'Cell 4 baseline');
+      await backup.snapshotIfDue();
+      File('${appDir.path}/${BackupService.snapshotsDirName}/notes.sqlite')
+          .writeAsBytesSync([1, 2, 3]);
+
+      final kept = await backup.listSnapshots();
+      expect(kept.length, 1);
+      expect(kept.single.path, endsWith('.sqlite'));
+      expect(p.basename(kept.single.path), startsWith('chronus-'));
+    });
+
+    test('a snapshot holds no media and restoring one leaves photos alone',
+        () async {
+      await addProject('p1', 'Cell 4 baseline');
+      await addMediaRow('m1', 'media/photo.png');
+      writeMedia('photo.png', [1, 2, 3, 4]);
+
+      final snapshot = (await backup.snapshotIfDue())!;
+      // The bundle carries photos; a snapshot is rows only.
+      expect(snapshot.path, endsWith('.sqlite'));
+
+      await addProject('p2', 'Added after the snapshot');
+      writeMedia('later.png', [5, 5, 5]);
+
+      await backup.restoreSnapshot(snapshot);
+
+      expect(await projectNames(), ['Cell 4 baseline']);
+      // Both photos survive. The later one is now unreferenced clutter, which is
+      // the deliberate trade: wiping media the way a bundle restore does would
+      // delete the user's entire library to roll back some rows.
+      expect(File('${appDir.path}/media/photo.png').existsSync(), isTrue);
+      expect(File('${appDir.path}/media/later.png').existsSync(), isTrue);
+    });
+
+    test('restoring does not consume the snapshot', () async {
+      await addProject('p1', 'Cell 4 baseline');
+      final snapshot = (await backup.snapshotIfDue())!;
+
+      await backup.restoreSnapshot(snapshot);
+      await (db.delete(db.projects)..where((t) => t.id.equals('p1'))).go();
+      // Still a valid restore point: the copy is what gets migrated and read,
+      // never the file the user is relying on.
+      await backup.restoreSnapshot(snapshot);
+
+      expect(await projectNames(), ['Cell 4 baseline']);
+      expect(snapshot.existsSync(), isTrue);
+    });
+
+    test('restoring a missing snapshot fails before touching anything',
+        () async {
+      await addProject('p1', 'Cell 4 baseline');
+      await expectLater(
+        backup.restoreSnapshot(File('${appDir.path}/snapshots/gone.sqlite')),
+        throwsArgumentError,
+      );
+      expect(await projectNames(), ['Cell 4 baseline']);
     });
   });
 }

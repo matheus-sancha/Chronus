@@ -582,6 +582,26 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get snapshotsTitle => 'Cópias automáticas';
+
+  @override
+  String get snapshotsSubtitle =>
+      'Feitas sozinhas, uma por dia. Só estudos e projetos — as fotos não entram, e não são alteradas por uma restauração.';
+
+  @override
+  String get snapshotRestoreConfirmTitle => 'Restaurar esta cópia?';
+
+  @override
+  String snapshotRestoreConfirmMessage(String date) {
+    return 'Isso substitui todos os projetos e estudos pelos de $date. As fotos ficam como estão. Não pode ser desfeito.';
+  }
+
+  @override
+  String snapshotRestoreDone(String date) {
+    return 'Cópia de $date restaurada.';
+  }
+
+  @override
   String get orphanedTimingTitle => 'Cronômetros deixados rodando';
 
   @override
