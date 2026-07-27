@@ -86,7 +86,7 @@ class Studies extends Table {
   TextColumn get notes => text().nullable()();
 
   /// Sample-size criteria for a Sampling Study, **stored per study rather than
-  /// as a global preference** (DESIGN.md §10.9).
+  /// as a global preference** (DESIGN.md §11.5).
   ///
   /// Same reasoning as snapshotting reference standards (§3.3): the criteria a
   /// study was judged against belong to that study. A global setting would

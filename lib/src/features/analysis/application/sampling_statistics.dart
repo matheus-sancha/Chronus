@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 /// Statistics across the passes of a Sampling Study, and how many passes the
-/// observed variability actually calls for (DESIGN.md §4, §10.9).
+/// observed variability actually calls for (DESIGN.md §4, §11).
 ///
 /// Pure functions over plain numbers: no database rows, no widgets. The whole
 /// point of a sampling study is the numbers, so they are the part that has to be
