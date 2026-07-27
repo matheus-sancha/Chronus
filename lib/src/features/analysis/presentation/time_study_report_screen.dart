@@ -262,10 +262,11 @@ class TimeStudyReportScreen extends ConsumerWidget {
 
   Future<void> _openPhotos(
       BuildContext context, WidgetRef ref, StudyOperation op) async {
-    final instanceId = await ref.read(timingRepositoryProvider).ensureInstanceId(
-          studyId: studyId,
-          studyOperationId: op.id,
-        );
+    final timing = ref.read(timingRepositoryProvider);
+    final instanceId = await timing.ensureInstanceId(
+      observationId: await timing.ensureObservationId(studyId),
+      studyOperationId: op.id,
+    );
     if (!context.mounted) return;
     await showMediaGallery(
       context,

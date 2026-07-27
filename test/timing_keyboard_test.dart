@@ -236,8 +236,9 @@ void main() {
 /// serves fixed rows to the watch streams.
 ///
 /// Subclassed rather than mocked: the streams are what the workspace builds from,
-/// and the four actions are the whole surface the keyboard touches. The database
-/// handed to `super` is never queried.
+/// and the actions below are the whole surface the keyboard touches. The database
+/// handed to `super` is never queried — including by [ensureObservationId], which
+/// the workspace resolves once before any action (DESIGN.md §11.1).
 class _RecordingTiming extends TimingRepository {
   _RecordingTiming({
     required AppDatabase db,
@@ -257,7 +258,7 @@ class _RecordingTiming extends TimingRepository {
             ? Observation(
                 id: 'obs-1',
                 studyId: studyId,
-                sequenceIndex: 1,
+                sequenceIndex: 0,
                 performedAt: DateTime(2026, 7, 27),
                 createdAt: DateTime(2026, 7, 27),
               )
@@ -273,22 +274,25 @@ class _RecordingTiming extends TimingRepository {
       Stream.value(segments);
 
   @override
+  Future<String> ensureObservationId(String studyId) async => 'obs-1';
+
+  @override
   Future<void> start({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async =>
       calls.add('start:$studyOperationId');
 
   @override
   Future<void> stop({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async =>
       calls.add('stop:$studyOperationId');
 
   @override
   Future<void> stopAndStartNext({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async =>
       calls.add('lap:$studyOperationId');

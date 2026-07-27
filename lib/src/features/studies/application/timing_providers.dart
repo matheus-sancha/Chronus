@@ -14,19 +14,22 @@ TimingRepository timingRepository(Ref ref) {
 
 // Hand-written (Drift-typed) providers — see projects_providers.dart.
 
-/// The single Time Study observation for a study, or null before any timing.
+/// A study's first pass, or null before any timing.
+///
+/// Keyed by study, unlike the two below — it is how a Time Study screen finds
+/// the one pass it works in. §11.1 replaces it with a pass the route carries.
 final observationProvider =
     StreamProvider.family<Observation?, String>((ref, studyId) {
   return ref.watch(timingRepositoryProvider).watchObservation(studyId);
 });
 
-/// Per-operation timing records within an observation.
+/// Per-operation timing records within one pass.
 final operationInstancesProvider =
     StreamProvider.family<List<OperationInstance>, String>((ref, observationId) {
   return ref.watch(timingRepositoryProvider).watchInstances(observationId);
 });
 
-/// Every timed segment in an observation (across all its operations).
+/// Every timed segment in one pass (across all its operations).
 final operationSegmentsProvider =
     StreamProvider.family<List<OperationTimeSegment>, String>(
         (ref, observationId) {

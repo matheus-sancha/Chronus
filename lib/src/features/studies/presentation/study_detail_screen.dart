@@ -195,6 +195,29 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
   StudyOperationRepository get _seq =>
       ref.read(studyOperationRepositoryProvider);
 
+  /// The pass every timing action on this screen is scoped to (DESIGN.md §11.1).
+  ///
+  /// Memoised, and deliberately not resolved in `initState`: the future is
+  /// created by the first action, so merely opening a study still writes nothing
+  /// — and because it is created once, two operations started in the same moment
+  /// share one resolve rather than racing to insert `sequenceIndex: 0` twice.
+  ///
+  /// §11.1 makes the pass a route parameter, at which point this disappears.
+  Future<String>? _observationIdFuture;
+
+  Future<String> _observationId() async {
+    try {
+      return await (_observationIdFuture ??=
+          _timing.ensureObservationId(_studyId));
+    } catch (_) {
+      // A memoised future that failed would stay failed, leaving every control
+      // on the screen silently inert for as long as the workspace is open.
+      // Dropping it lets the next press try again.
+      _observationIdFuture = null;
+      rethrow;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -375,14 +398,17 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
   /// recovered. Refusing is the only rule that can never do that — and it is what
   /// keeps a blind, eyes-off-screen press safe, because the one case that needs
   /// looking at the screen is the one case it declines to guess.
-  void _lap() {
+  Future<void> _lap() async {
     final l10n = AppLocalizations.of(context);
     switch (lapActionFor(ops: _ops, timing: _timingByOp)) {
       case LapAdvance(:final studyOperationId):
         _timing.stopAndStartNext(
-            studyId: _studyId, studyOperationId: studyOperationId);
+            observationId: await _observationId(),
+            studyOperationId: studyOperationId);
       case LapStart(:final studyOperationId):
-        _timing.start(studyId: _studyId, studyOperationId: studyOperationId);
+        _timing.start(
+            observationId: await _observationId(),
+            studyOperationId: studyOperationId);
       case LapAmbiguous():
         _hint(l10n.lapAmbiguous);
       case LapNothing():
@@ -407,27 +433,29 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     return null;
   }
 
-  void _toggleSelected() {
+  Future<void> _toggleSelected() async {
     final op = _selected;
     if (op == null) return;
     final state = _timingByOp[op.id]?.state ?? OperationTimingState.pending;
     if (state == OperationTimingState.running) {
       // Routed through the same handler as the button, so the offer to log the
       // interruption appears whether you paused by key or by click.
-      _pause(op);
+      await _pause(op);
     } else {
-      _timing.start(studyId: _studyId, studyOperationId: op.id);
+      await _timing.start(
+          observationId: await _observationId(), studyOperationId: op.id);
     }
   }
 
-  void _stopSelected() {
+  Future<void> _stopSelected() async {
     final op = _selected;
     if (op == null) return;
     final state = _timingByOp[op.id]?.state ?? OperationTimingState.pending;
     // Nothing to stop on an operation that never started — that would only mark
     // it complete with no measurement behind it.
     if (state == OperationTimingState.pending) return;
-    _timing.stop(studyId: _studyId, studyOperationId: op.id);
+    await _timing.stop(
+        observationId: await _observationId(), studyOperationId: op.id);
   }
 
   /// Sounds at most one cue per frame — "over" outranks "approaching" — so
@@ -698,17 +726,23 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
 
   Widget _controls(AppLocalizations l10n, StudyOperation op, OperationTiming t) {
     final start = _iconBtn(Icons.play_arrow, l10n.tooltipStart,
-        () => _timing.start(studyId: _studyId, studyOperationId: op.id),
+        () async => _timing.start(
+            observationId: await _observationId(), studyOperationId: op.id),
         color: categoryColor(op.category));
     final resume = _iconBtn(Icons.play_arrow, l10n.tooltipResume,
-        () => _timing.start(studyId: _studyId, studyOperationId: op.id),
+        () async => _timing.start(
+            observationId: await _observationId(), studyOperationId: op.id),
         color: categoryColor(op.category));
     final pause = _iconBtn(
         Icons.pause, l10n.tooltipPause, () => _pause(op));
-    final stop = _iconBtn(Icons.stop, l10n.tooltipStop,
-        () => _timing.stop(studyId: _studyId, studyOperationId: op.id));
+    final stop = _iconBtn(
+        Icons.stop,
+        l10n.tooltipStop,
+        () async => _timing.stop(
+            observationId: await _observationId(), studyOperationId: op.id));
     final stopNext = _iconBtn(Icons.skip_next, l10n.tooltipStopNext,
-        () => _timing.stopAndStartNext(studyId: _studyId, studyOperationId: op.id),
+        () async => _timing.stopAndStartNext(
+            observationId: await _observationId(), studyOperationId: op.id),
         color: categoryColor(op.category));
     final reset =
         _iconBtn(Icons.refresh, l10n.tooltipReset, () => _reset(op));
@@ -745,7 +779,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
 
   Future<void> _openPhotos(StudyOperation op) async {
     final instanceId = await _timing.ensureInstanceId(
-        studyId: _studyId, studyOperationId: op.id);
+        observationId: await _observationId(), studyOperationId: op.id);
     if (!mounted) return;
     await showMediaGallery(
       context,
@@ -762,14 +796,17 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     );
     if (text == null) return; // cancelled
     await _timing.setNote(
-        studyId: _studyId, studyOperationId: op.id, note: text);
+        observationId: await _observationId(),
+        studyOperationId: op.id,
+        note: text);
   }
 
   // --- actions --------------------------------------------------------------
 
   Future<void> _pause(StudyOperation op) async {
     final l10n = AppLocalizations.of(context);
-    await _timing.pause(studyId: _studyId, studyOperationId: op.id);
+    await _timing.pause(
+        observationId: await _observationId(), studyOperationId: op.id);
     if (!mounted) return;
     final log = await showDialog<bool>(
       context: context,
@@ -802,7 +839,8 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
       category: subtype.category,
       subtypeId: subtype.id,
     );
-    await _timing.start(studyId: _studyId, studyOperationId: newOp.id);
+    await _timing.start(
+        observationId: await _observationId(), studyOperationId: newOp.id);
   }
 
   Future<void> _reset(StudyOperation op) async {
@@ -813,7 +851,8 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
       message: l10n.resetConfirmMessage(op.name),
     );
     if (!confirmed) return;
-    await _timing.reset(studyId: _studyId, studyOperationId: op.id);
+    await _timing.reset(
+        observationId: await _observationId(), studyOperationId: op.id);
     // Reset is the only action that zeroes the clock, so it is the only one
     // that re-arms this operation's alerts.
     _announced.remove(op.id);
@@ -830,10 +869,12 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     switch (result) {
       case _ManualSet(:final ms):
         await _timing.setManualActual(
-            studyId: _studyId, studyOperationId: op.id, milliseconds: ms);
+            observationId: await _observationId(),
+            studyOperationId: op.id,
+            milliseconds: ms);
       case _ManualClear():
         await _timing.clearManualActual(
-            studyId: _studyId, studyOperationId: op.id);
+            observationId: await _observationId(), studyOperationId: op.id);
       case null:
         break;
     }
