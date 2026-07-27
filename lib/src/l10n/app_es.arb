@@ -270,5 +270,42 @@
   "feedbackAction": "Enviar comentarios",
   "feedbackSubtitle": "Anota qué te estorbó; va junto con el diagnóstico",
   "feedbackHint": "¿Qué pasó?",
-  "feedbackSaved": "Anotado. Se envía junto al guardar el diagnóstico."
+  "feedbackSaved": "Anotado. Se envía junto al guardar el diagnóstico.",
+  "passesTitle": "Tomas",
+  "passLabel": "Toma {number}",
+  "@passLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "passAdd": "Nueva toma",
+  "passTimedCount": "{timed} de {total} cronometradas",
+  "@passTimedCount": {
+    "placeholders": {
+      "timed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "passNothingTimed": "Nada cronometrado aún",
+  "passExcludedBadge": "Excluida",
+  "passExclude": "Excluir de las estadísticas",
+  "passInclude": "Devolver a las estadísticas",
+  "passExcludeTitle": "¿Excluir la {pass}?",
+  "@passExcludeTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passExcludeMessage": "Conserva sus mediciones y su propio informe — solo queda fuera de los promedios. Puedes revertirlo cuando quieras.",
+  "passExcludeReasonHint": "¿Por qué? (p. ej., línea sin material)",
+  "passDelete": "Eliminar toma",
+  "passDeleteBlocked": "Esta toma tiene mediciones. Mejor exclúyela — así la evidencia se conserva.",
+  "passDeleteLastBlocked": "Un estudio conserva al menos una toma.",
+  "passDeleteConfirmTitle": "¿Eliminar la {pass}?",
+  "@passDeleteConfirmTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passDeleteConfirmMessage": "No se cronometró nada en ella. El número no se reutiliza."
 }

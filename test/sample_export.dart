@@ -183,6 +183,7 @@ StudyExportPayload _payload() {
     performedAt: DateTime(2026, 7, 21, 9, 30),
     confidenceLevel: 0.95,
     relativePrecision: 0.05,
+    nextPassIndex: 1,
     analyst: 'M. Sancha',
     partProduct: 'Bracket A / 55-2201',
     processOperation: 'Mill & inspect',

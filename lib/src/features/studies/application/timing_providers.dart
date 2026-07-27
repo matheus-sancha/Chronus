@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../data/database/database.dart';
 import '../../../data/database/database_providers.dart';
+import '../data/observation_repository.dart';
 import '../data/timing_repository.dart';
 
 part 'timing_providers.g.dart';
@@ -11,6 +12,23 @@ part 'timing_providers.g.dart';
 TimingRepository timingRepository(Ref ref) {
   return TimingRepository(ref.watch(appDatabaseProvider));
 }
+
+@riverpod
+ObservationRepository observationRepository(Ref ref) {
+  return ObservationRepository(ref.watch(appDatabaseProvider));
+}
+
+/// Every pass of a study, in order, each with its completeness (§11.1).
+final passesProvider =
+    StreamProvider.family<List<PassSummary>, String>((ref, studyId) {
+  return ref.watch(observationRepositoryProvider).watchPasses(studyId);
+});
+
+/// One pass by id — what a pass workspace titles itself from.
+final passProvider =
+    StreamProvider.family<Observation, String>((ref, observationId) {
+  return ref.watch(observationRepositoryProvider).watchById(observationId);
+});
 
 // Hand-written (Drift-typed) providers — see projects_providers.dart.
 

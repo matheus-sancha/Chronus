@@ -713,4 +713,63 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get feedbackSaved =>
       'Anotado. Se envía junto al guardar el diagnóstico.';
+
+  @override
+  String get passesTitle => 'Tomas';
+
+  @override
+  String passLabel(int number) {
+    return 'Toma $number';
+  }
+
+  @override
+  String get passAdd => 'Nueva toma';
+
+  @override
+  String passTimedCount(int timed, int total) {
+    return '$timed de $total cronometradas';
+  }
+
+  @override
+  String get passNothingTimed => 'Nada cronometrado aún';
+
+  @override
+  String get passExcludedBadge => 'Excluida';
+
+  @override
+  String get passExclude => 'Excluir de las estadísticas';
+
+  @override
+  String get passInclude => 'Devolver a las estadísticas';
+
+  @override
+  String passExcludeTitle(String pass) {
+    return '¿Excluir la $pass?';
+  }
+
+  @override
+  String get passExcludeMessage =>
+      'Conserva sus mediciones y su propio informe — solo queda fuera de los promedios. Puedes revertirlo cuando quieras.';
+
+  @override
+  String get passExcludeReasonHint => '¿Por qué? (p. ej., línea sin material)';
+
+  @override
+  String get passDelete => 'Eliminar toma';
+
+  @override
+  String get passDeleteBlocked =>
+      'Esta toma tiene mediciones. Mejor exclúyela — así la evidencia se conserva.';
+
+  @override
+  String get passDeleteLastBlocked => 'Un estudio conserva al menos una toma.';
+
+  @override
+  String passDeleteConfirmTitle(String pass) {
+    return '¿Eliminar la $pass?';
+  }
+
+  @override
+  String get passDeleteConfirmMessage =>
+      'No se cronometró nada en ella. El número no se reutiliza.';
 }

@@ -26,6 +26,7 @@ import '../application/timing_model.dart';
 import '../application/timing_providers.dart';
 import '../data/study_operation_repository.dart';
 import '../data/timing_repository.dart';
+import 'pass_list.dart';
 import 'study_formatting.dart';
 import 'timing_shortcuts.dart';
 
@@ -106,8 +107,18 @@ class StudyDetailScreen extends ConsumerWidget {
       body: studyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('$error')),
-        data: (study) =>
-            _Workspace(study: study, projectId: projectId, studyId: studyId),
+        // A Sampling Study opens on its passes; a Time Study has exactly one
+        // and goes straight into it, because routing it through a list of one
+        // would be ceremony (DESIGN.md §11.1).
+        data: (study) => switch (study.type) {
+          StudyType.samplingStudy =>
+            PassList(projectId: projectId, studyId: studyId),
+          StudyType.timeStudy => _SinglePassWorkspace(
+              study: study,
+              projectId: projectId,
+              studyId: studyId,
+            ),
+        },
       ),
     );
   }
@@ -144,8 +155,12 @@ class StudyDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Workspace extends ConsumerStatefulWidget {
-  const _Workspace({
+/// The Time Study path: find the study's one and only pass, then time it.
+///
+/// The lookup is a formality — §11.1 guarantees the pass exists — but it is
+/// still a stream, so the first frame can arrive before it has emitted.
+class _SinglePassWorkspace extends ConsumerWidget {
+  const _SinglePassWorkspace({
     required this.study,
     required this.projectId,
     required this.studyId,
@@ -154,6 +169,100 @@ class _Workspace extends ConsumerStatefulWidget {
   final Study study;
   final String projectId;
   final String studyId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final observation = ref.watch(observationProvider(studyId)).value;
+    if (observation == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return _Workspace(
+      study: study,
+      projectId: projectId,
+      studyId: studyId,
+      observationId: observation.id,
+    );
+  }
+}
+
+/// One pass of a Sampling Study, opened from the pass list.
+///
+/// Its own screen rather than a mode of [StudyDetailScreen], so the study-level
+/// actions (report, save as template, delete the study) stay on the study and
+/// the ones here belong to the run: the shortcuts sheet and feedback, which
+/// §10.3 and §10.7 both put where the timing happens.
+class PassWorkspaceScreen extends ConsumerWidget {
+  const PassWorkspaceScreen({
+    super.key,
+    required this.projectId,
+    required this.studyId,
+    required this.observationId,
+  });
+
+  final String projectId;
+  final String studyId;
+  final String observationId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final studyAsync = ref.watch(studyByIdProvider(studyId));
+    final passAsync = ref.watch(passProvider(observationId));
+    final pass = passAsync.value;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(pass == null
+            ? studyAsync.value?.name ?? ''
+            : '${studyAsync.value?.name ?? ''} · '
+                '${l10n.passLabel(pass.sequenceIndex + 1)}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.keyboard_outlined),
+            tooltip: l10n.shortcutsTooltip,
+            onPressed: () => showTimingShortcuts(context),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'feedback') showFeedbackDialog(context);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'feedback',
+                child: Text(l10n.feedbackAction),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: studyAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('$error')),
+        data: (study) => _Workspace(
+          study: study,
+          projectId: projectId,
+          studyId: studyId,
+          observationId: observationId,
+        ),
+      ),
+    );
+  }
+}
+
+class _Workspace extends ConsumerStatefulWidget {
+  const _Workspace({
+    required this.study,
+    required this.projectId,
+    required this.studyId,
+    required this.observationId,
+  });
+
+  final Study study;
+  final String projectId;
+  final String studyId;
+
+  /// The one pass this workspace times. It never learns of any other.
+  final String observationId;
 
   @override
   ConsumerState<_Workspace> createState() => _WorkspaceState();
@@ -197,26 +306,11 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
 
   /// The pass every timing action on this screen is scoped to (DESIGN.md §11.1).
   ///
-  /// Memoised, and deliberately not resolved in `initState`: the future is
-  /// created by the first action, so merely opening a study still writes nothing
-  /// — and because it is created once, two operations started in the same moment
-  /// share one resolve rather than racing to insert `sequenceIndex: 0` twice.
-  ///
-  /// §11.1 makes the pass a route parameter, at which point this disappears.
-  Future<String>? _observationIdFuture;
-
-  Future<String> _observationId() async {
-    try {
-      return await (_observationIdFuture ??=
-          _timing.ensureObservationId(_studyId));
-    } catch (_) {
-      // A memoised future that failed would stay failed, leaving every control
-      // on the screen silently inert for as long as the workspace is open.
-      // Dropping it lets the next press try again.
-      _observationIdFuture = null;
-      rethrow;
-    }
-  }
+  /// Handed in rather than resolved here: a study always has at least one pass,
+  /// so whoever opened this screen already knows which one — the pass list for a
+  /// Sampling Study, the single pass for a Time Study. The workspace itself has
+  /// no notion that others exist, which is what keeps Phase 7 out of it.
+  String get _observationId => widget.observationId;
 
   @override
   void initState() {
@@ -237,15 +331,12 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     final l10n = AppLocalizations.of(context);
     final ops = ref.watch(studyOperationsProvider(_studyId)).value ??
         const <StudyOperation>[];
-    final observation = ref.watch(observationProvider(_studyId)).value;
-    final instances = observation == null
-        ? const <OperationInstance>[]
-        : (ref.watch(operationInstancesProvider(observation.id)).value ??
-            const <OperationInstance>[]);
-    final segments = observation == null
-        ? const <OperationTimeSegment>[]
-        : (ref.watch(operationSegmentsProvider(observation.id)).value ??
-            const <OperationTimeSegment>[]);
+    // No "is there a pass yet" branch: there always is (DESIGN.md §11.1), and
+    // the caller resolved which one before this screen was built.
+    final instances = ref.watch(operationInstancesProvider(_observationId)).value ??
+        const <OperationInstance>[];
+    final segments = ref.watch(operationSegmentsProvider(_observationId)).value ??
+        const <OperationTimeSegment>[];
     final subtypes = ref.watch(subtypesProvider).value ?? const [];
     final subtypeById = {for (final s in subtypes) s.id: s};
     final mediaCounts =
@@ -403,11 +494,11 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     switch (lapActionFor(ops: _ops, timing: _timingByOp)) {
       case LapAdvance(:final studyOperationId):
         _timing.stopAndStartNext(
-            observationId: await _observationId(),
+            observationId: _observationId,
             studyOperationId: studyOperationId);
       case LapStart(:final studyOperationId):
         _timing.start(
-            observationId: await _observationId(),
+            observationId: _observationId,
             studyOperationId: studyOperationId);
       case LapAmbiguous():
         _hint(l10n.lapAmbiguous);
@@ -443,7 +534,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
       await _pause(op);
     } else {
       await _timing.start(
-          observationId: await _observationId(), studyOperationId: op.id);
+          observationId: _observationId, studyOperationId: op.id);
     }
   }
 
@@ -455,7 +546,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     // it complete with no measurement behind it.
     if (state == OperationTimingState.pending) return;
     await _timing.stop(
-        observationId: await _observationId(), studyOperationId: op.id);
+        observationId: _observationId, studyOperationId: op.id);
   }
 
   /// Sounds at most one cue per frame — "over" outranks "approaching" — so
@@ -727,11 +818,11 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
   Widget _controls(AppLocalizations l10n, StudyOperation op, OperationTiming t) {
     final start = _iconBtn(Icons.play_arrow, l10n.tooltipStart,
         () async => _timing.start(
-            observationId: await _observationId(), studyOperationId: op.id),
+            observationId: _observationId, studyOperationId: op.id),
         color: categoryColor(op.category));
     final resume = _iconBtn(Icons.play_arrow, l10n.tooltipResume,
         () async => _timing.start(
-            observationId: await _observationId(), studyOperationId: op.id),
+            observationId: _observationId, studyOperationId: op.id),
         color: categoryColor(op.category));
     final pause = _iconBtn(
         Icons.pause, l10n.tooltipPause, () => _pause(op));
@@ -739,10 +830,10 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
         Icons.stop,
         l10n.tooltipStop,
         () async => _timing.stop(
-            observationId: await _observationId(), studyOperationId: op.id));
+            observationId: _observationId, studyOperationId: op.id));
     final stopNext = _iconBtn(Icons.skip_next, l10n.tooltipStopNext,
         () async => _timing.stopAndStartNext(
-            observationId: await _observationId(), studyOperationId: op.id),
+            observationId: _observationId, studyOperationId: op.id),
         color: categoryColor(op.category));
     final reset =
         _iconBtn(Icons.refresh, l10n.tooltipReset, () => _reset(op));
@@ -779,7 +870,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
 
   Future<void> _openPhotos(StudyOperation op) async {
     final instanceId = await _timing.ensureInstanceId(
-        observationId: await _observationId(), studyOperationId: op.id);
+        observationId: _observationId, studyOperationId: op.id);
     if (!mounted) return;
     await showMediaGallery(
       context,
@@ -796,7 +887,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     );
     if (text == null) return; // cancelled
     await _timing.setNote(
-        observationId: await _observationId(),
+        observationId: _observationId,
         studyOperationId: op.id,
         note: text);
   }
@@ -806,7 +897,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
   Future<void> _pause(StudyOperation op) async {
     final l10n = AppLocalizations.of(context);
     await _timing.pause(
-        observationId: await _observationId(), studyOperationId: op.id);
+        observationId: _observationId, studyOperationId: op.id);
     if (!mounted) return;
     final log = await showDialog<bool>(
       context: context,
@@ -840,7 +931,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
       subtypeId: subtype.id,
     );
     await _timing.start(
-        observationId: await _observationId(), studyOperationId: newOp.id);
+        observationId: _observationId, studyOperationId: newOp.id);
   }
 
   Future<void> _reset(StudyOperation op) async {
@@ -852,7 +943,7 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     );
     if (!confirmed) return;
     await _timing.reset(
-        observationId: await _observationId(), studyOperationId: op.id);
+        observationId: _observationId, studyOperationId: op.id);
     // Reset is the only action that zeroes the clock, so it is the only one
     // that re-arms this operation's alerts.
     _announced.remove(op.id);
@@ -869,12 +960,12 @@ class _WorkspaceState extends ConsumerState<_Workspace> {
     switch (result) {
       case _ManualSet(:final ms):
         await _timing.setManualActual(
-            observationId: await _observationId(),
+            observationId: _observationId,
             studyOperationId: op.id,
             milliseconds: ms);
       case _ManualClear():
         await _timing.clearManualActual(
-            observationId: await _observationId(), studyOperationId: op.id);
+            observationId: _observationId, studyOperationId: op.id);
       case null:
         break;
     }

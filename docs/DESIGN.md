@@ -379,7 +379,8 @@ Cronoanálise discards anomalous readings before computing a mean, and nothing i
 - **The app may flag, it may not act.** Readings beyond ±3s can be surfaced as candidates; the exclusion is always the analyst's. This is §10.4's reasoning exactly — only the analyst knows whether a long cycle was legitimate.
 - _Rejected: automatic ±3s trimming_, the classic textbook rule. At these sample sizes it does not work: a single outlier inflates the deviation enough to bring itself back inside the bound, so with n=5 the rule most often excludes nothing, and when it does fire it silently changes numbers the analyst never agreed to.
 - _Rejected: no exclusion in v1._ The workarounds are both worse than the problem — deleting a pass throws away every other operation's good reading in it, and a manual override invents a number, which §5 and §10.4 both go out of their way to refuse.
-- **Passes are excluded, not deleted.** Hard delete is available only for a pass with **no timing at all** — one opened by mistake. `sequenceIndex` is never renumbered and never reused, so "Pass 4" in an exported file or a written note means the same pass forever (§3.3's historical integrity, applied to passes). A gap in the list is labelled, not silent.
+- **Passes are excluded, not deleted.** Hard delete is available only for a pass with **no timing at all** — one opened by mistake, and never the study's last, since §11.1's invariant is what lets everything downstream drop its null branch. Both guards live in the repository rather than in the menu, so a second caller cannot route around them; the menu shows the action **disabled rather than hidden**, because "where did delete go?" is worse than being told that a pass with measurements is excluded instead.
+- `sequenceIndex` is never renumbered and never reused, so "Pass 4" in an exported file or a written note means the same pass forever (§3.3's historical integrity, applied to passes). A gap in the list is labelled, not silent. The next index therefore comes from a **counter on the study** (`nextPassIndex`), not from `MAX(sequenceIndex) + 1` — that would hand a deleted pass's number straight back to the next one, which is the same rule failing in the one case it exists for.
 
 ### 11.4 Manual overrides in the statistics
 
@@ -460,14 +461,21 @@ _Deferred, not rejected: a t-based confidence band on the trend._ The machinery 
 
 ### 11.10 Schema v6
 
-One migration, carrying four changes:
+One migration, carrying five changes:
 
-1. **Backfill** one observation at `sequenceIndex: 0` for every study that has none (§11.1).
-2. **`Observations`** gains an exclusion stamp + reason (§11.3).
-3. **`OperationInstances`** gains an exclusion stamp + reason (§11.3).
+1. **`Observations`** gains an exclusion stamp + reason (§11.3).
+2. **`OperationInstances`** gains an exclusion stamp + reason (§11.3).
+3. **`Studies`** gains `nextPassIndex`, the pass counter (§11.3).
 4. **`StudyOperations` is rebuilt** to drop the foreign key on `catalogOperationId` (§11.8).
+5. **Backfill** one observation at `sequenceIndex: 0` for every study that has none (§11.1), then seed every study's counter past whatever it now has.
 
-The fourth makes this the **riskiest migration so far** — the first that rebuilds a table rather than adding to one. §2's warning applies directly: columns are copied **explicitly, never `SELECT *`**, because a table rebuilt by a migration can have a different column order than a freshly created one. §10.5's automatic snapshots are the net, and the diagnostics `db` line already records whether a launch upgraded the schema, so a report arriving in words can still be diagnosed. A v5→v6 migration test covers the backfill and the rebuild specifically.
+The fourth makes this the **riskiest migration so far** — the first that rebuilds a table rather than adding to one. §2's warning applies directly: columns are copied **explicitly, never `SELECT *`**, because a table rebuilt by a migration can have a different column order than a freshly created one. Drift's `alterTable` does that, and also holds `legacy_alter_table` across the rename — without which SQLite rewrites `OperationInstances`' own foreign key to follow the table being renamed out of the way, leaving it pointing at something about to be dropped. There is a test that asserts `PRAGMA foreign_key_check` is clean afterwards.
+
+The ordering is deliberate: additive steps first, so a failure in the rebuild leaves the least behind, and the backfill last, so it runs against final tables — and the counter is seeded after the backfill, or a study that gained pass 0 there would hand out `0` again on the first **New pass**.
+
+**The `operation_instances` columns are added only `from >= 3`.** The 2→3 step rebuilds that table with `m.createTable`, which builds it from the *current* Dart definition — so on a v1/v2 database it already arrives carrying them, and adding them again fails the whole upgrade. This applies to any future column on `OperationInstances` or `OperationTimeSegments`; `Observations` needs no such guard, because no migration step creates it. This was found by the v1→v6 test, not by reading.
+
+§10.5's automatic snapshots are the net, and the diagnostics `db` line already records whether a launch upgraded the schema, so a report arriving in words can still be diagnosed.
 
 ### 11.11 Build order
 

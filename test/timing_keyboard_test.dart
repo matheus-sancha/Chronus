@@ -43,6 +43,7 @@ void main() {
         performedAt: DateTime(2026, 7, 27),
         confidenceLevel: 0.95,
         relativePrecision: 0.05,
+        nextPassIndex: 1,
         createdAt: DateTime(2026, 7, 27),
         updatedAt: DateTime(2026, 7, 27),
       );
@@ -85,7 +86,6 @@ void main() {
       db: unusedDb,
       instances: instances,
       segments: segments,
-      hasObservation: instances.isNotEmpty,
     );
 
     await tester.pumpWidget(
@@ -244,25 +244,23 @@ class _RecordingTiming extends TimingRepository {
     required AppDatabase db,
     required this.instances,
     required this.segments,
-    required this.hasObservation,
   }) : super(db);
 
   final List<OperationInstance> instances;
   final List<OperationTimeSegment> segments;
-  final bool hasObservation;
   final calls = <String>[];
 
+  /// Always a pass, never null: a study has had one from creation since §11.1,
+  /// and the Time Study workspace waits on this before it will build.
   @override
   Stream<Observation?> watchObservation(String studyId) => Stream.value(
-        hasObservation
-            ? Observation(
-                id: 'obs-1',
-                studyId: studyId,
-                sequenceIndex: 0,
-                performedAt: DateTime(2026, 7, 27),
-                createdAt: DateTime(2026, 7, 27),
-              )
-            : null,
+        Observation(
+          id: 'obs-1',
+          studyId: studyId,
+          sequenceIndex: 0,
+          performedAt: DateTime(2026, 7, 27),
+          createdAt: DateTime(2026, 7, 27),
+        ),
       );
 
   @override

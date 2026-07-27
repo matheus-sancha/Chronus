@@ -270,5 +270,42 @@
   "feedbackAction": "Enviar feedback",
   "feedbackSubtitle": "Anote o que atrapalhou; vai junto com o diagnóstico",
   "feedbackHint": "O que aconteceu?",
-  "feedbackSaved": "Anotado. Vai junto quando você salvar o diagnóstico."
+  "feedbackSaved": "Anotado. Vai junto quando você salvar o diagnóstico.",
+  "passesTitle": "Tomadas",
+  "passLabel": "Tomada {number}",
+  "@passLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "passAdd": "Nova tomada",
+  "passTimedCount": "{timed} de {total} cronometradas",
+  "@passTimedCount": {
+    "placeholders": {
+      "timed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "passNothingTimed": "Nada cronometrado ainda",
+  "passExcludedBadge": "Excluída",
+  "passExclude": "Excluir das estatísticas",
+  "passInclude": "Voltar para as estatísticas",
+  "passExcludeTitle": "Excluir a {pass}?",
+  "@passExcludeTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passExcludeMessage": "Ela mantém as medições e o relatório próprio — só fica de fora das médias. Você pode voltar atrás quando quiser.",
+  "passExcludeReasonHint": "Por quê? (ex.: linha parada por falta de material)",
+  "passDelete": "Excluir tomada",
+  "passDeleteBlocked": "Esta tomada tem medições. Prefira excluí-la das estatísticas — assim a evidência fica registrada.",
+  "passDeleteLastBlocked": "Um estudo mantém pelo menos uma tomada.",
+  "passDeleteConfirmTitle": "Apagar a {pass}?",
+  "@passDeleteConfirmTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passDeleteConfirmMessage": "Nada foi cronometrado nela. O número não será reaproveitado."
 }

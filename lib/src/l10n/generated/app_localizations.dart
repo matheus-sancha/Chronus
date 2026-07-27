@@ -1401,6 +1401,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Noted. It goes along when you save diagnostics.'**
   String get feedbackSaved;
+
+  /// No description provided for @passesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Passes'**
+  String get passesTitle;
+
+  /// No description provided for @passLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass {number}'**
+  String passLabel(int number);
+
+  /// No description provided for @passAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'New pass'**
+  String get passAdd;
+
+  /// No description provided for @passTimedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{timed} of {total} timed'**
+  String passTimedCount(int timed, int total);
+
+  /// No description provided for @passNothingTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing timed yet'**
+  String get passNothingTimed;
+
+  /// No description provided for @passExcludedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded'**
+  String get passExcludedBadge;
+
+  /// No description provided for @passExclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude from statistics'**
+  String get passExclude;
+
+  /// No description provided for @passInclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Put back in the statistics'**
+  String get passInclude;
+
+  /// No description provided for @passExcludeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude {pass}?'**
+  String passExcludeTitle(String pass);
+
+  /// No description provided for @passExcludeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It keeps its measurements and its own report — it is only left out of the averages. You can put it back at any time.'**
+  String get passExcludeMessage;
+
+  /// No description provided for @passExcludeReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why? (e.g. line starved)'**
+  String get passExcludeReasonHint;
+
+  /// No description provided for @passDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete pass'**
+  String get passDelete;
+
+  /// No description provided for @passDeleteBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This pass has measurements. Exclude it instead — that keeps the evidence.'**
+  String get passDeleteBlocked;
+
+  /// No description provided for @passDeleteLastBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'A study keeps at least one pass.'**
+  String get passDeleteLastBlocked;
+
+  /// No description provided for @passDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {pass}?'**
+  String passDeleteConfirmTitle(String pass);
+
+  /// No description provided for @passDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was timed in it. The number is not used again.'**
+  String get passDeleteConfirmMessage;
 }
 
 class _AppLocalizationsDelegate

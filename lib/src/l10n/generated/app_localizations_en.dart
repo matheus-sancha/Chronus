@@ -708,4 +708,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackSaved => 'Noted. It goes along when you save diagnostics.';
+
+  @override
+  String get passesTitle => 'Passes';
+
+  @override
+  String passLabel(int number) {
+    return 'Pass $number';
+  }
+
+  @override
+  String get passAdd => 'New pass';
+
+  @override
+  String passTimedCount(int timed, int total) {
+    return '$timed of $total timed';
+  }
+
+  @override
+  String get passNothingTimed => 'Nothing timed yet';
+
+  @override
+  String get passExcludedBadge => 'Excluded';
+
+  @override
+  String get passExclude => 'Exclude from statistics';
+
+  @override
+  String get passInclude => 'Put back in the statistics';
+
+  @override
+  String passExcludeTitle(String pass) {
+    return 'Exclude $pass?';
+  }
+
+  @override
+  String get passExcludeMessage =>
+      'It keeps its measurements and its own report — it is only left out of the averages. You can put it back at any time.';
+
+  @override
+  String get passExcludeReasonHint => 'Why? (e.g. line starved)';
+
+  @override
+  String get passDelete => 'Delete pass';
+
+  @override
+  String get passDeleteBlocked =>
+      'This pass has measurements. Exclude it instead — that keeps the evidence.';
+
+  @override
+  String get passDeleteLastBlocked => 'A study keeps at least one pass.';
+
+  @override
+  String passDeleteConfirmTitle(String pass) {
+    return 'Delete $pass?';
+  }
+
+  @override
+  String get passDeleteConfirmMessage =>
+      'Nothing was timed in it. The number is not used again.';
 }

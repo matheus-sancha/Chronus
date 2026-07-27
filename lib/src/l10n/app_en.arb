@@ -318,5 +318,42 @@
   "feedbackAction": "Send feedback",
   "feedbackSubtitle": "Note what got in the way; it travels with the diagnostics",
   "feedbackHint": "What happened?",
-  "feedbackSaved": "Noted. It goes along when you save diagnostics."
+  "feedbackSaved": "Noted. It goes along when you save diagnostics.",
+  "passesTitle": "Passes",
+  "passLabel": "Pass {number}",
+  "@passLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "passAdd": "New pass",
+  "passTimedCount": "{timed} of {total} timed",
+  "@passTimedCount": {
+    "placeholders": {
+      "timed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "passNothingTimed": "Nothing timed yet",
+  "passExcludedBadge": "Excluded",
+  "passExclude": "Exclude from statistics",
+  "passInclude": "Put back in the statistics",
+  "passExcludeTitle": "Exclude {pass}?",
+  "@passExcludeTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passExcludeMessage": "It keeps its measurements and its own report — it is only left out of the averages. You can put it back at any time.",
+  "passExcludeReasonHint": "Why? (e.g. line starved)",
+  "passDelete": "Delete pass",
+  "passDeleteBlocked": "This pass has measurements. Exclude it instead — that keeps the evidence.",
+  "passDeleteLastBlocked": "A study keeps at least one pass.",
+  "passDeleteConfirmTitle": "Delete {pass}?",
+  "@passDeleteConfirmTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passDeleteConfirmMessage": "Nothing was timed in it. The number is not used again."
 }

@@ -61,6 +61,19 @@ GoRouter router(Ref ref) {
                               studyId: state.pathParameters['studyId']!,
                             ),
                           ),
+                          // One pass of a Sampling Study. The pass is a route
+                          // parameter rather than screen state (DESIGN.md
+                          // §11.1), so the workspace never has to ask which
+                          // one it is timing.
+                          GoRoute(
+                            path: 'passes/:observationId',
+                            builder: (context, state) => PassWorkspaceScreen(
+                              projectId: state.pathParameters['projectId']!,
+                              studyId: state.pathParameters['studyId']!,
+                              observationId:
+                                  state.pathParameters['observationId']!,
+                            ),
+                          ),
                         ],
                       ),
                     ],
