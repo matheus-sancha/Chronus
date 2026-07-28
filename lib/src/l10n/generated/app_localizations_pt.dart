@@ -773,4 +773,119 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get passDeleteConfirmMessage =>
       'Nada foi cronometrado nela. O número não será reaproveitado.';
+
+  @override
+  String get passReport => 'Relatório desta tomada';
+
+  @override
+  String get samplingReportTitle => 'Relatório de amostragem';
+
+  @override
+  String get samplingReportEmpty =>
+      'Cronometre uma operação em ao menos uma tomada para ver o relatório.';
+
+  @override
+  String samplingCriteria(String confidence, String precision) {
+    return '$confidence% de confiança · ±$precision%';
+  }
+
+  @override
+  String samplingPassesTaken(int taken) {
+    return '$taken tomadas realizadas';
+  }
+
+  @override
+  String samplingAdequate(int required) {
+    return 'Adequado — $required necessárias';
+  }
+
+  @override
+  String samplingNotAdequate(int shortfall) {
+    return 'Não adequado — faltam $shortfall tomadas';
+  }
+
+  @override
+  String get samplingNotDeterminable =>
+      'Ainda não há tomadas suficientes para julgar';
+
+  @override
+  String get samplingNothingTimed => 'Nada cronometrado ainda';
+
+  @override
+  String samplingGovernedBy(String operation) {
+    return 'Determinado por: $operation';
+  }
+
+  @override
+  String samplingNeverTimed(String operations) {
+    return 'Nunca cronometradas: $operations';
+  }
+
+  @override
+  String get samplingStatisticsTitle => 'Estatísticas por operação';
+
+  @override
+  String get samplingReadingsTitle => 'Leituras';
+
+  @override
+  String get samplingMean => 'Média';
+
+  @override
+  String get samplingRange => 'Amplitude';
+
+  @override
+  String get samplingStdDev => 'Desvio padrão';
+
+  @override
+  String get samplingCv => 'CV';
+
+  @override
+  String get samplingRequired => 'Necessárias';
+
+  @override
+  String get samplingCount => 'n';
+
+  @override
+  String get samplingUnplannedNote =>
+      'Não planejada — aparece, mas não entra no veredito';
+
+  @override
+  String samplingExcludedNote(int count) {
+    return '$count leituras excluídas';
+  }
+
+  @override
+  String samplingManualNote(int count) {
+    return '$count digitadas';
+  }
+
+  @override
+  String get samplingMeanWorkContent => 'Conteúdo de trabalho (tomada média)';
+
+  @override
+  String get readingExclude => 'Excluir esta leitura';
+
+  @override
+  String get readingInclude => 'Voltar com esta leitura';
+
+  @override
+  String readingExcludeTitle(String operation, int pass) {
+    return 'Excluir $operation, tomada $pass?';
+  }
+
+  @override
+  String get readingExcludeMessage =>
+      'A medição continua registrada e ainda aparece no relatório da própria tomada. Ela só fica de fora das médias.';
+
+  @override
+  String get readingExcludedByPass => 'Excluída junto com a tomada inteira.';
+
+  @override
+  String get studyCriteriaSection => 'Tamanho da amostra';
+
+  @override
+  String get studyConfidenceLevel => 'Nível de confiança';
+
+  @override
+  String get studyRelativePrecision => 'Precisão (± % da média)';
 }

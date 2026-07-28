@@ -30,6 +30,18 @@ final passProvider =
   return ref.watch(observationRepositoryProvider).watchById(observationId);
 });
 
+/// Every instance in a study, across its passes — the sampling report's input.
+final studyInstancesProvider =
+    StreamProvider.family<List<OperationInstance>, String>((ref, studyId) {
+  return ref.watch(timingRepositoryProvider).watchInstancesForStudy(studyId);
+});
+
+/// Every segment in a study, across its passes.
+final studySegmentsProvider =
+    StreamProvider.family<List<OperationTimeSegment>, String>((ref, studyId) {
+  return ref.watch(timingRepositoryProvider).watchSegmentsForStudy(studyId);
+});
+
 // Hand-written (Drift-typed) providers — see projects_providers.dart.
 
 /// A study's first pass, or null before any timing.

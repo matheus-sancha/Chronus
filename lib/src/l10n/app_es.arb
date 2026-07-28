@@ -307,5 +307,83 @@
       "pass": { "type": "String" }
     }
   },
-  "passDeleteConfirmMessage": "No se cronometró nada en ella. El número no se reutiliza."
+  "passDeleteConfirmMessage": "No se cronometró nada en ella. El número no se reutiliza.",
+  "passReport": "Informe de esta toma",
+  "samplingReportTitle": "Informe de muestreo",
+  "samplingReportEmpty": "Cronometra una operación en al menos una toma para ver el informe.",
+  "samplingCriteria": "{confidence}% de confianza · ±{precision}%",
+  "@samplingCriteria": {
+    "placeholders": {
+      "confidence": { "type": "String" },
+      "precision": { "type": "String" }
+    }
+  },
+  "samplingPassesTaken": "{taken} tomas realizadas",
+  "@samplingPassesTaken": {
+    "placeholders": {
+      "taken": { "type": "int" }
+    }
+  },
+  "samplingAdequate": "Adecuado — {required} necesarias",
+  "@samplingAdequate": {
+    "placeholders": {
+      "required": { "type": "int" }
+    }
+  },
+  "samplingNotAdequate": "No adecuado — faltan {shortfall} tomas",
+  "@samplingNotAdequate": {
+    "placeholders": {
+      "shortfall": { "type": "int" }
+    }
+  },
+  "samplingNotDeterminable": "Aún no hay tomas suficientes para juzgar",
+  "samplingNothingTimed": "Nada cronometrado aún",
+  "samplingGovernedBy": "Determinado por: {operation}",
+  "@samplingGovernedBy": {
+    "placeholders": {
+      "operation": { "type": "String" }
+    }
+  },
+  "samplingNeverTimed": "Nunca cronometradas: {operations}",
+  "@samplingNeverTimed": {
+    "placeholders": {
+      "operations": { "type": "String" }
+    }
+  },
+  "samplingStatisticsTitle": "Estadísticas por operación",
+  "samplingReadingsTitle": "Lecturas",
+  "samplingMean": "Media",
+  "samplingRange": "Rango",
+  "samplingStdDev": "Desv. típica",
+  "samplingCv": "CV",
+  "samplingRequired": "Necesarias",
+  "samplingCount": "n",
+  "samplingUnplannedNote": "No planificada — se muestra, pero no entra en el veredicto",
+  "samplingExcludedNote": "{count} lecturas excluidas",
+  "@samplingExcludedNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingManualNote": "{count} introducidas a mano",
+  "@samplingManualNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingMeanWorkContent": "Contenido de trabajo (toma media)",
+  "readingExclude": "Excluir esta lectura",
+  "readingInclude": "Devolver esta lectura",
+  "readingExcludeTitle": "¿Excluir {operation}, toma {pass}?",
+  "@readingExcludeTitle": {
+    "placeholders": {
+      "operation": { "type": "String" },
+      "pass": { "type": "int" }
+    }
+  },
+  "readingExcludeMessage": "La medición se conserva y sigue apareciendo en el informe de esa toma. Solo queda fuera de los promedios.",
+  "readingExcludedByPass": "Excluida junto con toda la toma.",
+  "studyCriteriaSection": "Tamaño de la muestra",
+  "studyConfidenceLevel": "Nivel de confianza",
+  "studyRelativePrecision": "Precisión (± % de la media)"
 }

@@ -52,12 +52,18 @@ class StudyDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(studyAsync.value?.name ?? ''),
         actions: [
-          if (studyAsync.value?.type == StudyType.timeStudy)
+          // Both study types report now; which report differs (§11.6).
+          if (studyAsync.hasValue)
             IconButton(
               icon: const Icon(Icons.assessment_outlined),
-              tooltip: l10n.reportTitle,
-              onPressed: () =>
-                  context.push('/projects/$projectId/studies/$studyId/report'),
+              tooltip: studyAsync.value!.type == StudyType.samplingStudy
+                  ? l10n.samplingReportTitle
+                  : l10n.reportTitle,
+              onPressed: () => context.push(
+                studyAsync.value!.type == StudyType.samplingStudy
+                    ? '/projects/$projectId/studies/$studyId/sampling-report'
+                    : '/projects/$projectId/studies/$studyId/report',
+              ),
             ),
           IconButton(
             icon: const Icon(Icons.bookmark_add_outlined),

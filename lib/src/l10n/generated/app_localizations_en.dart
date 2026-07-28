@@ -767,4 +767,118 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passDeleteConfirmMessage =>
       'Nothing was timed in it. The number is not used again.';
+
+  @override
+  String get passReport => 'Report for this pass';
+
+  @override
+  String get samplingReportTitle => 'Sampling report';
+
+  @override
+  String get samplingReportEmpty =>
+      'Time an operation in at least one pass to see the report.';
+
+  @override
+  String samplingCriteria(String confidence, String precision) {
+    return '$confidence% confidence · ±$precision%';
+  }
+
+  @override
+  String samplingPassesTaken(int taken) {
+    return '$taken passes taken';
+  }
+
+  @override
+  String samplingAdequate(int required) {
+    return 'Adequate — $required needed';
+  }
+
+  @override
+  String samplingNotAdequate(int shortfall) {
+    return 'Not adequate — $shortfall more passes';
+  }
+
+  @override
+  String get samplingNotDeterminable => 'Not enough passes to judge yet';
+
+  @override
+  String get samplingNothingTimed => 'Nothing timed yet';
+
+  @override
+  String samplingGovernedBy(String operation) {
+    return 'Governed by: $operation';
+  }
+
+  @override
+  String samplingNeverTimed(String operations) {
+    return 'Never timed: $operations';
+  }
+
+  @override
+  String get samplingStatisticsTitle => 'Per-operation statistics';
+
+  @override
+  String get samplingReadingsTitle => 'Readings';
+
+  @override
+  String get samplingMean => 'Mean';
+
+  @override
+  String get samplingRange => 'Range';
+
+  @override
+  String get samplingStdDev => 'Std dev';
+
+  @override
+  String get samplingCv => 'CV';
+
+  @override
+  String get samplingRequired => 'Needed';
+
+  @override
+  String get samplingCount => 'n';
+
+  @override
+  String get samplingUnplannedNote =>
+      'Unplanned — shown, but not part of the verdict';
+
+  @override
+  String samplingExcludedNote(int count) {
+    return '$count readings excluded';
+  }
+
+  @override
+  String samplingManualNote(int count) {
+    return '$count entered by hand';
+  }
+
+  @override
+  String get samplingMeanWorkContent => 'Work content (mean pass)';
+
+  @override
+  String get readingExclude => 'Exclude this reading';
+
+  @override
+  String get readingInclude => 'Put this reading back';
+
+  @override
+  String readingExcludeTitle(String operation, int pass) {
+    return 'Exclude $operation, pass $pass?';
+  }
+
+  @override
+  String get readingExcludeMessage =>
+      'The measurement stays, and still appears in that pass\'s own report. It is only left out of the averages.';
+
+  @override
+  String get readingExcludedByPass => 'Excluded with the whole pass.';
+
+  @override
+  String get studyCriteriaSection => 'Sample size';
+
+  @override
+  String get studyConfidenceLevel => 'Confidence level';
+
+  @override
+  String get studyRelativePrecision => 'Precision (± % of the mean)';
 }

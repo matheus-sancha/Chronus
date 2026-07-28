@@ -44,6 +44,10 @@ class PassList extends ConsumerWidget {
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) => _PassRow(
                 pass: passes[i],
+                onReport: () => context.push(
+                  '/projects/$projectId/studies/$studyId'
+                  '/passes/${passes[i].id}/report',
+                ),
                 // A study always keeps at least one pass (§11.1), so the delete
                 // action is offered only when there is something to fall back
                 // on. The repository enforces this too — this only avoids
@@ -97,11 +101,13 @@ class _PassRow extends ConsumerWidget {
     required this.pass,
     required this.canDelete,
     required this.onOpen,
+    required this.onReport,
   });
 
   final PassSummary pass;
   final bool canDelete;
   final VoidCallback onOpen;
+  final VoidCallback onReport;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -146,11 +152,20 @@ class _PassRow extends ConsumerWidget {
       ),
       trailing: PopupMenuButton<String>(
         onSelected: (value) => switch (value) {
+          'report' => onReport(),
           'exclude' => _toggleExcluded(context, ref),
           'delete' => _delete(context, ref),
           _ => null,
         },
         itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'report',
+            // A pass is a time study, so it gets the full Time Study report —
+            // Gantt included. That is how an analyst explains an outlier
+            // (what ran alongside it, where it paused) BEFORE excluding it.
+            enabled: !pass.isEmpty,
+            child: Text(l10n.passReport),
+          ),
           PopupMenuItem(
             value: 'exclude',
             child: Text(pass.isExcluded ? l10n.passInclude : l10n.passExclude),

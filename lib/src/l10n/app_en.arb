@@ -355,5 +355,83 @@
       "pass": { "type": "String" }
     }
   },
-  "passDeleteConfirmMessage": "Nothing was timed in it. The number is not used again."
+  "passDeleteConfirmMessage": "Nothing was timed in it. The number is not used again.",
+  "passReport": "Report for this pass",
+  "samplingReportTitle": "Sampling report",
+  "samplingReportEmpty": "Time an operation in at least one pass to see the report.",
+  "samplingCriteria": "{confidence}% confidence · ±{precision}%",
+  "@samplingCriteria": {
+    "placeholders": {
+      "confidence": { "type": "String" },
+      "precision": { "type": "String" }
+    }
+  },
+  "samplingPassesTaken": "{taken} passes taken",
+  "@samplingPassesTaken": {
+    "placeholders": {
+      "taken": { "type": "int" }
+    }
+  },
+  "samplingAdequate": "Adequate — {required} needed",
+  "@samplingAdequate": {
+    "placeholders": {
+      "required": { "type": "int" }
+    }
+  },
+  "samplingNotAdequate": "Not adequate — {shortfall} more passes",
+  "@samplingNotAdequate": {
+    "placeholders": {
+      "shortfall": { "type": "int" }
+    }
+  },
+  "samplingNotDeterminable": "Not enough passes to judge yet",
+  "samplingNothingTimed": "Nothing timed yet",
+  "samplingGovernedBy": "Governed by: {operation}",
+  "@samplingGovernedBy": {
+    "placeholders": {
+      "operation": { "type": "String" }
+    }
+  },
+  "samplingNeverTimed": "Never timed: {operations}",
+  "@samplingNeverTimed": {
+    "placeholders": {
+      "operations": { "type": "String" }
+    }
+  },
+  "samplingStatisticsTitle": "Per-operation statistics",
+  "samplingReadingsTitle": "Readings",
+  "samplingMean": "Mean",
+  "samplingRange": "Range",
+  "samplingStdDev": "Std dev",
+  "samplingCv": "CV",
+  "samplingRequired": "Needed",
+  "samplingCount": "n",
+  "samplingUnplannedNote": "Unplanned — shown, but not part of the verdict",
+  "samplingExcludedNote": "{count} readings excluded",
+  "@samplingExcludedNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingManualNote": "{count} entered by hand",
+  "@samplingManualNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingMeanWorkContent": "Work content (mean pass)",
+  "readingExclude": "Exclude this reading",
+  "readingInclude": "Put this reading back",
+  "readingExcludeTitle": "Exclude {operation}, pass {pass}?",
+  "@readingExcludeTitle": {
+    "placeholders": {
+      "operation": { "type": "String" },
+      "pass": { "type": "int" }
+    }
+  },
+  "readingExcludeMessage": "The measurement stays, and still appears in that pass's own report. It is only left out of the averages.",
+  "readingExcludedByPass": "Excluded with the whole pass.",
+  "studyCriteriaSection": "Sample size",
+  "studyConfidenceLevel": "Confidence level",
+  "studyRelativePrecision": "Precision (± % of the mean)"
 }

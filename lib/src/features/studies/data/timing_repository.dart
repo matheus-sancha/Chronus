@@ -60,6 +60,62 @@ class TimingRepository {
     return query.watch().map((rows) => rows.map((r) => r.readTable(seg)).toList());
   }
 
+  /// Every operation instance in a study, across all of its passes.
+  ///
+  /// One query rather than one per pass: the sampling report needs all of them
+  /// at once, and a per-pass query would be N+1 of them re-running on every
+  /// keystroke of a live run.
+  Stream<List<OperationInstance>> watchInstancesForStudy(String studyId) {
+    final inst = _db.operationInstances;
+    final obs = _db.observations;
+    final query = _db.select(inst).join([
+      innerJoin(obs, obs.id.equalsExp(inst.observationId)),
+    ])
+      ..where(obs.studyId.equals(studyId));
+    return query.watch().map((rows) => rows.map((r) => r.readTable(inst)).toList());
+  }
+
+  /// Every timed segment in a study, across all of its passes.
+  Stream<List<OperationTimeSegment>> watchSegmentsForStudy(String studyId) {
+    final seg = _db.operationTimeSegments;
+    final inst = _db.operationInstances;
+    final obs = _db.observations;
+    final query = _db.select(seg).join([
+      innerJoin(inst, inst.id.equalsExp(seg.operationInstanceId)),
+      innerJoin(obs, obs.id.equalsExp(inst.observationId)),
+    ])
+      ..where(obs.studyId.equals(studyId));
+    return query.watch().map((rows) => rows.map((r) => r.readTable(seg)).toList());
+  }
+
+  /// Takes a single reading out of the statistics, or puts it back (§11.3).
+  ///
+  /// The finer grain of the pass-level flag: one operation went wrong in an
+  /// otherwise good pass. Non-destructive — the measurement stays, appears in
+  /// that pass's own report and in the Segments sheet, and is only out of the
+  /// aggregate.
+  Future<void> setReadingExcluded({
+    required String observationId,
+    required String studyOperationId,
+    required bool excluded,
+    String? reason,
+  }) async {
+    final trimmed = reason?.trim();
+    await _withInstance(observationId, studyOperationId, (instanceId) async {
+      await (_db.update(_db.operationInstances)
+            ..where((t) => t.id.equals(instanceId)))
+          .write(OperationInstancesCompanion(
+        excludedAt: Value(excluded ? DateTime.now() : null),
+        exclusionReason: Value(
+            excluded && trimmed != null && trimmed.isNotEmpty ? trimmed : null),
+      ));
+    });
+    // Worth a breadcrumb for the same reason as `timer.reset`: it changes what
+    // the report says without changing what was measured.
+    Diag.event('reading.excluded',
+        'op=${Diag.shortId(studyOperationId)} excluded=$excluded');
+  }
+
   // --- per-operation controls ----------------------------------------------
 
   /// Start or resume timing an operation: opens a new segment. Idempotent while

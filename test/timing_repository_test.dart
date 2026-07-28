@@ -356,6 +356,47 @@ void main() {
       expect((await timingOf(opA)).instance!.notes, null); // blank clears
     });
 
+    test('excluding a reading is non-destructive and reversible', () async {
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stop(observationId: obsId, studyOperationId: opA);
+      final measured = (await timingOf(opA)).measuredMs();
+
+      await timing.setReadingExcluded(
+        observationId: obsId,
+        studyOperationId: opA,
+        excluded: true,
+        reason: '  wire feed jam  ',
+      );
+
+      var instance = (await timingOf(opA)).instance!;
+      expect(instance.excludedAt, isNotNull);
+      expect(instance.exclusionReason, 'wire feed jam'); // trimmed
+      // §11.3: the measurement stays. It is out of the aggregate, not gone —
+      // this pass's own report and the Segments sheet still carry it.
+      expect((await timingOf(opA)).measuredMs(), measured);
+      expect((await timing.watchSegments(obsId).first), isNotEmpty);
+
+      await timing.setReadingExcluded(
+        observationId: obsId,
+        studyOperationId: opA,
+        excluded: false,
+      );
+      instance = (await timingOf(opA)).instance!;
+      expect(instance.excludedAt, isNull);
+      expect(instance.exclusionReason, isNull);
+    });
+
+    test('excluding a reading that was never timed does nothing', () async {
+      // No instance exists yet, and one must not be conjured to hold a flag
+      // about a measurement that does not exist.
+      await timing.setReadingExcluded(
+        observationId: obsId,
+        studyOperationId: opC,
+        excluded: true,
+      );
+      expect((await timingOf(opC)).instance, isNull);
+    });
+
     test('insertUnplannedAfter places the op between its neighbours', () async {
       final ins = await sequence.insertUnplannedAfter(
         studyId: studyId,
