@@ -8,9 +8,13 @@ void main() {
   late AppDatabase db;
   late CatalogRepository catalog;
 
-  setUp(() {
+  setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
     catalog = CatalogRepository(db);
+    // A fresh database now arrives with the starter catalog (DESIGN.md §9).
+    // Cleared here so these tests still describe an empty catalog, which is
+    // what they are about — `starter_catalog_test.dart` covers the seeding.
+    await db.delete(db.catalogOperations).go();
   });
   tearDown(() => db.close());
 

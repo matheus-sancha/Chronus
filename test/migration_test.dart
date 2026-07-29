@@ -16,6 +16,38 @@ import 'package:sqlite3/sqlite3.dart';
 /// that deliberately defines an older shape of one of them (the v1
 /// `operation_instances`, which the 2 -> 3 step rebuilds) keeps its own.
 void _createV5TimingTables(Database db) {
+  // app_settings and operation_subtypes exist in every real database from v1,
+  // and the starter-catalog seeding (§9) reads both on every upgrade. The
+  // fixtures that predate them get them here for the same reason they get
+  // `studies`: a migration step has to have something to work against.
+  db.execute('''
+    CREATE TABLE IF NOT EXISTS app_settings (
+      id INTEGER NOT NULL DEFAULT 0 PRIMARY KEY, locale_code TEXT,
+      default_analyst TEXT, time_unit TEXT NOT NULL,
+      alert_sounds_enabled INTEGER NOT NULL DEFAULT 1,
+      updated_at INTEGER NOT NULL);
+  ''');
+  // Named columns, not positional: a fixture that built the older five-column
+  // app_settings itself keeps its own shape, and this still fills the row.
+  db.execute('INSERT OR IGNORE INTO app_settings (id, time_unit, updated_at) '
+      "VALUES (0, 'seconds', 0)");
+  db.execute('''
+    CREATE TABLE IF NOT EXISTS operation_subtypes (
+      id TEXT NOT NULL PRIMARY KEY, category TEXT NOT NULL, name TEXT NOT NULL,
+      is_built_in INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
+  ''');
+  for (final name in [
+    'Waiting',
+    'Motion',
+    'Transportation',
+    'Over-processing',
+    'Overproduction',
+    'Inventory',
+    'Defects',
+  ]) {
+    db.execute('INSERT OR IGNORE INTO operation_subtypes VALUES '
+        "('st-$name', 'unproductive', '$name', 1, 0)");
+  }
   db.execute('''
     CREATE TABLE IF NOT EXISTS catalog_operations (
       id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, category TEXT NOT NULL,
@@ -119,12 +151,14 @@ void main() {
         shift TEXT, work_order_number TEXT, process_type TEXT, notes TEXT,
         created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
     ''');
-    _createV5TimingTables(v1);
     v1.execute("INSERT INTO app_settings VALUES (0,NULL,NULL,'seconds',0)");
     v1.execute("INSERT INTO catalog_operations VALUES "
         "('c1','Load part','productive',NULL,4500,0,0)");
     v1.execute("INSERT INTO templates VALUES ('t1','Cycle','timeStudy',0,0,0)");
     v1.execute("INSERT INTO template_operations VALUES ('o1','t1','c1',1.0,0)");
+    // After the fixture's own rows: the helper inserts a settings row only if
+    // one is missing, and this fixture writes its own.
+    _createV5TimingTables(v1);
     v1.execute('PRAGMA user_version = 1');
     v1.close();
 

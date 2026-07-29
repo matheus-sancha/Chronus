@@ -329,6 +329,15 @@ class AppSettings extends Table {
   /// Sound when an operation nears or passes its reference standard (§3.6).
   BoolColumn get alertSoundsEnabled =>
       boolean().withDefault(const Constant(true))();
+
+  /// When the starter catalog was seeded, or null if it never was (§9).
+  ///
+  /// A record that the offer was *made*, not that the rows still exist. Seeding
+  /// is guarded on an empty catalog, which alone would refill it for someone who
+  /// deliberately emptied theirs — this is what makes "no thanks" stick across
+  /// the next drop.
+  DateTimeColumn get starterCatalogSeededAt => dateTime().nullable()();
+
   DateTimeColumn get updatedAt => dateTime()();
 
   @override

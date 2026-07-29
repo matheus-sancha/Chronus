@@ -6522,6 +6522,17 @@ class $AppSettingsTable extends AppSettings
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _starterCatalogSeededAtMeta =
+      const VerificationMeta('starterCatalogSeededAt');
+  @override
+  late final GeneratedColumn<DateTime> starterCatalogSeededAt =
+      GeneratedColumn<DateTime>(
+        'starter_catalog_seeded_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -6540,6 +6551,7 @@ class $AppSettingsTable extends AppSettings
     defaultAnalyst,
     timeUnit,
     alertSoundsEnabled,
+    starterCatalogSeededAt,
     updatedAt,
   ];
   @override
@@ -6578,6 +6590,15 @@ class $AppSettingsTable extends AppSettings
         alertSoundsEnabled.isAcceptableOrUnknown(
           data['alert_sounds_enabled']!,
           _alertSoundsEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('starter_catalog_seeded_at')) {
+      context.handle(
+        _starterCatalogSeededAtMeta,
+        starterCatalogSeededAt.isAcceptableOrUnknown(
+          data['starter_catalog_seeded_at']!,
+          _starterCatalogSeededAtMeta,
         ),
       );
     }
@@ -6620,6 +6641,10 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.bool,
         data['${effectivePrefix}alert_sounds_enabled'],
       )!,
+      starterCatalogSeededAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}starter_catalog_seeded_at'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -6648,6 +6673,14 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
 
   /// Sound when an operation nears or passes its reference standard (§3.6).
   final bool alertSoundsEnabled;
+
+  /// When the starter catalog was seeded, or null if it never was (§9).
+  ///
+  /// A record that the offer was *made*, not that the rows still exist. Seeding
+  /// is guarded on an empty catalog, which alone would refill it for someone who
+  /// deliberately emptied theirs — this is what makes "no thanks" stick across
+  /// the next drop.
+  final DateTime? starterCatalogSeededAt;
   final DateTime updatedAt;
   const AppSetting({
     required this.id,
@@ -6655,6 +6688,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     this.defaultAnalyst,
     required this.timeUnit,
     required this.alertSoundsEnabled,
+    this.starterCatalogSeededAt,
     required this.updatedAt,
   });
   @override
@@ -6673,6 +6707,11 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       );
     }
     map['alert_sounds_enabled'] = Variable<bool>(alertSoundsEnabled);
+    if (!nullToAbsent || starterCatalogSeededAt != null) {
+      map['starter_catalog_seeded_at'] = Variable<DateTime>(
+        starterCatalogSeededAt,
+      );
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -6688,6 +6727,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           : Value(defaultAnalyst),
       timeUnit: Value(timeUnit),
       alertSoundsEnabled: Value(alertSoundsEnabled),
+      starterCatalogSeededAt: starterCatalogSeededAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(starterCatalogSeededAt),
       updatedAt: Value(updatedAt),
     );
   }
@@ -6705,6 +6747,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         serializer.fromJson<String>(json['timeUnit']),
       ),
       alertSoundsEnabled: serializer.fromJson<bool>(json['alertSoundsEnabled']),
+      starterCatalogSeededAt: serializer.fromJson<DateTime?>(
+        json['starterCatalogSeededAt'],
+      ),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -6719,6 +6764,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         $AppSettingsTable.$convertertimeUnit.toJson(timeUnit),
       ),
       'alertSoundsEnabled': serializer.toJson<bool>(alertSoundsEnabled),
+      'starterCatalogSeededAt': serializer.toJson<DateTime?>(
+        starterCatalogSeededAt,
+      ),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -6729,6 +6777,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     Value<String?> defaultAnalyst = const Value.absent(),
     TimeUnit? timeUnit,
     bool? alertSoundsEnabled,
+    Value<DateTime?> starterCatalogSeededAt = const Value.absent(),
     DateTime? updatedAt,
   }) => AppSetting(
     id: id ?? this.id,
@@ -6738,6 +6787,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         : this.defaultAnalyst,
     timeUnit: timeUnit ?? this.timeUnit,
     alertSoundsEnabled: alertSoundsEnabled ?? this.alertSoundsEnabled,
+    starterCatalogSeededAt: starterCatalogSeededAt.present
+        ? starterCatalogSeededAt.value
+        : this.starterCatalogSeededAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   AppSetting copyWithCompanion(AppSettingsCompanion data) {
@@ -6753,6 +6805,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       alertSoundsEnabled: data.alertSoundsEnabled.present
           ? data.alertSoundsEnabled.value
           : this.alertSoundsEnabled,
+      starterCatalogSeededAt: data.starterCatalogSeededAt.present
+          ? data.starterCatalogSeededAt.value
+          : this.starterCatalogSeededAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -6765,6 +6820,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('defaultAnalyst: $defaultAnalyst, ')
           ..write('timeUnit: $timeUnit, ')
           ..write('alertSoundsEnabled: $alertSoundsEnabled, ')
+          ..write('starterCatalogSeededAt: $starterCatalogSeededAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -6777,6 +6833,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     defaultAnalyst,
     timeUnit,
     alertSoundsEnabled,
+    starterCatalogSeededAt,
     updatedAt,
   );
   @override
@@ -6788,6 +6845,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.defaultAnalyst == this.defaultAnalyst &&
           other.timeUnit == this.timeUnit &&
           other.alertSoundsEnabled == this.alertSoundsEnabled &&
+          other.starterCatalogSeededAt == this.starterCatalogSeededAt &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -6797,6 +6855,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<String?> defaultAnalyst;
   final Value<TimeUnit> timeUnit;
   final Value<bool> alertSoundsEnabled;
+  final Value<DateTime?> starterCatalogSeededAt;
   final Value<DateTime> updatedAt;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
@@ -6804,6 +6863,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.defaultAnalyst = const Value.absent(),
     this.timeUnit = const Value.absent(),
     this.alertSoundsEnabled = const Value.absent(),
+    this.starterCatalogSeededAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   AppSettingsCompanion.insert({
@@ -6812,6 +6872,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.defaultAnalyst = const Value.absent(),
     required TimeUnit timeUnit,
     this.alertSoundsEnabled = const Value.absent(),
+    this.starterCatalogSeededAt = const Value.absent(),
     required DateTime updatedAt,
   }) : timeUnit = Value(timeUnit),
        updatedAt = Value(updatedAt);
@@ -6821,6 +6882,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Expression<String>? defaultAnalyst,
     Expression<String>? timeUnit,
     Expression<bool>? alertSoundsEnabled,
+    Expression<DateTime>? starterCatalogSeededAt,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -6830,6 +6892,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       if (timeUnit != null) 'time_unit': timeUnit,
       if (alertSoundsEnabled != null)
         'alert_sounds_enabled': alertSoundsEnabled,
+      if (starterCatalogSeededAt != null)
+        'starter_catalog_seeded_at': starterCatalogSeededAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -6840,6 +6904,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Value<String?>? defaultAnalyst,
     Value<TimeUnit>? timeUnit,
     Value<bool>? alertSoundsEnabled,
+    Value<DateTime?>? starterCatalogSeededAt,
     Value<DateTime>? updatedAt,
   }) {
     return AppSettingsCompanion(
@@ -6848,6 +6913,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       defaultAnalyst: defaultAnalyst ?? this.defaultAnalyst,
       timeUnit: timeUnit ?? this.timeUnit,
       alertSoundsEnabled: alertSoundsEnabled ?? this.alertSoundsEnabled,
+      starterCatalogSeededAt:
+          starterCatalogSeededAt ?? this.starterCatalogSeededAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -6872,6 +6939,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     if (alertSoundsEnabled.present) {
       map['alert_sounds_enabled'] = Variable<bool>(alertSoundsEnabled.value);
     }
+    if (starterCatalogSeededAt.present) {
+      map['starter_catalog_seeded_at'] = Variable<DateTime>(
+        starterCatalogSeededAt.value,
+      );
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -6886,6 +6958,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('defaultAnalyst: $defaultAnalyst, ')
           ..write('timeUnit: $timeUnit, ')
           ..write('alertSoundsEnabled: $alertSoundsEnabled, ')
+          ..write('starterCatalogSeededAt: $starterCatalogSeededAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -12605,6 +12678,7 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<String?> defaultAnalyst,
       required TimeUnit timeUnit,
       Value<bool> alertSoundsEnabled,
+      Value<DateTime?> starterCatalogSeededAt,
       required DateTime updatedAt,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
@@ -12614,6 +12688,7 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<String?> defaultAnalyst,
       Value<TimeUnit> timeUnit,
       Value<bool> alertSoundsEnabled,
+      Value<DateTime?> starterCatalogSeededAt,
       Value<DateTime> updatedAt,
     });
 
@@ -12649,6 +12724,11 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<bool> get alertSoundsEnabled => $composableBuilder(
     column: $table.alertSoundsEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get starterCatalogSeededAt => $composableBuilder(
+    column: $table.starterCatalogSeededAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12692,6 +12772,11 @@ class $$AppSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get starterCatalogSeededAt => $composableBuilder(
+    column: $table.starterCatalogSeededAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12725,6 +12810,11 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get alertSoundsEnabled => $composableBuilder(
     column: $table.alertSoundsEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get starterCatalogSeededAt => $composableBuilder(
+    column: $table.starterCatalogSeededAt,
     builder: (column) => column,
   );
 
@@ -12768,6 +12858,7 @@ class $$AppSettingsTableTableManager
                 Value<String?> defaultAnalyst = const Value.absent(),
                 Value<TimeUnit> timeUnit = const Value.absent(),
                 Value<bool> alertSoundsEnabled = const Value.absent(),
+                Value<DateTime?> starterCatalogSeededAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
@@ -12775,6 +12866,7 @@ class $$AppSettingsTableTableManager
                 defaultAnalyst: defaultAnalyst,
                 timeUnit: timeUnit,
                 alertSoundsEnabled: alertSoundsEnabled,
+                starterCatalogSeededAt: starterCatalogSeededAt,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
@@ -12784,6 +12876,7 @@ class $$AppSettingsTableTableManager
                 Value<String?> defaultAnalyst = const Value.absent(),
                 required TimeUnit timeUnit,
                 Value<bool> alertSoundsEnabled = const Value.absent(),
+                Value<DateTime?> starterCatalogSeededAt = const Value.absent(),
                 required DateTime updatedAt,
               }) => AppSettingsCompanion.insert(
                 id: id,
@@ -12791,6 +12884,7 @@ class $$AppSettingsTableTableManager
                 defaultAnalyst: defaultAnalyst,
                 timeUnit: timeUnit,
                 alertSoundsEnabled: alertSoundsEnabled,
+                starterCatalogSeededAt: starterCatalogSeededAt,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0

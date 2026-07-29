@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../features/diagnostics/application/diagnostics.dart';
 import '../app_directory.dart';
 import 'enums.dart';
+import 'starter_catalog.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -58,13 +59,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedReferenceData();
+          await _seedStarterCatalogIfEmpty();
         },
         onUpgrade: (m, from, to) async {
           if (from < 2) {
@@ -208,6 +210,15 @@ class AppDatabase extends _$AppDatabase {
               'WHERE o.study_id = studies.id), 1)',
             );
           }
+          if (from < 7) {
+            await m.addColumn(appSettings, appSettings.starterCatalogSeededAt);
+          }
+          // Outside the version guards on purpose (§9): a colleague already
+          // running Chronus with an empty catalog is exactly who this is for,
+          // and gating it on a version number would reach only future installs.
+          // Idempotent by its own two guards, so running it on every upgrade
+          // costs one COUNT.
+          await _seedStarterCatalogIfEmpty();
         },
         beforeOpen: (details) async {
           // SQLite has foreign keys OFF by default; enforce them every open.
@@ -224,6 +235,63 @@ class AppDatabase extends _$AppDatabase {
           );
         },
       );
+
+  /// Puts the starter catalog in place, if it is wanted (DESIGN.md §9).
+  ///
+  /// **Two guards, and both are needed.** The catalog must be empty, so someone
+  /// who has authored their own operations is never handed a pile of ours; and
+  /// [AppSettings.starterCatalogSeededAt] must be null, which is what makes a
+  /// deliberate "I emptied this on purpose" survive the next drop. The empty
+  /// check alone would refill it every upgrade.
+  ///
+  /// Runs on upgrade as well as on create, and that is the point: the people
+  /// who already have Chronus are the ones with an empty catalog right now.
+  Future<void> _seedStarterCatalogIfEmpty() async {
+    final settings =
+        await (select(appSettings)..where((t) => t.id.equals(0)))
+            .getSingleOrNull();
+    // No settings row yet means a database mid-creation; onCreate seeds it
+    // before calling this, so this only trips on something already wrong.
+    if (settings == null || settings.starterCatalogSeededAt != null) return;
+
+    final existing = await (selectOnly(catalogOperations)
+          ..addColumns([catalogOperations.id.count()]))
+        .map((r) => r.read(catalogOperations.id.count()) ?? 0)
+        .getSingle();
+    if (existing > 0) {
+      // Nothing to add, but record that the offer was made — otherwise emptying
+      // the catalog later would be read as "never seeded" and refill it.
+      await (update(appSettings)..where((t) => t.id.equals(0)))
+          .write(AppSettingsCompanion(
+              starterCatalogSeededAt: Value(DateTime.now())));
+      return;
+    }
+
+    // Subtypes are matched by NAME: the 7 wastes carry generated ids, and on an
+    // upgrade they already exist with ids no constant could know.
+    final subtypes = await select(operationSubtypes).get();
+    final subtypeByName = {for (final s in subtypes) s.name: s.id};
+
+    final now = DateTime.now();
+    await batch((b) {
+      b.insertAll(catalogOperations, [
+        for (final op in starterCatalog)
+          CatalogOperationsCompanion.insert(
+            id: _uuid.v4(),
+            name: op.name,
+            category: op.category,
+            subtypeId: Value(
+                op.subtypeName == null ? null : subtypeByName[op.subtypeName]),
+            referenceStandardMs: Value(op.referenceStandardMs),
+            createdAt: now,
+            updatedAt: now,
+          ),
+      ]);
+    });
+    await (update(appSettings)..where((t) => t.id.equals(0)))
+        .write(AppSettingsCompanion(starterCatalogSeededAt: Value(now)));
+    Diag.event('catalog.seeded', 'operations=${starterCatalog.length}');
+  }
 
   Future<void> _seedReferenceData() async {
     final now = DateTime.now();

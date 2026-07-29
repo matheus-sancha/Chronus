@@ -104,7 +104,7 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 - **First-class entity:** an ordered list of catalog-operation references + the default study type. **No measured data, ever.**
 - Instantiating a template **snapshots** the sequence into a new study.
 - **"Save as template from study"** strips measurements, keeps sequence + settings.
-- No built-in starter templates in v1.
+- No built-in starter **templates** — but the **catalog is seeded** (§9, 2026-07-28). The first person to build a real sequence turns it into a template with "save as template from study", which is a better template than any we could guess.
 
 ### 3.8 Notes & media
 
@@ -232,7 +232,17 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 ## 9. Open items (deferred, not blocking)
 
 - ~~Windows licensing mechanism~~ — **closed by dropping it** (§6). Windows is internal-only.
-- Whether to ship starter/built-in templates once real usage is observed. (The catalog is **empty on first run** — only the 7 wastes and the Process Type picklist are seeded — so a new user must author every operation before timing anything.)
+- ~~Whether to ship starter/built-in templates~~ — **closed 2026-07-28 by seeding the catalog instead.**
+
+  The item blamed templates for a problem the **catalog** caused: you cannot time anything without operations, and templates are a convenience on top. Conflating the two is why it stayed open.
+
+  §3.7's "ship nothing" was right for the App Store, where generic starter content is noise to an unknown audience. §6 made Windows internal-only — one known company — so the content can be *exactly* right rather than merely plausible, which is the same reasoning that already put _Cladding_ and _Bending_ in the Process Type picklist rather than a generic list of industries.
+
+  - **The list lives in one file** (`starter_catalog.dart`) and is the only part of Chronus specific to the people using it. Kept short on purpose: the job is getting someone from a cold install to a running stopwatch, not modelling the whole shop.
+  - **No reference standards are seeded.** A benchmark nobody measured would flow into efficiency figures and pace alerts (§3.6) as though it meant something, and a wrong standard is worse than none.
+  - **Subtypes are matched by name, not id** — the 7 wastes carry generated ids, and on an upgrade they already exist with ids no constant could know. An unmatched name yields a null subtype, which still rolls up by category and only costs the Pareto bar.
+  - **Seeded when the catalog is empty, on create *and* on upgrade**, deliberately outside the version guards: the colleagues already running Chronus are precisely the ones with an empty catalog, and gating on a schema version would reach only future installs.
+  - **Two guards, both needed.** The catalog must be empty, so nobody who has authored their own is handed a pile of ours; and `AppSettings.starterCatalogSeededAt` must be null, which is what makes a deliberate "I emptied this" survive the next drop. The empty check alone would refill it every time. The flag records that the offer was *made*, not that the rows still exist — so it is set even when seeding is skipped.
 - Audio/voice notes (v2).
 - Cross-project comparison (post-v1).
 - Cloud sync / accounts (explicitly out; revisit only if demanded).
