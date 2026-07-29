@@ -303,6 +303,14 @@ class _Cell extends StatelessWidget {
                 : theme.colorScheme.outline,
           ),
         ),
+        // Likewise the occurrence count: a figure summed over four inspections
+        // and one measured once are otherwise the same number.
+        if (cell.occurrences > 1)
+          Text(
+            l10n.compareOccurrences(cell.occurrences),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.outline),
+          ),
       ],
     );
   }

@@ -293,6 +293,80 @@ void main() {
     expect(cell.readingCount, 1);
   });
 
+  group('an operation that repeats in one sequence', () {
+    // Real cronoanálise sequences repeat: a boring cycle inspects after every
+    // pass of the tool. All of those rows carry the same catalog id.
+    ComparisonInput cycle(
+      String id,
+      DateTime when,
+      int inspections, {
+      int each = 1000,
+      int? reference,
+    }) {
+      final operations = [
+        for (var i = 0; i < inspections; i++)
+          op('insp$i', i + 1.0, catalogId: 'c-insp', name: 'Inspection',
+              reference: reference),
+      ];
+      return input(id, when, operations, [
+        {for (var i = 0; i < inspections; i++) 'insp$i': each},
+      ]);
+    }
+
+    test('every occurrence counts, and the count is disclosed', () {
+      // The bug this pins: taking the first occurrence dropped the other three
+      // with nothing said — the silent omission §11.9 exists to prevent.
+      final comparison = buildCrossStudyComparison([cycle('mar', DateTime(2026, 3, 1), 4)]);
+      final cell = comparison.rows.single.cells.single;
+
+      expect(cell.occurrences, 4);
+      expect(cell.meanMs, 4000); // the inspection content of a pass, not 1000
+    });
+
+    test('summing is what makes a process improvement visible', () {
+      // Four inspections down to two is the improvement a comparison exists to
+      // show. Averaging the occurrences instead would report "no change".
+      final comparison = buildCrossStudyComparison([
+        cycle('mar', DateTime(2026, 3, 1), 4),
+        cycle('jul', DateTime(2026, 7, 1), 2),
+      ]);
+      final cells = comparison.rows.single.cells;
+
+      expect(cells[0].meanMs, 4000);
+      expect(cells[1].meanMs, 2000);
+      expect(comparison.rows.single.trend, closeTo(-0.5, 0.001));
+    });
+
+    test('efficiency compares summed standard against summed time', () {
+      // One occurrence's standard against the summed time would call a process
+      // that inspects four times four times over its standard (§3.6).
+      final comparison = buildCrossStudyComparison(
+          [cycle('mar', DateTime(2026, 3, 1), 4, each: 1000, reference: 1000)]);
+      final row = comparison.rows.single;
+
+      expect(row.referenceStandardMs, 4000); // summed over the occurrences
+      expect(row.cells.single.efficiency, closeTo(1.0, 0.001)); // met, not 25%
+    });
+
+    test('the weakest occurrence governs n', () {
+      // A sum is only as trustworthy as the least-measured thing in it.
+      final operations = [
+        op('a', 1, catalogId: 'c1', name: 'Inspection'),
+        op('b', 2, catalogId: 'c1', name: 'Inspection'),
+      ];
+      final comparison = buildCrossStudyComparison([
+        input('mar', DateTime(2026, 3, 1), operations, [
+          {'a': 1000, 'b': 1000},
+          {'a': 1100}, // only the first was timed in pass 2
+        ]),
+      ]);
+
+      final cell = comparison.rows.single.cells.single;
+      expect(cell.occurrences, 2);
+      expect(cell.readingCount, 1); // not 2
+    });
+  });
+
   test('a project with nothing comparable yields an empty comparison', () {
     final comparison = buildCrossStudyComparison([
       input('mar', DateTime(2026, 3, 1), [op('a', 1, name: 'Custom')],

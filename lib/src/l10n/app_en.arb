@@ -452,5 +452,8 @@
   "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
   "compareTrendTitle": "Over time",
   "compareChange": "Change",
-  "compareRowSingleStudy": "Only one study timed this"
+  "compareRowSingleStudy": "Only one study timed this",
+  "compareOccurrences": "x{count} in the sequence",
+  "@compareOccurrences": {"placeholders": {"count": {"type": "int"}}},
+  "compareOccurrencesHeader": "Occurrences"
 }

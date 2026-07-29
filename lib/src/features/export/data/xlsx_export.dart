@@ -68,6 +68,7 @@ Uint8List buildComparisonXlsx(
     l10n.studyFieldDate,
     _seconds(l10n, l10n.samplingMean),
     l10n.samplingCount,
+    l10n.compareOccurrencesHeader,
     _seconds(l10n, l10n.colReference),
     l10n.reportEfficiency,
   ]);
@@ -86,6 +87,9 @@ Uint8List buildComparisonXlsx(
         // n beside every figure, so a downstream reader can weight a mean over
         // six passes against one press of a stopwatch (§11.9).
         IntCellValue(cell.readingCount),
+        // And how many occurrences the time is summed over, so a repeated
+        // operation is not mistaken for a slow one.
+        IntCellValue(cell.occurrences),
         row.referenceStandardMs == null
             ? TextCellValue('')
             : DoubleCellValue(msToSeconds(row.referenceStandardMs!)),

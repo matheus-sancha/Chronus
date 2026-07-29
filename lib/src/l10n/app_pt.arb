@@ -404,5 +404,8 @@
   "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
   "compareTrendTitle": "Ao longo do tempo",
   "compareChange": "Variação",
-  "compareRowSingleStudy": "Só um estudo cronometrou esta operação"
+  "compareRowSingleStudy": "Só um estudo cronometrou esta operação",
+  "compareOccurrences": "x{count} na sequência",
+  "@compareOccurrences": {"placeholders": {"count": {"type": "int"}}},
+  "compareOccurrencesHeader": "Ocorrências"
 }

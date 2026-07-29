@@ -429,9 +429,15 @@ Future<Uint8List> buildComparisonPdf(
                     _absent
                   else
                     // n on every figure (§11.9): "improved 6% since March"
-                    // reads as a finding until you see March was n=1.
+                    // reads as a finding until you see March was n=1. And the
+                    // occurrence count where the time is a sum, so a cycle
+                    // that inspects four times is not read as a slow one.
+                    // Both markers stay ASCII — the built-in fonts cannot draw
+                    // a multiplication sign, and a table cell bypasses
+                    // pdfSafeText (§11.7).
                     '${formatHmsd(cell.meanMs!.round())}\n'
-                        'n=${cell.readingCount}',
+                        'n=${cell.readingCount}'
+                        '${cell.occurrences > 1 ? ' x${cell.occurrences}' : ''}',
                 row.trend == null
                     ? _absent
                     : '${row.trend! >= 0 ? '+' : ''}'

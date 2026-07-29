@@ -945,4 +945,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get compareRowSingleStudy =>
       'Solo un estudio cronometró esta operación';
+
+  @override
+  String compareOccurrences(int count) {
+    return 'x$count en la secuencia';
+  }
+
+  @override
+  String get compareOccurrencesHeader => 'Ocurrencias';
 }

@@ -18,6 +18,7 @@ class ComparisonCell {
   const ComparisonCell({
     required this.studyId,
     required this.meanMs,
+    required this.occurrences,
     required this.readingCount,
     required this.efficiency,
   });
@@ -26,14 +27,31 @@ class ComparisonCell {
 
   /// The representative time: a Sampling Study's mean, a Time Study's single
   /// reading. Null when this study did not time the operation.
+  ///
+  /// **Summed over every occurrence** when a sequence contains the operation
+  /// more than once — four inspections in a cycle make one figure, the
+  /// inspection content of a pass. Averaging them instead would report "no
+  /// change" when a process went from inspecting four times to twice, which is
+  /// precisely the improvement a comparison exists to show.
   final double? meanMs;
+
+  /// How many times the operation appears in this study's sequence.
+  ///
+  /// Disclosed alongside the time, because a figure summed over four
+  /// occurrences and one measured once are otherwise the same number.
+  final int occurrences;
 
   /// How many readings stand behind [meanMs]. **Always shown** — a mean over
   /// six passes and one press of a stopwatch are otherwise the same number in
   /// the same column (§11.9).
+  ///
+  /// The **weakest** occurrence governs: a sum is only as trustworthy as the
+  /// least-measured thing in it.
   final int readingCount;
 
-  /// Reference standard ÷ representative time.
+  /// Σ reference ÷ Σ representative time over the occurrences, per §3.6 — not
+  /// one occurrence's standard against the summed time, which would report a
+  /// process that inspects four times as four times over its standard.
   final double? efficiency;
 
   bool get hasValue => meanMs != null;
@@ -185,21 +203,37 @@ CrossStudyComparison buildCrossStudyComparison(List<ComparisonInput> inputs) {
     // is not a comparison, it is noise.
     if (appearances.every((a) => a.row.statistics == null)) continue;
 
-    // The most recent appearance decides the label and the standard.
-    final newest = appearances.last;
+    // The most recent study decides the label and the standard.
+    final newestStudyId = appearances.last.input.study.id;
+    final newest = [
+      for (final a in appearances)
+        if (a.input.study.id == newestStudyId) a.row,
+    ];
+    // Summed over that study's occurrences, so the standard on the row is
+    // comparable with the summed times in its cells rather than being one
+    // occurrence's figure sitting beside a total.
+    final references = [
+      for (final row in newest)
+        if (row.referenceStandardMs != null) row.referenceStandardMs!,
+    ];
 
     rows.add(ComparisonRow(
       catalogOperationId: entry.key,
-      name: newest.row.operation.name,
-      referenceStandardMs: newest.row.referenceStandardMs,
+      name: newest.last.operation.name,
+      referenceStandardMs:
+          references.isEmpty ? null : references.reduce((a, b) => a + b),
       cells: [
         for (final input in ordered)
           _cellFor(
             input,
-            appearances
-                .where((a) => a.input.study.id == input.study.id)
-                .firstOrNull
-                ?.row,
+            // EVERY occurrence, not the first. A sequence that inspects four
+            // times has four rows against this catalog id, and taking one would
+            // drop three measured operations with nothing said — the silent
+            // omission §11.9 exists to prevent.
+            [
+              for (final a in appearances)
+                if (a.input.study.id == input.study.id) a.row,
+            ],
           ),
       ],
     ));
@@ -212,12 +246,45 @@ CrossStudyComparison buildCrossStudyComparison(List<ComparisonInput> inputs) {
   );
 }
 
-ComparisonCell _cellFor(ComparisonInput input, SamplingReportRow? row) {
-  final statistics = row?.statistics;
+ComparisonCell _cellFor(ComparisonInput input, List<SamplingReportRow> rows) {
+  final measured = [
+    for (final row in rows)
+      if (row.statistics != null) row,
+  ];
+  if (measured.isEmpty) {
+    return ComparisonCell(
+      studyId: input.study.id,
+      meanMs: null,
+      occurrences: 0,
+      readingCount: 0,
+      efficiency: null,
+    );
+  }
+
+  var total = 0.0;
+  var referenceTotal = 0;
+  var hasReference = false;
+  var weakest = measured.first.includedCount;
+  for (final row in measured) {
+    total += row.statistics!.mean;
+    final reference = row.referenceStandardMs;
+    if (reference != null) {
+      referenceTotal += reference;
+      hasReference = true;
+    }
+    // The weakest occurrence governs: a sum is only as trustworthy as the
+    // least-measured thing in it.
+    weakest = row.includedCount < weakest ? row.includedCount : weakest;
+  }
+
   return ComparisonCell(
     studyId: input.study.id,
-    meanMs: statistics?.mean,
-    readingCount: row?.includedCount ?? 0,
-    efficiency: row?.efficiency,
+    meanMs: total,
+    occurrences: measured.length,
+    readingCount: weakest,
+    // Σ reference ÷ Σ observed (§3.6). One occurrence's standard against the
+    // summed time would call a process that inspects four times four times
+    // over its standard.
+    efficiency: hasReference && total > 0 ? referenceTotal / total : null,
   );
 }

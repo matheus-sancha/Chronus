@@ -1779,6 +1779,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only one study timed this'**
   String get compareRowSingleStudy;
+
+  /// No description provided for @compareOccurrences.
+  ///
+  /// In en, this message translates to:
+  /// **'x{count} in the sequence'**
+  String compareOccurrences(int count);
+
+  /// No description provided for @compareOccurrencesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Occurrences'**
+  String get compareOccurrencesHeader;
 }
 
 class _AppLocalizationsDelegate

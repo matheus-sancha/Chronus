@@ -141,7 +141,7 @@ void main() {
       final rows = decode()['Comparison'].rows;
       expect(rows.length, 3); // header + March + July
 
-      // operation | study | date | mean s | n | reference s | efficiency
+      // operation | study | date | mean s | n | occurrences | reference s | eff
       expect(rows[1][0]?.value.toString(), 'Weld seam');
       expect(rows[1][1]?.value.toString(), 'Study mar');
       expect(_number(rows[1][3]), 12);
@@ -164,9 +164,15 @@ void main() {
 
     test('efficiency is computed against the standard in force', () {
       final rows = decode()['Comparison'].rows;
-      expect(_number(rows[1][5]), 11); // reference, seconds
-      expect(_number(rows[1][6]), closeTo(11 / 12, 1e-9)); // March
-      expect(_number(rows[2][6]), closeTo(1.1, 1e-9)); // July beat it
+      expect(_number(rows[1][6]), 11); // reference, seconds
+      expect(_number(rows[1][7]), closeTo(11 / 12, 1e-9)); // March
+      expect(_number(rows[2][7]), closeTo(1.1, 1e-9)); // July beat it
+    });
+
+    test('the occurrence count ships, so a repeat is not read as a slow op', () {
+      final rows = decode()['Comparison'].rows;
+      expect(_number(rows[1][5]), 1);
+      expect(_number(rows[2][5]), 1);
     });
 
     test('the operations left out get a sheet, not a footnote', () {
