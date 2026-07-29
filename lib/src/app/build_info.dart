@@ -21,4 +21,4 @@
 ///
 /// Bump this before packaging a drop. A second drop on the same day gets a
 /// letter suffix (`2026-07-27b`).
-const kBuildLabel = '2026-07-29';
+const kBuildLabel = '2026-07-29b';
