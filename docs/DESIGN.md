@@ -241,6 +241,12 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
   - **The list lives in one file** (`starter_catalog.dart`) and is the only part of Chronus specific to the people using it. Kept short on purpose: the job is getting someone from a cold install to a running stopwatch, not modelling the whole shop.
   - **No reference standards are seeded.** A benchmark nobody measured would flow into efficiency figures and pace alerts (§3.6) as though it meant something, and a wrong standard is worse than none.
   - **Subtypes are matched by name, not id** — the 7 wastes carry generated ids, and on an upgrade they already exist with ids no constant could know. An unmatched name yields a null subtype, which still rolls up by category and only costs the Pareto bar.
+  - **The subtypes the list needs are seeded alongside it** _(2026-07-29)_. The real cycle the catalog came from spends most of its unproductive time on **tool changes** and **inspection**, and neither is one of the 7 wastes — so every one of those operations landed with a null subtype and the waste Pareto, the report they exist to feed, came out empty of exactly the two bars worth looking at. §3.4 allows custom subtypes inside the fixed categories, which is the mechanism; this is the starter content using it.
+
+    Both sit under `unproductive`, which is a claim worth stating: neither changes the part, so neither is value-added — inspection proves the work was right rather than doing it, and a tool change is the machine not cutting.
+
+    They are seeded **not built-in**: §3.4 reserves that flag for the 7 wastes, and it also leaves these deletable, as content we offer rather than taxonomy we impose. And they are seeded **only where no subtype of that name exists** — a colleague may already have authored "Inspection" themselves, and a second one would split their waste Pareto in two.
+  - **The catalog is deduplicated; the repeats belong to a sequence.** A cycle that inspects after every tool pass holds one `Inspection` in the catalog and references it four times — the ordering and the repeats are a property of the study, not of the definition. What that costs is paid in §11.9: a comparison has to sum those four occurrences rather than pick one.
   - **Seeded when the catalog is empty, on create *and* on upgrade**, deliberately outside the version guards: the colleagues already running Chronus are precisely the ones with an empty catalog, and gating on a schema version would reach only future installs.
   - **Two guards, both needed.** The catalog must be empty, so nobody who has authored their own is handed a pile of ours; and `AppSettings.starterCatalogSeededAt` must be null, which is what makes a deliberate "I emptied this" survive the next drop. The empty check alone would refill it every time. The flag records that the offer was *made*, not that the rows still exist — so it is set even when seeding is skipped.
 - Audio/voice notes (v2).
@@ -484,6 +490,23 @@ _Deferred, not rejected: a t-based confidence band on the trend._ The machinery 
 - **The comparison loads through a future, not a stream** — the only read path in the app that does. Nothing on the screen is being timed, so there is nothing to keep live, and the alternative is four streams per study recombining on every keystroke of an unrelated run.
 - **The formats split as §5 says.** The PDF carries the side-by-side matrix (landscape — a column per study plus the change column runs out of width in portrait at four studies); the XLSX goes flat, one row per operation × study. `Unmatched` is a **sheet**, not a footnote: a note at the bottom of a sheet is the first thing lost to a filter.
 - **The comparison file is named for the project and dated today**, not after any study. It is a reading of several studies taken at a moment, and dating it by one of them would misattribute it.
+
+**An operation that repeats in one sequence** _(added 2026-07-29, found against the real boring cycle in §9's catalog — it inspects after every pass of the tool, so four rows carry one catalog id)._
+
+The first implementation took the **first** appearance and dropped the rest. That is the silent omission this section exists to prevent, arriving through the back door: three measured operations vanished from the comparison with nothing said.
+
+**Occurrences are summed, and the count is disclosed.** The figure in the cell is the operation's *content in one pass* — the inspection time of a cycle, not the time of an inspection.
+
+- _Rejected: averaging the occurrences._ A process that went from inspecting four times to twice would report **no change**, which is precisely the improvement a comparison exists to show. Summing reports it as the halving it is.
+- _Rejected: one row per occurrence._ There is no stable identity to match them on across studies — occurrence #2 in March is not occurrence #2 in July when a pass was removed between them — so the rows would pair up arbitrarily and the trend would be noise.
+
+Three consequences follow, each the same disclose-don't-normalise rule as the rest of §11.9:
+
+- **The occurrence count rides beside the time**, on screen (shown only when > 1) and as its own `Occurrences` column in the flat sheet. A figure summed over four occurrences and one measured once are otherwise the same number.
+- **The weakest occurrence governs n.** A sum is only as trustworthy as the least-measured thing in it, so `readingCount` is the minimum across the occurrences, not their total or their mean.
+- **Efficiency is Σ reference ÷ Σ observed**, per §3.6 — and the row's reference standard is likewise summed over the *newest study's* occurrences. One occurrence's standard against the summed time would call a process that inspects four times **four times over its standard**, which is not a finding, it is an arithmetic error with a red badge on it.
+
+  Each cell sums the references of **the occurrences it actually measured**, so the ratio is like against like. Where a study left one of four occurrences untimed, that makes the cell's denominator narrower than the reference shown on the row — the same split the row already carries, since the displayed standard is the *newest* study's while each cell's efficiency uses its own snapshot (§3.3). The disclosure is the `occurrences` count sitting in the cell: a row whose sequence has four and a cell that says three is telling the reader exactly that.
 
 ### 11.10 Schema v6
 
