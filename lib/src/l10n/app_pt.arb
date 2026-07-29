@@ -385,5 +385,8 @@
   "readingExcludedByPass": "Excluída junto com a tomada inteira.",
   "studyCriteriaSection": "Tamanho da amostra",
   "studyConfidenceLevel": "Nível de confiança",
-  "studyRelativePrecision": "Precisão (± % da média)"
+  "studyRelativePrecision": "Precisão (± % da média)",
+  "colMin": "Mín",
+  "colMax": "Máx",
+  "samplingAppendixTitle": "Tomadas em detalhe"
 }

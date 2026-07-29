@@ -1683,6 +1683,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Precision (± % of the mean)'**
   String get studyRelativePrecision;
+
+  /// No description provided for @colMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get colMin;
+
+  /// No description provided for @colMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get colMax;
+
+  /// No description provided for @samplingAppendixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Passes in detail'**
+  String get samplingAppendixTitle;
 }
 
 class _AppLocalizationsDelegate

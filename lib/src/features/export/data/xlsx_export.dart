@@ -4,6 +4,7 @@ import 'package:excel/excel.dart';
 
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../catalog/presentation/classification_labels.dart';
 import '../application/export_payload.dart';
@@ -13,6 +14,8 @@ import '../application/export_payload.dart';
 const _sheetSummary = 'Summary';
 const _sheetOperations = 'Operations';
 const _sheetSegments = 'Segments';
+const _sheetStatistics = 'Statistics';
+const _sheetObservations = 'Observations';
 
 /// Builds the **analysis artifact**: numbers, not pictures (DESIGN.md §5).
 /// Every duration is written as a numeric value in decimal seconds so the cells
@@ -40,6 +43,224 @@ Uint8List buildStudyXlsx(
   if (bytes == null) throw StateError('XLSX encoding produced no bytes');
   return Uint8List.fromList(bytes);
 }
+
+/// The Sampling Study analysis artifact (DESIGN.md §11.7).
+///
+/// One workbook, flat: `Summary` (criteria and verdict), `Statistics` (one row
+/// per operation), `Observations` (one row per pass × operation) and `Segments`
+/// (every pass, with a Pass column). Sheets per pass were rejected — ten passes
+/// would be twenty-two sheets, and a formula written against one would have to
+/// be rewritten for each of the others.
+Uint8List buildSamplingXlsx(
+  SamplingExportPayload payload,
+  AppLocalizations l10n, {
+  String? localeName,
+}) {
+  const ours = {
+    _sheetSummary,
+    _sheetStatistics,
+    _sheetObservations,
+    _sheetSegments,
+  };
+
+  final excel = Excel.createExcel();
+  _writeSamplingSummary(excel[_sheetSummary], payload, l10n, localeName);
+  _writeStatistics(excel[_sheetStatistics], payload.report, l10n);
+  _writeObservations(excel[_sheetObservations], payload.report, l10n);
+  _writeSamplingSegments(excel[_sheetSegments], payload, l10n);
+
+  excel.setDefaultSheet(_sheetSummary);
+  for (final name in excel.tables.keys.toList()) {
+    if (!ours.contains(name)) excel.delete(name);
+  }
+
+  final bytes = excel.encode();
+  if (bytes == null) throw StateError('XLSX encoding produced no bytes');
+  return Uint8List.fromList(bytes);
+}
+
+void _writeSamplingSummary(
+  Sheet sheet,
+  SamplingExportPayload payload,
+  AppLocalizations l10n,
+  String? localeName,
+) {
+  final r = payload.report;
+  final w = _RowWriter(sheet);
+
+  w.heading(payload.study.name);
+  for (final f in studyHeaderFields(payload.study, l10n, localeName: localeName)) {
+    w.labelled(f.label, TextCellValue(f.value!));
+  }
+  if (payload.study.notes != null && payload.study.notes!.isNotEmpty) {
+    w.labelled(l10n.studyFieldNotes, TextCellValue(payload.study.notes!));
+  }
+  w.blank();
+
+  w.heading(l10n.studyCriteriaSection);
+  // As fractions, not "95%" text: an analyst re-deriving n needs a number.
+  w.labelled(l10n.studyConfidenceLevel, DoubleCellValue(r.confidenceLevel));
+  w.labelled(
+      l10n.studyRelativePrecision, DoubleCellValue(r.relativePrecision));
+  w.labelled(l10n.passesTitle, IntCellValue(r.adequacy.passesTaken));
+  w.labelled(
+    l10n.samplingRequired,
+    r.adequacy.passesRequired == null
+        ? TextCellValue('')
+        : IntCellValue(r.adequacy.passesRequired!),
+  );
+  // The governing operation is the instruction the verdict amounts to (§11.5),
+  // so it travels into the artifact rather than staying on screen.
+  w.labelled(
+    l10n.samplingGovernedBy(''),
+    TextCellValue(r.adequacy.governing?.operation.name ?? ''),
+  );
+  if (r.adequacy.neverTimed.isNotEmpty) {
+    w.labelled(
+      l10n.samplingNeverTimed(''),
+      TextCellValue(r.adequacy.neverTimed.map((o) => o.name).join(', ')),
+    );
+  }
+  w.blank();
+
+  w.heading(l10n.samplingReportTitle);
+  w.labelled(_seconds(l10n, l10n.samplingMeanWorkContent),
+      DoubleCellValue(msToSeconds(r.meanWorkContentMs.round())));
+  w.labelled(
+    l10n.reportEfficiency,
+    r.efficiency == null ? TextCellValue('') : DoubleCellValue(r.efficiency!),
+  );
+  w.labelled(l10n.samplingExcludedNote(0), IntCellValue(r.excludedReadingCount));
+  w.labelled(l10n.samplingManualNote(0), IntCellValue(r.manualReadingCount));
+  w.blank();
+
+  w.heading(l10n.reportRollupTitle);
+  w.header([l10n.operationCategoryLabel, _seconds(l10n, l10n.colObserved), '%']);
+  final total = r.meanWorkContentMs;
+  for (final c in OperationCategory.values) {
+    final ms = r.workContentByCategory[c] ?? 0;
+    if (ms == 0) continue;
+    w.row([
+      TextCellValue(categoryLabel(l10n, c)),
+      DoubleCellValue(msToSeconds(ms.round())),
+      DoubleCellValue(total == 0 ? 0 : ms / total),
+    ]);
+  }
+  w.blank();
+
+  if (r.wastePareto.isNotEmpty) {
+    w.heading(l10n.reportParetoTitle);
+    w.header([l10n.operationSubtypeLabel, _seconds(l10n, l10n.colObserved)]);
+    for (final bar in r.wastePareto) {
+      w.row([
+        TextCellValue(bar.subtype != null
+            ? subtypeName(l10n, bar.subtype!)
+            : l10n.wasteUnlabeled),
+        DoubleCellValue(msToSeconds(bar.ms.round())),
+      ]);
+    }
+  }
+}
+
+/// One row per operation: the summary an analyst checks against their handbook.
+///
+/// The t value and degrees of freedom travel with it deliberately — Student's t
+/// asks for one to three more passes than the Z formula in most cronoanálise
+/// texts, and without them a hand check finds a disagreement and no way to
+/// explain it. With them, `n = (t·s/(E·x̄))²` reproduces this row.
+void _writeStatistics(
+    Sheet sheet, SamplingReport report, AppLocalizations l10n) {
+  final w = _RowWriter(sheet);
+  w.header([
+    l10n.colOperation,
+    l10n.operationCategoryLabel,
+    l10n.operationSubtypeLabel,
+    l10n.samplingCount,
+    _seconds(l10n, l10n.samplingMean),
+    _seconds(l10n, l10n.colMin),
+    _seconds(l10n, l10n.colMax),
+    _seconds(l10n, l10n.samplingRange),
+    _seconds(l10n, l10n.samplingStdDev),
+    l10n.samplingCv,
+    l10n.samplingRequired,
+    't',
+    'df',
+    _seconds(l10n, l10n.colReference),
+    l10n.reportEfficiency,
+  ]);
+
+  for (final row in report.rows) {
+    final s = row.statistics;
+    final size = row.sampleSize;
+    w.row([
+      TextCellValue(row.operation.name),
+      TextCellValue(categoryLabel(l10n, row.operation.category)),
+      TextCellValue(row.subtype == null ? '' : subtypeName(l10n, row.subtype!)),
+      IntCellValue(row.includedCount),
+      _optionalSeconds(s?.mean),
+      s == null ? TextCellValue('') : DoubleCellValue(msToSeconds(s.min)),
+      s == null ? TextCellValue('') : DoubleCellValue(msToSeconds(s.max)),
+      s == null ? TextCellValue('') : DoubleCellValue(msToSeconds(s.range)),
+      _optionalSeconds(s?.standardDeviation),
+      _optionalDouble(s?.coefficientOfVariation),
+      // An unplanned operation is reported but not judged (§11.2), so its
+      // required-n is blank rather than a number nobody should act on.
+      row.countsTowardVerdict && size?.required_ != null
+          ? IntCellValue(size!.required_!)
+          : TextCellValue(''),
+      _optionalDouble(size?.tValue),
+      size?.degreesOfFreedom == null
+          ? TextCellValue('')
+          : IntCellValue(size!.degreesOfFreedom!),
+      row.referenceStandardMs == null
+          ? TextCellValue('')
+          : DoubleCellValue(msToSeconds(row.referenceStandardMs!)),
+      _optionalDouble(row.efficiency),
+    ]);
+  }
+}
+
+/// One row per pass × operation — the raw readings the statistics came from.
+///
+/// The excluded and manual flags travel with the values, which is what extends
+/// §5's guarantee from the reported overlap to the reported mean: filter this
+/// sheet to `Excluded = 0` and average it, and you get our number.
+void _writeObservations(
+    Sheet sheet, SamplingReport report, AppLocalizations l10n) {
+  final w = _RowWriter(sheet);
+  w.header([
+    l10n.passesTitle,
+    l10n.colOperation,
+    _seconds(l10n, l10n.colObserved),
+    l10n.passExcludedBadge,
+    l10n.samplingManualNote(0),
+    l10n.passExcludeReasonHint,
+  ]);
+
+  for (final row in report.rows) {
+    for (final reading in row.readings) {
+      // A pass that never timed this operation contributes no row at all: a
+      // zero would be a measurement, and a blank row would be a reading.
+      if (reading.ms == null) continue;
+      w.row([
+        IntCellValue(reading.passNumber),
+        TextCellValue(row.operation.name),
+        DoubleCellValue(msToSeconds(reading.ms!)),
+        // 1/0 rather than a word, so the column filters and sums.
+        IntCellValue(reading.isExcluded ? 1 : 0),
+        IntCellValue(reading.isManual ? 1 : 0),
+        TextCellValue(reading.reason ?? ''),
+      ]);
+    }
+  }
+}
+
+CellValue _optionalSeconds(num? value) => value == null
+    ? TextCellValue('')
+    : DoubleCellValue(msToSeconds(value.round()));
+
+CellValue _optionalDouble(double? value) =>
+    value == null ? TextCellValue('') : DoubleCellValue(value);
 
 void _writeSummary(
   Sheet sheet,
@@ -169,13 +390,41 @@ void _writeSegments(
     l10n.colEnd,
     _seconds(l10n, l10n.colObserved),
   ]);
+  _writeSegmentRows(w, report, passNumber: null);
+}
 
+/// The Segments sheet of a Sampling Study: the same rows, from every pass, with
+/// a leading Pass column (DESIGN.md §11.7).
+///
+/// One flat table rather than a sheet per pass — one row per fact, so the whole
+/// study pivots. Excluded passes are here too: a segment is evidence of what the
+/// clock saw, and exclusion is a statement about the average, not about whether
+/// the measurement happened.
+void _writeSamplingSegments(
+    Sheet sheet, SamplingExportPayload payload, AppLocalizations l10n) {
+  final w = _RowWriter(sheet);
+  w.header([
+    l10n.passesTitle,
+    l10n.colOperation,
+    '#',
+    l10n.colStart,
+    l10n.colEnd,
+    _seconds(l10n, l10n.colObserved),
+  ]);
+  for (final pass in payload.passes) {
+    _writeSegmentRows(w, pass.report, passNumber: pass.number);
+  }
+}
+
+void _writeSegmentRows(_RowWriter w, TimeStudyReport report,
+    {required int? passNumber}) {
   for (final row in report.timeline) {
     var index = 0;
     for (final block in row.blocks) {
       if (!block.measured) continue;
       index++;
       w.row([
+        if (passNumber != null) IntCellValue(passNumber),
         TextCellValue(row.operation.name),
         IntCellValue(index),
         _clock(report, block.startMs),

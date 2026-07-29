@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../studies/presentation/study_formatting.dart';
 
@@ -31,6 +32,49 @@ class StudyExportPayload {
 
   /// Keyed by `StudyOperation.id` (not instance id) so exporters can walk the
   /// report rows directly.
+  final Map<String, List<ExportPhoto>> photosByStudyOperationId;
+
+  bool get hasPhotos =>
+      photosByStudyOperationId.values.any((list) => list.isNotEmpty);
+}
+
+/// One pass, and the Time Study report over it.
+///
+/// A pass **is** a time study (DESIGN.md §11.6), so the PDF appendix and the
+/// Segments sheet reuse the exact structure the single-pass export already
+/// produces, rather than a second rendering that could disagree with it.
+class PassExport {
+  const PassExport({required this.observation, required this.report});
+
+  final Observation observation;
+  final TimeStudyReport report;
+
+  int get number => observation.sequenceIndex + 1;
+  bool get isExcluded => observation.excludedAt != null;
+}
+
+/// Everything the Sampling Study exporters need.
+///
+/// Separate from [StudyExportPayload] rather than a nullable extension of it:
+/// the two artifacts answer different questions over different grains, and
+/// widening the Time Study payload would put a null check into every one of its
+/// call sites for the sake of a report it never produces.
+class SamplingExportPayload {
+  const SamplingExportPayload({
+    required this.study,
+    required this.report,
+    required this.passes,
+    required this.photosByStudyOperationId,
+  });
+
+  final Study study;
+  final SamplingReport report;
+
+  /// Every pass in order, **including excluded ones** — the appendix shows that
+  /// a pass was taken and what became of it, which a reader cannot infer from
+  /// its absence.
+  final List<PassExport> passes;
+
   final Map<String, List<ExportPhoto>> photosByStudyOperationId;
 
   bool get hasPhotos =>

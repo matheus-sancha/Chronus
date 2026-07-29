@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete** bar §10.8. Phases 7 (Sampling) and 8 (Cross-study comparison) are **in implementation** — their decisions are §11.
-**Last updated:** 2026-07-27
+**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete** bar §10.8. **Phase 7 (Sampling) is complete** — passes, statistics, adequacy, exclusion and export. Phase 8 (Cross-study comparison) is next; both are specified in §11, and they ship in one drop (§11.11).
+**Last updated:** 2026-07-28
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -216,7 +216,7 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 5. **Export** — PDF + XLSX.
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
 6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete**, bar the optional backup folder in §10.8.
-7. **Sampling Study** — repeat engine + statistics + sample-size adequacy. Decisions in **§11**.
+7. **Sampling Study** — repeat engine + statistics + sample-size adequacy. Decisions in **§11**. **Complete.**
 8. **Cross-study comparison.** Decisions in **§11**; ships in the same drop as 7 (§11.11).
 9. **Polish** — video, iPad layouts, finalize pt/en/es.
 
@@ -436,6 +436,13 @@ The PDF leads with the aggregate sections and follows with a **per-pass appendix
 
 - _Rejected: aggregate only, with per-pass export left as a separate action._ A ten-pass study is then eleven files to hand to anyone, and the raw segments never sit alongside the statistics they support.
 - _Rejected: sheets per pass_ (`Operations_P1`, `Segments_P1`, …). Twenty-two sheets for ten passes, and every formula written against one pass has to be rewritten for each of the others.
+
+**Implementation notes (Phase 7d):**
+- **The excluded and manual flags are written as `1`/`0`, not as words**, so the column filters and sums. There is a test that filters `Observations` to `Excluded = 0`, averages the seconds column, and asserts it equals the mean the app reports — that assertion *is* the guarantee, and it would silently rot without it.
+- **A pass that never timed an operation contributes no `Observations` row at all.** A zero would be a measurement and a blank row would be a reading; absence is the only honest encoding of "not timed here".
+- **An excluded pass still contributes its `Segments` rows.** Exclusion is a statement about the average, not about whether the clock ran, and §5's promise that the sheet holds the raw evidence does not bend for it.
+- **The `Statistics` sheet carries `t` and `df`.** §11.5's whole reason for surfacing them on screen applies harder to the artifact: an analyst checking by hand needs to be able to put that `t` back into `n = (t·s/(E·x̄))²` and land on the same `n`.
+- **Nothing reaches a PDF table cell without `pdfSafeText`.** `_text` sanitises, but `TableHelper.fromTextArray` bypasses it — so an em dash used as a "no value" placeholder is silently *undrawable* by the built-in fonts and vanishes from the page. This was caught by the PDF tests emitting "Unable to find a font" warnings, not by reading. §5's Latin-1 warning applies to every string an exporter builds, not only to text the user typed; the placeholder is an ASCII hyphen.
 
 ### 11.8 The catalog link
 

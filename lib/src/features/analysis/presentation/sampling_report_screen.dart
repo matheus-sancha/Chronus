@@ -8,10 +8,13 @@ import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/application/catalog_providers.dart';
 import '../../catalog/presentation/classification_labels.dart';
+import '../../export/application/export_payload.dart';
+import '../../export/presentation/export_button.dart';
 import '../../studies/application/studies_providers.dart';
 import '../../studies/application/timing_model.dart';
 import '../../studies/application/timing_providers.dart';
 import '../application/sampling_report.dart';
+import '../application/time_study_report.dart';
 
 /// The aggregate Sampling Study report (DESIGN.md §11.6).
 ///
@@ -59,22 +62,40 @@ class SamplingReportScreen extends ConsumerWidget {
       (instancesByPass[instance.observationId] ??= []).add(instance);
     }
 
+    final subtypeById = {for (final s in subtypes) s.id: s};
+
+    // Built once and used twice: the aggregate report reads the timing, and the
+    // export's per-pass appendix reads the same Time Study reports the pass
+    // list would open — so the artifact cannot disagree with the screen.
+    final perPass = [
+      for (final pass in passes)
+        (
+          observation: pass.observation,
+          instances: instancesByPass[pass.id] ?? const <OperationInstance>[],
+          segments: [
+            for (final instance in instancesByPass[pass.id] ?? const [])
+              ...?segmentsByInstance[instance.id],
+          ],
+        ),
+    ];
+    final timingByPass = {
+      for (final pass in perPass)
+        pass.observation.id: timingByOperation(
+          instances: pass.instances,
+          segments: pass.segments,
+        ),
+    };
+
     final report = buildSamplingReport(
       operations: operations,
       passes: [
-        for (final pass in passes)
+        for (final pass in perPass)
           PassTiming(
             observation: pass.observation,
-            timingByOperation: timingByOperation(
-              instances: instancesByPass[pass.id] ?? const [],
-              segments: [
-                for (final instance in instancesByPass[pass.id] ?? const [])
-                  ...?segmentsByInstance[instance.id],
-              ],
-            ),
+            timingByOperation: timingByPass[pass.observation.id]!,
           ),
       ],
-      subtypeById: {for (final s in subtypes) s.id: s},
+      subtypeById: subtypeById,
       confidenceLevel: study.confidenceLevel,
       relativePrecision: study.relativePrecision,
     );
@@ -82,7 +103,34 @@ class SamplingReportScreen extends ConsumerWidget {
     final hasAnything = report.rows.any((r) => r.statistics != null);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.samplingReportTitle)),
+      appBar: AppBar(
+        title: Text(l10n.samplingReportTitle),
+        actions: [
+          // Same gate as the body: nothing timed, nothing worth exporting.
+          if (hasAnything)
+            ExportButton.sampling(
+              study: study,
+              sampling: report,
+              passes: [
+                for (final pass in perPass)
+                  PassExport(
+                    observation: pass.observation,
+                    report: buildTimeStudyReport(
+                      operations: operations,
+                      timing: timingByPass[pass.observation.id]!,
+                      subtypeById: subtypeById,
+                      segments: pass.segments,
+                    ),
+                  ),
+              ],
+              // Photos are resolved from timing; any pass's map keys the same
+              // operations, so the first is as good as another.
+              timing: timingByPass.values.isEmpty
+                  ? const {}
+                  : timingByPass.values.first,
+            ),
+        ],
+      ),
       body: !hasAnything
           ? Center(child: Text(l10n.samplingReportEmpty))
           : ListView(

@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import '../../../common/duration_format.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../analysis/application/timeline_axis.dart';
 import '../../catalog/presentation/classification_labels.dart';
@@ -79,6 +80,295 @@ Future<Uint8List> buildStudyPdf(
   );
 
   return doc.save();
+}
+
+/// The Sampling Study presentation artifact (DESIGN.md §11.7).
+///
+/// Aggregate sections first, then **a per-pass appendix** — each pass's tiles
+/// and Gantt, through the same chunked-row renderer the single-pass export
+/// uses. The appendix is what makes the aggregate answerable: a reader who
+/// doubts a mean can turn to the pass behind it.
+Future<Uint8List> buildSamplingPdf(
+  SamplingExportPayload payload,
+  AppLocalizations l10n, {
+  String? localeName,
+}) async {
+  final report = payload.report;
+  final doc = pw.Document(title: payload.study.name);
+
+  doc.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.fromLTRB(32, 32, 32, 40),
+      header: (context) => context.pageNumber == 1
+          ? pw.SizedBox()
+          : pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 12),
+              child: _text(payload.study.name, color: _muted),
+            ),
+      footer: (context) => pw.Align(
+        alignment: pw.Alignment.centerRight,
+        child: pw.Text('${context.pageNumber} / ${context.pagesCount}',
+            style: const pw.TextStyle(fontSize: 9, color: _muted)),
+      ),
+      build: (context) => [
+        _title(payload.study.name, l10n.samplingReportTitle),
+        _samplingHeaderTable(payload, l10n, localeName),
+        if (payload.study.notes != null && payload.study.notes!.isNotEmpty)
+          _notes(l10n, payload.study.notes!),
+        pw.SizedBox(height: 18),
+        _adequacyBlock(report, l10n),
+        pw.SizedBox(height: 20),
+        _section(l10n.samplingStatisticsTitle),
+        _statisticsTable(report, l10n),
+        pw.SizedBox(height: 20),
+        _section(l10n.samplingReadingsTitle),
+        ..._readingsMatrix(report, l10n),
+        if (report.wastePareto.isNotEmpty) ...[
+          pw.SizedBox(height: 20),
+          _section(l10n.reportParetoTitle),
+          _samplingPareto(report, l10n),
+        ],
+        if (payload.passes.isNotEmpty) ...[
+          pw.SizedBox(height: 20),
+          _section(l10n.samplingAppendixTitle),
+          for (final pass in payload.passes) ..._passAppendix(pass, l10n),
+        ],
+      ],
+    ),
+  );
+
+  return doc.save();
+}
+
+pw.Widget _samplingHeaderTable(
+    SamplingExportPayload payload, AppLocalizations l10n, String? localeName) {
+  final fields = studyHeaderFields(payload.study, l10n, localeName: localeName);
+  return pw.Wrap(
+    spacing: 24,
+    runSpacing: 4,
+    children: [
+      for (final f in fields) _labelled(f.label, f.value!),
+    ],
+  );
+}
+
+/// The headline: passes taken, whether that is enough, and what decides.
+pw.Widget _adequacyBlock(SamplingReport r, AppLocalizations l10n) {
+  final a = r.adequacy;
+  final verdict = switch (a.state) {
+    AdequacyState.adequate => l10n.samplingAdequate(a.passesRequired!),
+    AdequacyState.notAdequate => l10n.samplingNotAdequate(a.shortfall),
+    AdequacyState.notDeterminable => l10n.samplingNotDeterminable,
+    AdequacyState.nothingTimed => l10n.samplingNothingTimed,
+  };
+
+  return pw.Container(
+    padding: const pw.EdgeInsets.all(12),
+    decoration: const pw.BoxDecoration(
+      color: _tint,
+      borderRadius: pw.BorderRadius.all(pw.Radius.circular(6)),
+    ),
+    child: pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        _text(
+          l10n.samplingCriteria(
+            (r.confidenceLevel * 100).round().toString(),
+            (r.relativePrecision * 100).round().toString(),
+          ),
+          fontSize: 8,
+          color: _muted,
+        ),
+        pw.SizedBox(height: 4),
+        _text(l10n.samplingPassesTaken(a.passesTaken), fontSize: 14, bold: true),
+        _text(verdict, fontSize: 11),
+        // Naming the binding operation turns the verdict into an instruction.
+        if (a.governing != null) ...[
+          pw.SizedBox(height: 4),
+          _text(l10n.samplingGovernedBy(a.governing!.operation.name)),
+        ],
+        // Coverage, kept distinct from adequacy: different problems (§11.5).
+        if (a.neverTimed.isNotEmpty)
+          _text(
+            l10n.samplingNeverTimed(a.neverTimed.map((o) => o.name).join(', ')),
+            fontSize: 8,
+            color: _muted,
+          ),
+        pw.SizedBox(height: 6),
+        _text(
+          [
+            '${l10n.samplingMeanWorkContent}: '
+                '${formatHmsd(r.meanWorkContentMs.round())}',
+            if (r.efficiency != null)
+              '${l10n.reportEfficiency}: ${_percent(r.efficiency!, 0)}',
+            // Always disclosed, never a quietly shrunken n (§11.3, §11.4).
+            if (r.excludedReadingCount > 0)
+              l10n.samplingExcludedNote(r.excludedReadingCount),
+            if (r.manualReadingCount > 0)
+              l10n.samplingManualNote(r.manualReadingCount),
+          ].join('   ·   '),
+          fontSize: 9,
+        ),
+      ],
+    ),
+  );
+}
+
+/// The built-in fonts cannot draw an em dash, and `TableHelper` bypasses
+/// [_text] — so nothing reaches a cell without passing through here. §5's
+/// warning applies to every string in a table, not only to the ones users typed.
+const _absent = '-';
+
+pw.Widget _statisticsTable(SamplingReport r, AppLocalizations l10n) {
+  return pw.TableHelper.fromTextArray(
+    headers: [
+      for (final h in [
+        l10n.colOperation,
+        l10n.samplingCount,
+        l10n.samplingMean,
+        l10n.samplingRange,
+        l10n.samplingStdDev,
+        l10n.samplingCv,
+        l10n.samplingRequired,
+      ])
+        pdfSafeText(h),
+    ],
+    data: [
+      for (final row in r.rows)
+        [
+          pdfSafeText(row.operation.name) +
+              (row.operation.isUnplanned ? ' *' : ''),
+          '${row.includedCount}',
+          row.statistics == null
+              ? _absent
+              : formatHmsd(row.statistics!.mean.round()),
+          row.statistics == null ? _absent : formatHmsd(row.statistics!.range),
+          row.statistics?.standardDeviation == null
+              ? _absent
+              : formatHmsd(row.statistics!.standardDeviation!.round()),
+          row.statistics?.coefficientOfVariation == null
+              ? _absent
+              : _percent(row.statistics!.coefficientOfVariation!, 1),
+          row.countsTowardVerdict && row.sampleSize?.required_ != null
+              ? '${row.sampleSize!.required_}'
+              : _absent,
+        ],
+    ],
+    headerStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+    cellStyle: const pw.TextStyle(fontSize: 8),
+    headerDecoration: const pw.BoxDecoration(color: _tint),
+    cellAlignments: {
+      0: pw.Alignment.centerLeft,
+      for (var i = 1; i < 7; i++) i: pw.Alignment.centerRight,
+    },
+  );
+}
+
+/// Operations down, passes across. Excluded readings are parenthesised and
+/// manual ones marked, so the matrix carries the same disclosure as the screen.
+List<pw.Widget> _readingsMatrix(SamplingReport r, AppLocalizations l10n) {
+  if (r.passes.isEmpty) return const [];
+  return [
+    pw.TableHelper.fromTextArray(
+      headers: [
+        pdfSafeText(l10n.colOperation),
+        for (final pass in r.passes)
+          pass.isExcluded ? '${pass.number} (x)' : '${pass.number}',
+      ],
+      data: [
+        for (final row in r.rows)
+          [
+            pdfSafeText(row.operation.name),
+            for (final reading in row.readings) _readingText(reading),
+          ],
+      ],
+      headerStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+      cellStyle: const pw.TextStyle(fontSize: 8),
+      headerDecoration: const pw.BoxDecoration(color: _tint),
+      cellAlignments: {
+        0: pw.Alignment.centerLeft,
+        for (var i = 1; i <= r.passes.length; i++) i: pw.Alignment.centerRight,
+      },
+    ),
+    pw.SizedBox(height: 4),
+    _text('( ) = ${l10n.passExcludedBadge}   ·   * = ${l10n.manualBadge}',
+        fontSize: 7, color: _muted),
+  ];
+}
+
+String _readingText(Reading reading) {
+  if (reading.ms == null) return _absent;
+  final value = formatHmsd(reading.ms!) + (reading.isManual ? '*' : '');
+  return reading.isExcluded ? '($value)' : value;
+}
+
+pw.Widget _samplingPareto(SamplingReport r, AppLocalizations l10n) {
+  final color = _categoryPdfColor(OperationCategory.unproductive);
+  final worst = r.wastePareto.first.ms;
+  return pw.Column(
+    children: [
+      for (final bar in r.wastePareto)
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 4),
+          child: pw.Row(children: [
+            pw.SizedBox(
+              width: 110,
+              child: _text(
+                bar.subtype != null
+                    ? subtypeName(l10n, bar.subtype!)
+                    : l10n.wasteUnlabeled,
+                maxLines: 1,
+              ),
+            ),
+            pw.Expanded(
+              child: pw.Row(children: [
+                pw.Expanded(
+                  flex: worst == 0 ? 0 : (bar.ms / worst * 1000).round(),
+                  child: pw.Container(height: 10, color: color),
+                ),
+                pw.Expanded(
+                  flex: worst == 0
+                      ? 1000
+                      : 1000 - (bar.ms / worst * 1000).round(),
+                  child: pw.SizedBox(),
+                ),
+              ]),
+            ),
+            pw.SizedBox(width: 6),
+            pw.SizedBox(
+                width: 60,
+                child: _text(formatHmsd(bar.ms.round()),
+                    align: pw.TextAlign.right)),
+          ]),
+        ),
+    ],
+  );
+}
+
+/// One pass in the appendix: what it measured, and its Gantt.
+List<pw.Widget> _passAppendix(PassExport pass, AppLocalizations l10n) {
+  final r = pass.report;
+  return [
+    pw.SizedBox(height: 14),
+    pw.Row(children: [
+      _text(l10n.passLabel(pass.number), fontSize: 11, bold: true),
+      pw.SizedBox(width: 8),
+      // An excluded pass appears here too: its absence would be unexplainable,
+      // and a reader has to be able to see that it was taken and set aside.
+      if (pass.isExcluded)
+        _text('(${l10n.passExcludedBadge}'
+            '${pass.observation.exclusionReason == null ? '' : ' — '
+                '${pdfSafeText(pass.observation.exclusionReason!)}'})',
+            fontSize: 9, color: _muted),
+    ]),
+    pw.SizedBox(height: 6),
+    _summaryTiles(r, l10n),
+    if (r.timeline.isNotEmpty) ...[
+      pw.SizedBox(height: 10),
+      ..._timeline(r, l10n),
+    ],
+  ];
 }
 
 // --- text ------------------------------------------------------------------

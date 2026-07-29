@@ -433,5 +433,8 @@
   "readingExcludedByPass": "Excluded with the whole pass.",
   "studyCriteriaSection": "Sample size",
   "studyConfidenceLevel": "Confidence level",
-  "studyRelativePrecision": "Precision (± % of the mean)"
+  "studyRelativePrecision": "Precision (± % of the mean)",
+  "colMin": "Min",
+  "colMax": "Max",
+  "samplingAppendixTitle": "Passes in detail"
 }

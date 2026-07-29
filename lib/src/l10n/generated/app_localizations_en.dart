@@ -881,4 +881,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studyRelativePrecision => 'Precision (± % of the mean)';
+
+  @override
+  String get colMin => 'Min';
+
+  @override
+  String get colMax => 'Max';
+
+  @override
+  String get samplingAppendixTitle => 'Passes in detail';
 }
