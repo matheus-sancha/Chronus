@@ -21,13 +21,24 @@ void main() {
     final operations = await db.select(db.catalogOperations).get();
     expect(operations, hasLength(starterCatalog.length));
 
-    // Waste operations resolve their subtype by name, because the 7 wastes are
-    // seeded with generated ids no constant could know.
+    // Every waste operation resolves a subtype — including the ones needing a
+    // subtype the 7 built-ins do not cover, which are seeded alongside.
     final waste = operations
         .where((o) => o.category == OperationCategory.unproductive)
         .toList();
     expect(waste, isNotEmpty);
     expect(waste.every((o) => o.subtypeId != null), isTrue);
+
+    final subtypes = await db.select(db.operationSubtypes).get();
+    for (final starter in starterSubtypes) {
+      final match = subtypes.firstWhere((s) => s.name == starter.name);
+      // Not built-in: §3.4 reserves that for the 7 wastes, and these stay
+      // deletable.
+      expect(match.isBuiltIn, isFalse);
+      expect(match.category, starter.category);
+    }
+    // The 7 wastes are untouched by the addition.
+    expect(subtypes.where((s) => s.isBuiltIn), hasLength(7));
 
     // No invented benchmarks: a standard nobody measured would flow into
     // efficiency and pace alerts as though it meant something (§3.6).
@@ -108,6 +119,11 @@ void main() {
         v6.execute("INSERT INTO operation_subtypes VALUES "
             "('st-$name','unproductive','$name',1,0)");
       }
+      // ...and one of the subtypes the starter catalog needs, as a colleague
+      // who already authored it themselves would have it. Name-matching has to
+      // find this one rather than adding a second of the same name.
+      v6.execute("INSERT INTO operation_subtypes VALUES "
+          "('st-own','unproductive','${starterSubtypes.first.name}',0,0)");
       if (withCatalogRows) {
         v6.execute("INSERT INTO catalog_operations VALUES "
             "('own','Minha operação','productive',NULL,NULL,0,0)");
@@ -126,11 +142,31 @@ void main() {
 
       final operations = await db.select(db.catalogOperations).get();
       expect(operations, hasLength(starterCatalog.length));
-      // Subtypes matched against the ids that were already in the database.
+      // Every waste operation resolved a subtype, whether it was already in the
+      // database or seeded alongside the catalog.
       expect(
         operations
             .where((o) => o.category == OperationCategory.unproductive)
-            .every((o) => o.subtypeId != null && o.subtypeId!.startsWith('st-')),
+            .every((o) => o.subtypeId != null),
+        isTrue,
+      );
+
+      // Matched by NAME against what the database already had: the subtype the
+      // colleague authored is reused, keeping their id, and no second one of
+      // that name appears to split their waste Pareto in two.
+      final reused = starterSubtypes.first.name;
+      final subtypes = await db.select(db.operationSubtypes).get();
+      expect(subtypes.where((s) => s.name == reused), hasLength(1));
+
+      final needing = starterCatalog
+          .where((o) => o.subtypeName == reused)
+          .map((o) => o.name)
+          .toSet();
+      expect(needing, isNotEmpty);
+      expect(
+        operations
+            .where((o) => needing.contains(o.name))
+            .every((o) => o.subtypeId == 'st-own'),
         isTrue,
       );
     });

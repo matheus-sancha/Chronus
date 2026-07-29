@@ -267,12 +267,40 @@ class AppDatabase extends _$AppDatabase {
       return;
     }
 
-    // Subtypes are matched by NAME: the 7 wastes carry generated ids, and on an
-    // upgrade they already exist with ids no constant could know.
+    final now = DateTime.now();
+
+    // Subtypes the starter operations need that the 7 built-ins do not cover
+    // (§3.4). Seeded only where a subtype of that name is missing: a colleague
+    // may already have authored "Inspection" themselves, and a second one would
+    // split their waste Pareto in two.
+    final existingSubtypes = await select(operationSubtypes).get();
+    final known = {for (final s in existingSubtypes) s.name};
+    final missing =
+        starterSubtypes.where((s) => !known.contains(s.name)).toList();
+    if (missing.isNotEmpty) {
+      await batch((b) {
+        b.insertAll(operationSubtypes, [
+          for (final subtype in missing)
+            OperationSubtypesCompanion.insert(
+              id: _uuid.v4(),
+              category: subtype.category,
+              name: subtype.name,
+              // Not built-in: §3.4 reserves that for the 7 wastes. These are
+              // ours to offer rather than the taxonomy's to impose, which also
+              // leaves them deletable — as they should be.
+              isBuiltIn: const Value(false),
+              createdAt: now,
+            ),
+        ]);
+      });
+    }
+
+    // Re-read, so the ids just inserted are in the map. Matched by NAME
+    // throughout: the built-ins carry generated ids, and on an upgrade they
+    // already exist with ids no constant could know.
     final subtypes = await select(operationSubtypes).get();
     final subtypeByName = {for (final s in subtypes) s.name: s.id};
 
-    final now = DateTime.now();
     await batch((b) {
       b.insertAll(catalogOperations, [
         for (final op in starterCatalog)
