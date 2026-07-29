@@ -7,6 +7,7 @@ import '../features/diagnostics/application/diagnostics.dart';
 import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/analysis/presentation/comparison_screen.dart';
 import '../features/analysis/presentation/sampling_report_screen.dart';
 import '../features/analysis/presentation/time_study_report_screen.dart';
 import '../features/studies/presentation/study_detail_screen.dart';
@@ -41,6 +42,13 @@ GoRouter router(Ref ref) {
                       projectId: state.pathParameters['projectId']!,
                     ),
                     routes: [
+                      // Cross-study comparison, scoped to the project (§4).
+                      GoRoute(
+                        path: 'compare',
+                        builder: (context, state) => ComparisonScreen(
+                          projectId: state.pathParameters['projectId']!,
+                        ),
+                      ),
                       GoRoute(
                         path: 'studies/:studyId',
                         builder: (context, state) => StudyDetailScreen(

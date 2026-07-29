@@ -436,5 +436,21 @@
   "studyRelativePrecision": "Precision (± % of the mean)",
   "colMin": "Min",
   "colMax": "Max",
-  "samplingAppendixTitle": "Passes in detail"
+  "samplingAppendixTitle": "Passes in detail",
+  "compareAction": "Compare studies",
+  "compareTitle": "Comparison",
+  "compareEmpty": "Pick two or more studies to compare.",
+  "compareNoStudies": "This project has no studies to compare yet.",
+  "compareNothingMatched": "No operations could be matched. Studies are compared by the catalog operations they share, and these have none in common.",
+  "comparePickStudies": "Studies",
+  "compareSelected": "{count} selected",
+  "@compareSelected": {"placeholders": {"count": {"type": "int"}}},
+  "compareReadings": "n = {count}",
+  "@compareReadings": {"placeholders": {"count": {"type": "int"}}},
+  "compareSingleReadingNote": "○ = a single reading, not a mean",
+  "compareUnmatchedNote": "{count} operations not compared — no catalog link: {names}",
+  "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
+  "compareTrendTitle": "Over time",
+  "compareChange": "Change",
+  "compareRowSingleStudy": "Only one study timed this"
 }

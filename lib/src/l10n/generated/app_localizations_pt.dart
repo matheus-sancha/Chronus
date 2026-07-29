@@ -897,4 +897,51 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get samplingAppendixTitle => 'Tomadas em detalhe';
+
+  @override
+  String get compareAction => 'Comparar estudos';
+
+  @override
+  String get compareTitle => 'Comparação';
+
+  @override
+  String get compareEmpty => 'Escolha dois ou mais estudos para comparar.';
+
+  @override
+  String get compareNoStudies =>
+      'Este projeto ainda não tem estudos para comparar.';
+
+  @override
+  String get compareNothingMatched =>
+      'Nenhuma operação pôde ser relacionada. Os estudos são comparados pelas operações de catálogo que têm em comum, e estes não têm nenhuma.';
+
+  @override
+  String get comparePickStudies => 'Estudos';
+
+  @override
+  String compareSelected(int count) {
+    return '$count selecionados';
+  }
+
+  @override
+  String compareReadings(int count) {
+    return 'n = $count';
+  }
+
+  @override
+  String get compareSingleReadingNote => '○ = leitura única, não é média';
+
+  @override
+  String compareUnmatchedNote(int count, String names) {
+    return '$count operações fora da comparação — sem vínculo com o catálogo: $names';
+  }
+
+  @override
+  String get compareTrendTitle => 'Ao longo do tempo';
+
+  @override
+  String get compareChange => 'Variação';
+
+  @override
+  String get compareRowSingleStudy => 'Só um estudo cronometrou esta operação';
 }

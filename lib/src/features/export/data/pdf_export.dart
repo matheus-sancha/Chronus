@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -12,6 +13,7 @@ import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../analysis/application/timeline_axis.dart';
 import '../../catalog/presentation/classification_labels.dart';
+import '../../studies/presentation/study_formatting.dart';
 import '../application/export_payload.dart';
 
 /// Builds the **presentation artifact**: study header metadata, the summary
@@ -369,6 +371,99 @@ List<pw.Widget> _passAppendix(PassExport pass, AppLocalizations l10n) {
       ..._timeline(r, l10n),
     ],
   ];
+}
+
+/// The cross-study comparison as a presentation artifact (DESIGN.md §4, §5).
+///
+/// This one shows the **side-by-side matrix**, where the spreadsheet goes flat:
+/// §5 splits the formats by job, and the matrix is what a reader takes in at a
+/// glance while a long flat table is what a spreadsheet pivots.
+Future<Uint8List> buildComparisonPdf(
+  ComparisonExportPayload payload,
+  AppLocalizations l10n, {
+  String? localeName,
+}) async {
+  final c = payload.comparison;
+  final doc = pw.Document(title: payload.projectName);
+  final dateFormat = DateFormat.yMMM(localeName);
+
+  doc.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      // Landscape: a column per study plus the change column runs out of width
+      // in portrait at four studies, which is an ordinary number of them.
+      orientation: pw.PageOrientation.landscape,
+      margin: const pw.EdgeInsets.fromLTRB(32, 32, 32, 40),
+      footer: (context) => pw.Align(
+        alignment: pw.Alignment.centerRight,
+        child: pw.Text('${context.pageNumber} / ${context.pagesCount}',
+            style: const pw.TextStyle(fontSize: 9, color: _muted)),
+      ),
+      build: (context) => [
+        _title(payload.projectName, l10n.compareTitle),
+        pw.Wrap(
+          spacing: 24,
+          runSpacing: 4,
+          children: [
+            for (final study in c.studies)
+              _labelled(study.name,
+                  '${studyTypeLabel(l10n, study.type)} · '
+                  '${dateFormat.format(study.performedAt)}'),
+          ],
+        ),
+        pw.SizedBox(height: 16),
+        pw.TableHelper.fromTextArray(
+          headers: [
+            pdfSafeText(l10n.studyOperationsSection),
+            for (final study in c.studies)
+              pdfSafeText('${study.name}\n'
+                  '${dateFormat.format(study.performedAt)}'),
+            pdfSafeText(l10n.compareChange),
+          ],
+          data: [
+            for (final row in c.rows)
+              [
+                pdfSafeText(row.name),
+                for (final cell in row.cells)
+                  if (!cell.hasValue)
+                    _absent
+                  else
+                    // n on every figure (§11.9): "improved 6% since March"
+                    // reads as a finding until you see March was n=1.
+                    '${formatHmsd(cell.meanMs!.round())}\n'
+                        'n=${cell.readingCount}',
+                row.trend == null
+                    ? _absent
+                    : '${row.trend! >= 0 ? '+' : ''}'
+                        '${(row.trend! * 100).toStringAsFixed(1)}%',
+              ],
+          ],
+          headerStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+          cellStyle: const pw.TextStyle(fontSize: 8),
+          headerDecoration: const pw.BoxDecoration(color: _tint),
+          cellAlignments: {
+            0: pw.Alignment.centerLeft,
+            for (var i = 1; i <= c.studies.length + 1; i++)
+              i: pw.Alignment.centerRight,
+          },
+        ),
+        // The omission travels into the artifact, not only onto the screen.
+        if (c.unmatched.isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+          _text(
+            l10n.compareUnmatchedNote(
+              c.unmatched.length,
+              c.unmatched.map((u) => u.name).toSet().join(', '),
+            ),
+            fontSize: 8,
+            color: _muted,
+          ),
+        ],
+      ],
+    ),
+  );
+
+  return doc.save();
 }
 
 // --- text ------------------------------------------------------------------

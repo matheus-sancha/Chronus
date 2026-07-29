@@ -1701,6 +1701,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passes in detail'**
   String get samplingAppendixTitle;
+
+  /// No description provided for @compareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare studies'**
+  String get compareAction;
+
+  /// No description provided for @compareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison'**
+  String get compareTitle;
+
+  /// No description provided for @compareEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick two or more studies to compare.'**
+  String get compareEmpty;
+
+  /// No description provided for @compareNoStudies.
+  ///
+  /// In en, this message translates to:
+  /// **'This project has no studies to compare yet.'**
+  String get compareNoStudies;
+
+  /// No description provided for @compareNothingMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations could be matched. Studies are compared by the catalog operations they share, and these have none in common.'**
+  String get compareNothingMatched;
+
+  /// No description provided for @comparePickStudies.
+  ///
+  /// In en, this message translates to:
+  /// **'Studies'**
+  String get comparePickStudies;
+
+  /// No description provided for @compareSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String compareSelected(int count);
+
+  /// No description provided for @compareReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'n = {count}'**
+  String compareReadings(int count);
+
+  /// No description provided for @compareSingleReadingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'○ = a single reading, not a mean'**
+  String get compareSingleReadingNote;
+
+  /// No description provided for @compareUnmatchedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} operations not compared — no catalog link: {names}'**
+  String compareUnmatchedNote(int count, String names);
+
+  /// No description provided for @compareTrendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Over time'**
+  String get compareTrendTitle;
+
+  /// No description provided for @compareChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get compareChange;
+
+  /// No description provided for @compareRowSingleStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one study timed this'**
+  String get compareRowSingleStudy;
 }
 
 class _AppLocalizationsDelegate

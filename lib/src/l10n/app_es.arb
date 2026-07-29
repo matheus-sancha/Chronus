@@ -388,5 +388,21 @@
   "studyRelativePrecision": "Precisión (± % de la media)",
   "colMin": "Mín",
   "colMax": "Máx",
-  "samplingAppendixTitle": "Tomas en detalle"
+  "samplingAppendixTitle": "Tomas en detalle",
+  "compareAction": "Comparar estudios",
+  "compareTitle": "Comparación",
+  "compareEmpty": "Elige dos o más estudios para comparar.",
+  "compareNoStudies": "Este proyecto aún no tiene estudios que comparar.",
+  "compareNothingMatched": "No se pudo relacionar ninguna operación. Los estudios se comparan por las operaciones de catálogo que comparten, y estos no tienen ninguna en común.",
+  "comparePickStudies": "Estudios",
+  "compareSelected": "{count} seleccionados",
+  "@compareSelected": {"placeholders": {"count": {"type": "int"}}},
+  "compareReadings": "n = {count}",
+  "@compareReadings": {"placeholders": {"count": {"type": "int"}}},
+  "compareSingleReadingNote": "○ = una sola lectura, no es una media",
+  "compareUnmatchedNote": "{count} operaciones fuera de la comparación — sin vínculo al catálogo: {names}",
+  "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
+  "compareTrendTitle": "A lo largo del tiempo",
+  "compareChange": "Variación",
+  "compareRowSingleStudy": "Solo un estudio cronometró esta operación"
 }

@@ -890,4 +890,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get samplingAppendixTitle => 'Passes in detail';
+
+  @override
+  String get compareAction => 'Compare studies';
+
+  @override
+  String get compareTitle => 'Comparison';
+
+  @override
+  String get compareEmpty => 'Pick two or more studies to compare.';
+
+  @override
+  String get compareNoStudies => 'This project has no studies to compare yet.';
+
+  @override
+  String get compareNothingMatched =>
+      'No operations could be matched. Studies are compared by the catalog operations they share, and these have none in common.';
+
+  @override
+  String get comparePickStudies => 'Studies';
+
+  @override
+  String compareSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String compareReadings(int count) {
+    return 'n = $count';
+  }
+
+  @override
+  String get compareSingleReadingNote => '○ = a single reading, not a mean';
+
+  @override
+  String compareUnmatchedNote(int count, String names) {
+    return '$count operations not compared — no catalog link: $names';
+  }
+
+  @override
+  String get compareTrendTitle => 'Over time';
+
+  @override
+  String get compareChange => 'Change';
+
+  @override
+  String get compareRowSingleStudy => 'Only one study timed this';
 }

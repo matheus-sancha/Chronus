@@ -25,6 +25,15 @@ class ProjectDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(projectAsync.value?.name ?? l10n.navProjects),
         actions: [
+          // Comparison is scoped to one project for v1 (§4), so the project is
+          // where it belongs — and it only appears once there is more than one
+          // study, since comparing a study with itself is not a thing.
+          if ((studiesAsync.value?.length ?? 0) > 1)
+            IconButton(
+              icon: const Icon(Icons.compare_arrows),
+              tooltip: l10n.compareAction,
+              onPressed: () => context.push('/projects/$projectId/compare'),
+            ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
             tooltip: l10n.actionDelete,

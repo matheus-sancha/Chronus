@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../analysis/application/cross_study_comparison.dart';
 import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../studies/presentation/study_formatting.dart';
@@ -81,6 +82,17 @@ class SamplingExportPayload {
       photosByStudyOperationId.values.any((list) => list.isNotEmpty);
 }
 
+/// A cross-study comparison, ready to export (DESIGN.md §4, §11.9).
+class ComparisonExportPayload {
+  const ComparisonExportPayload({
+    required this.projectName,
+    required this.comparison,
+  });
+
+  final String projectName;
+  final CrossStudyComparison comparison;
+}
+
 /// One labelled study-header field. `value` is null when the optional field was
 /// left blank; exporters skip those.
 typedef HeaderField = ({String label, String? value});
@@ -110,14 +122,27 @@ List<HeaderField> studyHeaderFields(
 
 /// A filesystem-safe file name for the exported artifact, e.g.
 /// `Line-3-cycle-2026-07-21.pdf`.
-String exportFileName(Study study, String extension) {
-  final slug = study.name
+String exportFileName(Study study, String extension) =>
+    _fileName(study.name, study.performedAt, extension, fallback: 'study');
+
+/// The comparison's file name, dated today rather than by a study — the
+/// artifact is a reading of several studies taken at a moment, and dating it
+/// with one of them would misattribute it.
+String comparisonFileName(String projectName, String extension) =>
+    _fileName(projectName, DateTime.now(), extension, fallback: 'comparison');
+
+String _fileName(
+  String name,
+  DateTime date,
+  String extension, {
+  required String fallback,
+}) {
+  final slug = name
       .trim()
       .replaceAll(RegExp(r'[^\w\s-]'), '')
       .replaceAll(RegExp(r'\s+'), '-');
-  final date = DateFormat('yyyy-MM-dd').format(study.performedAt);
-  final base = slug.isEmpty ? 'study' : slug;
-  return '$base-$date.$extension';
+  final base = slug.isEmpty ? fallback : slug;
+  return '$base-${DateFormat('yyyy-MM-dd').format(date)}.$extension';
 }
 
 /// Milliseconds as decimal seconds, for the XLSX (numbers, not pictures).

@@ -2,7 +2,7 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete** bar §10.8. **Phase 7 (Sampling) is complete** — passes, statistics, adequacy, exclusion and export. Phase 8 (Cross-study comparison) is next; both are specified in §11, and they ship in one drop (§11.11).
+**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete** bar §10.8. **Phases 7 (Sampling) and 8 (Cross-study comparison) are complete** — both specified in §11, and both due in one drop (§11.11). Phase 9 (Polish) is what remains before that drop.
 **Last updated:** 2026-07-28
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
@@ -217,7 +217,7 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
 6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete**, bar the optional backup folder in §10.8.
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy. Decisions in **§11**. **Complete.**
-8. **Cross-study comparison.** Decisions in **§11**; ships in the same drop as 7 (§11.11).
+8. **Cross-study comparison.** Decisions in **§11**; ships in the same drop as 7 (§11.11). **Complete.**
 9. **Polish** — video, iPad layouts, finalize pt/en/es.
 
 **Why 6b comes before 7.** Sampling Study is "run the Time Study K times" (§3.2) — it is built directly on the study workspace and reuses its timing engine. Real use had not touched that workspace when this order was written, so building Sampling first risks building it twice: any interaction change that the first real studies force would then land in two places instead of one. Hardening the workspace, and being able to *hear* about it, comes first. _Continuing straight to Phase 7 was rejected_ for that reason, not for lack of demand — Sampling is the most-asked-for missing feature.
@@ -465,6 +465,15 @@ Cross-study matching is by `catalogOperationId` (§4), and §3.3 promises that "
 - **"Unmatched excluded" becomes a stated count**, naming the operations dropped for having no catalog link (custom or unplanned). A comparison that quietly omits a third of the work content is worse than one that admits it — and this is the artifact most likely to be read by someone who ran neither study.
 
 _Deferred, not rejected: a t-based confidence band on the trend._ The machinery exists — statistics give s and n, `studentT` is already tabulated — and it would make "did this actually get faster" answerable rather than eyeballed, since two means whose intervals overlap have not been shown to differ. It costs a second render path in the PDF vector chart builder, and is worth revisiting once the comparison is in real use.
+
+**Implementation notes (Phase 8):**
+- **Both study types come in as a `SamplingReport`.** A Time Study is a study with one pass, so its representative time is that pass's reading and its n is 1 — which the sampling builder already produces. One code path means the two types cannot drift, and §11.9's n disclosure falls out rather than being a special case someone has to remember to write.
+- **Rows are keyed by `catalogOperationId`, and the newest study decides the label and the standard.** Names are snapshotted per study (§3.3) and legitimately differ between them; the catalog cannot be consulted for a canonical one because §11.8 deliberately dropped that link. "Are we meeting it" means the standard in force now, so the newest is the one to compare against.
+- **A study that did not time an operation contributes a blank, never a zero** — on screen, and no row at all in the flat sheet. Same rule as §11.7's `Observations`.
+- **An unmatched operation is only named if it was actually timed.** One that was never timed contributes nothing to any comparison, matched or not, and listing it would be noise in the one place that has to stay readable.
+- **The comparison loads through a future, not a stream** — the only read path in the app that does. Nothing on the screen is being timed, so there is nothing to keep live, and the alternative is four streams per study recombining on every keystroke of an unrelated run.
+- **The formats split as §5 says.** The PDF carries the side-by-side matrix (landscape — a column per study plus the change column runs out of width in portrait at four studies); the XLSX goes flat, one row per operation × study. `Unmatched` is a **sheet**, not a footnote: a note at the bottom of a sheet is the first thing lost to a filter.
+- **The comparison file is named for the project and dated today**, not after any study. It is a reading of several studies taken at a moment, and dating it by one of them would misattribute it.
 
 ### 11.10 Schema v6
 

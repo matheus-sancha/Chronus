@@ -1,12 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
+import 'package:intl/intl.dart';
 
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../catalog/presentation/classification_labels.dart';
+import '../../studies/presentation/study_formatting.dart';
 import '../application/export_payload.dart';
 
 /// Sheet names are fixed identifiers (not localized) so downstream spreadsheets
@@ -16,6 +18,102 @@ const _sheetOperations = 'Operations';
 const _sheetSegments = 'Segments';
 const _sheetStatistics = 'Statistics';
 const _sheetObservations = 'Observations';
+const _sheetStudies = 'Studies';
+const _sheetComparison = 'Comparison';
+const _sheetUnmatched = 'Unmatched';
+
+/// The cross-study comparison as an analysis artifact (DESIGN.md §4, §5).
+///
+/// **Flat, not the side-by-side matrix the screen shows.** §5 divides the two
+/// formats by job: the PDF presents, and presents the matrix; the spreadsheet is
+/// for analysis, where one row per (operation, study) pivots into whatever shape
+/// the analyst actually wants and a wide matrix does not.
+///
+/// `Unmatched` is a sheet rather than a footnote for the same reason it is
+/// on screen (§11.9): the omission has to survive into the artifact, and a note
+/// at the bottom of a sheet is the first thing lost to a filter.
+Uint8List buildComparisonXlsx(
+  ComparisonExportPayload payload,
+  AppLocalizations l10n, {
+  String? localeName,
+}) {
+  const ours = {_sheetStudies, _sheetComparison, _sheetUnmatched};
+  final comparison = payload.comparison;
+
+  final excel = Excel.createExcel();
+
+  final studies = _RowWriter(excel[_sheetStudies]);
+  studies.heading(payload.projectName);
+  studies.blank();
+  studies.header([
+    l10n.studyNameLabel,
+    l10n.studyFieldType,
+    l10n.studyFieldDate,
+    l10n.studyFieldAnalyst,
+  ]);
+  final dateFormat = DateFormat.yMMMd(localeName).add_Hm();
+  for (final study in comparison.studies) {
+    studies.row([
+      TextCellValue(study.name),
+      TextCellValue(studyTypeLabel(l10n, study.type)),
+      TextCellValue(dateFormat.format(study.performedAt)),
+      TextCellValue(study.analyst ?? ''),
+    ]);
+  }
+
+  final rows = _RowWriter(excel[_sheetComparison]);
+  rows.header([
+    l10n.colOperation,
+    l10n.studyNameLabel,
+    l10n.studyFieldDate,
+    _seconds(l10n, l10n.samplingMean),
+    l10n.samplingCount,
+    _seconds(l10n, l10n.colReference),
+    l10n.reportEfficiency,
+  ]);
+  for (final row in comparison.rows) {
+    for (var i = 0; i < row.cells.length; i++) {
+      final cell = row.cells[i];
+      // A study that did not time the operation contributes no row: a zero
+      // would be a measurement and a blank row would be a reading.
+      if (!cell.hasValue) continue;
+      final study = comparison.studies[i];
+      rows.row([
+        TextCellValue(row.name),
+        TextCellValue(study.name),
+        DateTimeCellValue.fromDateTime(study.performedAt),
+        DoubleCellValue(msToSeconds(cell.meanMs!.round())),
+        // n beside every figure, so a downstream reader can weight a mean over
+        // six passes against one press of a stopwatch (§11.9).
+        IntCellValue(cell.readingCount),
+        row.referenceStandardMs == null
+            ? TextCellValue('')
+            : DoubleCellValue(msToSeconds(row.referenceStandardMs!)),
+        cell.efficiency == null
+            ? TextCellValue('')
+            : DoubleCellValue(cell.efficiency!),
+      ]);
+    }
+  }
+
+  final unmatched = _RowWriter(excel[_sheetUnmatched]);
+  unmatched.header([l10n.colOperation, l10n.studyNameLabel]);
+  for (final entry in comparison.unmatched) {
+    unmatched.row([
+      TextCellValue(entry.name),
+      TextCellValue(entry.studyName),
+    ]);
+  }
+
+  excel.setDefaultSheet(_sheetStudies);
+  for (final name in excel.tables.keys.toList()) {
+    if (!ours.contains(name)) excel.delete(name);
+  }
+
+  final bytes = excel.encode();
+  if (bytes == null) throw StateError('XLSX encoding produced no bytes');
+  return Uint8List.fromList(bytes);
+}
 
 /// Builds the **analysis artifact**: numbers, not pictures (DESIGN.md §5).
 /// Every duration is written as a numeric value in decimal seconds so the cells
