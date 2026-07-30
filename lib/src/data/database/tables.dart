@@ -86,7 +86,7 @@ class Studies extends Table {
   TextColumn get notes => text().nullable()();
 
   /// Sample-size criteria for a Sampling Study, **stored per study rather than
-  /// as a global preference** (DESIGN.md §10.9).
+  /// as a global preference** (DESIGN.md §11.5).
   ///
   /// Same reasoning as snapshotting reference standards (§3.3): the criteria a
   /// study was judged against belong to that study. A global setting would
@@ -101,6 +101,16 @@ class Studies extends Table {
       real().withDefault(const Constant(0.95))();
   RealColumn get relativePrecision =>
       real().withDefault(const Constant(0.05))();
+
+  /// The sequence index the next pass will take — a counter, not a count
+  /// (DESIGN.md §11.3).
+  ///
+  /// Pass numbers are never reused, and `MAX(sequenceIndex) + 1` cannot deliver
+  /// that: deleting the highest pass would hand its number straight back to the
+  /// next one. Only a value that does not depend on which rows still exist can,
+  /// so it lives here and only ever goes up. Starts at 1 because creating a
+  /// study also creates pass 0 (§11.1).
+  IntColumn get nextPassIndex => integer().withDefault(const Constant(1))();
 
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -117,9 +127,18 @@ class StudyOperations extends Table {
   TextColumn get id => text()();
   TextColumn get studyId =>
       text().references(Studies, #id, onDelete: KeyAction.cascade)();
-  TextColumn get catalogOperationId => text()
-      .nullable()
-      .references(CatalogOperations, #id, onDelete: KeyAction.setNull)();
+
+  /// The catalog operation this was snapshotted from — **a value, not a
+  /// reference** (DESIGN.md §11.8). Deliberately carries no foreign key.
+  ///
+  /// It is the key cross-study comparison groups by, and §3.3 promises it keeps
+  /// working. As a foreign key with `setNull` it did not: deleting a catalog
+  /// operation silently unmatched every study that had ever used it, with
+  /// nothing said. Every other field here is already a snapshot for exactly this
+  /// reason — the id was the one left live. Null means the operation was never
+  /// from the catalog (added custom, or unplanned), which is the only reason it
+  /// can be null now.
+  TextColumn get catalogOperationId => text().nullable()();
 
   /// Fractional, so an unplanned op can be inserted between two existing ones
   /// (e.g. 2.5) without renumbering the rest of the sequence.
@@ -144,9 +163,26 @@ class Observations extends Table {
   TextColumn get id => text()();
   TextColumn get studyId =>
       text().references(Studies, #id, onDelete: KeyAction.cascade)();
+
+  /// Position in the study, from 0. **Never renumbered and never reused**
+  /// (DESIGN.md §11.3): "Pass 4" in an exported file or a written note has to
+  /// mean the same pass forever, so a removed pass leaves a labelled gap rather
+  /// than shifting the ones after it. Displayed as `sequenceIndex + 1`.
   IntColumn get sequenceIndex => integer()();
   DateTimeColumn get performedAt => dateTime()();
   TextColumn get notes => text().nullable()();
+
+  /// When this whole pass was excluded from the statistics, or null if it counts
+  /// (DESIGN.md §11.3).
+  ///
+  /// Excluding is **not** deleting: the pass keeps its measurements, its own
+  /// report and its rows in the Segments sheet — it is only out of the aggregate
+  /// mean, deviation, CV and sample-size verdict. Reversible, and the reason is
+  /// recorded next to it, because "the line was starved" is the difference
+  /// between a discarded pass and a suspicious one.
+  DateTimeColumn get excludedAt => dateTime().nullable()();
+  TextColumn get exclusionReason => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
 
   @override
@@ -183,6 +219,22 @@ class OperationInstances extends Table {
   /// segment. Cleared if timing resumes.
   DateTimeColumn get completedAt => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
+
+  /// When this single reading was excluded from the statistics, or null if it
+  /// counts (DESIGN.md §11.3).
+  ///
+  /// The finer grain of the pass-level flag above, for the ordinary case: one
+  /// operation went wrong in an otherwise good pass. Cronoanálise discards
+  /// anomalous readings before computing a mean, and without this the only ways
+  /// to do that were to delete the whole pass — losing every other operation's
+  /// good reading in it — or to type an override, inventing a number.
+  ///
+  /// The app may **flag** candidates (a reading beyond ±3s) and must never act
+  /// on them: only the analyst knows whether a long cycle was legitimate, which
+  /// is §10.4's reasoning about abandoned segments applied to a measured one.
+  DateTimeColumn get excludedAt => dateTime().nullable()();
+  TextColumn get exclusionReason => text().nullable()();
+
   DateTimeColumn get createdAt => dateTime()();
 
   @override
@@ -277,6 +329,15 @@ class AppSettings extends Table {
   /// Sound when an operation nears or passes its reference standard (§3.6).
   BoolColumn get alertSoundsEnabled =>
       boolean().withDefault(const Constant(true))();
+
+  /// When the starter catalog was seeded, or null if it never was (§9).
+  ///
+  /// A record that the offer was *made*, not that the rows still exist. Seeding
+  /// is guarded on an empty catalog, which alone would refill it for someone who
+  /// deliberately emptied theirs — this is what makes "no thanks" stick across
+  /// the next drop.
+  DateTimeColumn get starterCatalogSeededAt => dateTime().nullable()();
+
   DateTimeColumn get updatedAt => dateTime()();
 
   @override

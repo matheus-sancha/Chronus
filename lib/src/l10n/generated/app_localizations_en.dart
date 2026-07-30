@@ -708,4 +708,240 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackSaved => 'Noted. It goes along when you save diagnostics.';
+
+  @override
+  String get passesTitle => 'Passes';
+
+  @override
+  String passLabel(int number) {
+    return 'Pass $number';
+  }
+
+  @override
+  String get passAdd => 'New pass';
+
+  @override
+  String passTimedCount(int timed, int total) {
+    return '$timed of $total timed';
+  }
+
+  @override
+  String get passNothingTimed => 'Nothing timed yet';
+
+  @override
+  String get passExcludedBadge => 'Excluded';
+
+  @override
+  String get passExclude => 'Exclude from statistics';
+
+  @override
+  String get passInclude => 'Put back in the statistics';
+
+  @override
+  String passExcludeTitle(String pass) {
+    return 'Exclude $pass?';
+  }
+
+  @override
+  String get passExcludeMessage =>
+      'It keeps its measurements and its own report — it is only left out of the averages. You can put it back at any time.';
+
+  @override
+  String get passExcludeReasonHint => 'Why? (e.g. line starved)';
+
+  @override
+  String get passDelete => 'Delete pass';
+
+  @override
+  String get passDeleteBlocked =>
+      'This pass has measurements. Exclude it instead — that keeps the evidence.';
+
+  @override
+  String get passDeleteLastBlocked => 'A study keeps at least one pass.';
+
+  @override
+  String passDeleteConfirmTitle(String pass) {
+    return 'Delete $pass?';
+  }
+
+  @override
+  String get passDeleteConfirmMessage =>
+      'Nothing was timed in it. The number is not used again.';
+
+  @override
+  String get passReport => 'Report for this pass';
+
+  @override
+  String get samplingReportTitle => 'Sampling report';
+
+  @override
+  String get samplingReportEmpty =>
+      'Time an operation in at least one pass to see the report.';
+
+  @override
+  String samplingCriteria(String confidence, String precision) {
+    return '$confidence% confidence · ±$precision%';
+  }
+
+  @override
+  String samplingPassesTaken(int taken) {
+    return '$taken passes taken';
+  }
+
+  @override
+  String samplingAdequate(int required) {
+    return 'Adequate — $required needed';
+  }
+
+  @override
+  String samplingNotAdequate(int shortfall) {
+    return 'Not adequate — $shortfall more passes';
+  }
+
+  @override
+  String get samplingNotDeterminable => 'Not enough passes to judge yet';
+
+  @override
+  String get samplingNothingTimed => 'Nothing timed yet';
+
+  @override
+  String samplingGovernedBy(String operation) {
+    return 'Governed by: $operation';
+  }
+
+  @override
+  String samplingNeverTimed(String operations) {
+    return 'Never timed: $operations';
+  }
+
+  @override
+  String get samplingStatisticsTitle => 'Per-operation statistics';
+
+  @override
+  String get samplingReadingsTitle => 'Readings';
+
+  @override
+  String get samplingMean => 'Mean';
+
+  @override
+  String get samplingRange => 'Range';
+
+  @override
+  String get samplingStdDev => 'Std dev';
+
+  @override
+  String get samplingCv => 'CV';
+
+  @override
+  String get samplingRequired => 'Needed';
+
+  @override
+  String get samplingCount => 'n';
+
+  @override
+  String get samplingUnplannedNote =>
+      'Unplanned — shown, but not part of the verdict';
+
+  @override
+  String samplingExcludedNote(int count) {
+    return '$count readings excluded';
+  }
+
+  @override
+  String samplingManualNote(int count) {
+    return '$count entered by hand';
+  }
+
+  @override
+  String get samplingMeanWorkContent => 'Work content (mean pass)';
+
+  @override
+  String get readingExclude => 'Exclude this reading';
+
+  @override
+  String get readingInclude => 'Put this reading back';
+
+  @override
+  String readingExcludeTitle(String operation, int pass) {
+    return 'Exclude $operation, pass $pass?';
+  }
+
+  @override
+  String get readingExcludeMessage =>
+      'The measurement stays, and still appears in that pass\'s own report. It is only left out of the averages.';
+
+  @override
+  String get readingExcludedByPass => 'Excluded with the whole pass.';
+
+  @override
+  String get studyCriteriaSection => 'Sample size';
+
+  @override
+  String get studyConfidenceLevel => 'Confidence level';
+
+  @override
+  String get studyRelativePrecision => 'Precision (± % of the mean)';
+
+  @override
+  String get colMin => 'Min';
+
+  @override
+  String get colMax => 'Max';
+
+  @override
+  String get samplingAppendixTitle => 'Passes in detail';
+
+  @override
+  String get compareAction => 'Compare studies';
+
+  @override
+  String get compareTitle => 'Comparison';
+
+  @override
+  String get compareEmpty => 'Pick two or more studies to compare.';
+
+  @override
+  String get compareNoStudies => 'This project has no studies to compare yet.';
+
+  @override
+  String get compareNothingMatched =>
+      'No operations could be matched. Studies are compared by the catalog operations they share, and these have none in common.';
+
+  @override
+  String get comparePickStudies => 'Studies';
+
+  @override
+  String compareSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String compareReadings(int count) {
+    return 'n = $count';
+  }
+
+  @override
+  String get compareSingleReadingNote => '○ = a single reading, not a mean';
+
+  @override
+  String compareUnmatchedNote(int count, String names) {
+    return '$count operations not compared — no catalog link: $names';
+  }
+
+  @override
+  String get compareTrendTitle => 'Over time';
+
+  @override
+  String get compareChange => 'Change';
+
+  @override
+  String get compareRowSingleStudy => 'Only one study timed this';
+
+  @override
+  String compareOccurrences(int count) {
+    return 'x$count in the sequence';
+  }
+
+  @override
+  String get compareOccurrencesHeader => 'Occurrences';
 }

@@ -18,11 +18,14 @@ Internal preview · Covers the Windows build · [Versão em português](MANUAL-p
 8. [The report](#8-the-report)
 9. [Reading the timeline](#9-reading-the-timeline)
 10. [Why the numbers do not add up](#10-why-the-numbers-do-not-add-up)
-11. [Notes and photos](#11-notes-and-photos)
-12. [Exporting](#12-exporting)
-13. [Settings, backup and restore](#13-settings-backup-and-restore)
-14. [Not built yet](#14-not-built-yet)
-15. [Troubleshooting](#15-troubleshooting)
+11. [Sampling studies: taking several passes](#11-sampling-studies-taking-several-passes)
+12. [The sampling report](#12-the-sampling-report)
+13. [Comparing studies](#13-comparing-studies)
+14. [Notes and photos](#14-notes-and-photos)
+15. [Exporting](#15-exporting)
+16. [Settings, backup and restore](#16-settings-backup-and-restore)
+17. [Not built yet](#17-not-built-yet)
+18. [Troubleshooting](#18-troubleshooting)
 
 ---
 
@@ -35,6 +38,7 @@ It is built for the way time studies actually run on a shop floor:
 - **The clock is not always running.** Not every instant belongs to an operation. Dead time is only counted when you explicitly attribute it to something.
 - **Operations overlap.** Two operators on one assembly, or a machine running while the operator waits. Chronus treats concurrency as normal, not as an error.
 - **You correct as you go.** Operations get added mid-study, times get entered by hand when you forget to press start, and a measurement gets thrown away and redone.
+- **One reading is not a measurement.** A repeating process gets timed several times and averaged, with the statistics to say whether you have measured enough yet, and the ability to throw out the run where the line was starved (§11).
 
 Everything is stored on the computer you run it on. There is no login, no sync, and no server.
 
@@ -63,14 +67,18 @@ Paste that into the File Explorer address bar to open it. Because your data is s
 ```
 Project
  └─ Study
-     └─ Operations (timed individually)
+     └─ Pass  (one for a Time Study, several for a Sampling Study)
+         └─ Operations (timed individually)
 
 Catalog  — reusable operation definitions, shared across all studies
 Template — a reusable ordered sequence of operations
 ```
 
 - A **Project** groups related studies — usually a cell, a line, or a product family.
-- A **Study** is one timed pass through a sequence of operations.
+- A **Study** is one investigation of a sequence. It comes in two types, chosen when you create it and changeable later:
+  - **Time Study** — measured once. One pass, and opening the study takes you straight to it.
+  - **Sampling Study** — the same sequence measured several times, then averaged, with statistics and a sample-size verdict. See §11.
+- A **Pass** is one run through the sequence. Everything about timing works identically in either type, because a Time Study *is* a study with a single pass — there is no second way to run a stopwatch to learn.
 - An **Operation** inside a study is a *copy* taken from the catalog at the moment you added it. Editing the catalog later will **not** change studies you have already run. That is deliberate: a report from March must not silently change because someone revised a standard in July.
 
 ### Classification
@@ -108,6 +116,12 @@ Use the row menu to rename or delete. Deleting a project deletes its studies wit
 ## 5. The operation catalog
 
 The catalog is your reusable library of operation definitions. Build it once and each new study becomes a matter of picking from a list instead of retyping.
+
+**It is not empty on a fresh install.** Chronus arrives with a short starter list taken from a real boring cycle, so a new PC can time something without an hour of typing first. Rename, edit or delete any of it — it is ordinary catalog content, not built-in. Two subtypes come with it, *Tool Setup/Change* and *Inspection*, because the operations that need them are not among the seven wastes.
+
+The starter list carries **no reference standards**, on purpose: a benchmark nobody measured would flow into efficiency figures and pace alerts as though it meant something. Enter your real ones once, here, and every future study snapshots them.
+
+If you empty the catalog deliberately, Chronus does not refill it on the next version — the offer is made once.
 
 ![Catalog screen](manual/images/catalog-en.png)
 
@@ -153,6 +167,24 @@ Each operation has its **own independent timer**. There is no single master stop
 - **↺ Reset** — throws the measurement away and returns the row to zero. It asks for confirmation.
 
 Because each timer is independent, you can **run several at once**. Start the machine cycle, then start "operator waiting" alongside it — both run, and the overlap is measured and reported.
+
+### Keyboard timing
+
+On Windows you can run a whole study without touching the mouse, which matters when you are standing at a machine holding a clipboard.
+
+| Key | What it does |
+|---|---|
+| **Space** | **The lap key.** Stops the running operation and starts the next one, with no gap between them. If nothing is running, it starts the first operation not yet timed |
+| **↑ ↓** | Pick a row |
+| **Enter** | Start or pause the picked row |
+| **S** | Stop the picked row |
+| **Esc** | Clear the picked row |
+
+**Space is the one to learn.** A sequence measured back to back — where each operation begins the instant the last one ends — is one keypress per operation and produces no unattributed time at all. You do not have to pick rows first: with nothing running, Space finds the first untimed operation itself.
+
+**With two or more operations running at once, Space deliberately does nothing.** Which one is "current" is genuinely ambiguous, and stopping the wrong operator's timer would ruin the measurement. Pick the row with **↑ ↓** and press **Enter** or **S**.
+
+Press **F1** at any time for this list on screen — there is also a keyboard icon in the toolbar, because a shortcut nobody knows to ask for might as well not exist.
 
 ### Pace alerts
 
@@ -222,7 +254,7 @@ Read-only. Timing happens in the workspace; this screen only presents it.
 
 | | |
 |---|---|
-| **1** | **Export** — PDF or XLSX (see §12) |
+| **1** | **Export** — PDF or XLSX (see §15) |
 | **2** | **Total elapsed** — wall-clock span, first start to last stop. Here **6:30.0** |
 | **3** | **Work content** — the sum of every operation's time. Here **8:31.0** |
 | **4** | **Simultaneous** — time with two or more operations running at once. Here **30.0 s** |
@@ -285,7 +317,141 @@ Total elapsed = covered time + unattributed time
 
 ---
 
-## 11. Notes and photos
+## 11. Sampling studies: taking several passes
+
+One reading is not a measurement of a repeating process. Time the same cycle five times and you get five different numbers — the question is what the real time is, and how sure you are. A **Sampling Study** is the same sequence measured several times, averaged, with the statistics to say whether you have measured enough.
+
+Set **Study type → Sampling Study** when you create the study, or change it later from the edit screen. Everything else works exactly as in §6: there is no second way to run a stopwatch to learn.
+
+### The pass list
+
+Opening a Sampling Study shows its **Passes**, not the workspace.
+
+Each row is one run through the sequence: its number, when it was timed, and how many operations it covered (*3 of 7 timed*, or *Nothing timed yet*). **New pass** adds one. Tap any pass to open the workspace from §6 on it — unchanged, including Space and the pace alerts.
+
+A Time Study is the same thing with a single pass, so it skips this screen and opens the workspace directly.
+
+**Pass numbers are never reused and never renumbered.** *Pass 4* in an exported file, or written on a sheet of paper, means the same pass forever. Delete a pass and the list shows the gap rather than quietly closing it.
+
+### Editing the sequence part-way through
+
+You can add, remove and reorder operations at any point, including after passes have been timed — a run across a whole shift will certainly hit an interruption that needs recording, and refusing to record it would push its time into *unattributed*, which is exactly where attributed dead time should not go.
+
+- An operation added at pass 4 simply has fewer readings than its neighbours. The report shows **n per operation**, so partial coverage is visible rather than something you have to infer.
+- **Deleting** an operation warns you how many passes lose measurements, because it removes that row's evidence from every pass, not just the one you are in.
+- An operation marked **unplanned** is shown with its statistics but left out of the study-level verdict. An interruption timed once would otherwise pin the study at "not adequate" forever, for a row that is not part of the standard sequence.
+
+### Throwing out a bad reading, or a bad pass
+
+Cronoanálise discards anomalous readings before averaging. Chronus lets you do that explicitly, and the rules are the same at both levels: **exclusion is reversible, attributed, and never automatic.**
+
+- **One reading** — from the readings matrix in the sampling report (§12), **Exclude this reading**.
+- **A whole pass** — from its row menu in the pass list, **Exclude from statistics**. Use this when the run itself was rubbish: the line was starved, the operator was training. It carries an optional reason, and the row is badged **Excluded**.
+
+> **Excluding is not deleting.** The measurement stays in the database, stays in that pass's own report — the pass really did take that long — and stays in the **Segments** sheet of an export. It is only left out of the mean, the deviation, the CV and the sample-size verdict. **Put back in the statistics** undoes it at any time.
+
+The report always states how many readings were excluded, so a mean can never quietly rest on a smaller sample than it appears to.
+
+**Chronus never excludes anything on its own.** It has no automatic outlier rule, because at these sample sizes the textbook one does not work — a single outlier inflates the standard deviation enough to bring itself back inside the bound, so with five passes it usually excludes nothing, and when it does fire it changes numbers you never agreed to. Only you know whether a long cycle was legitimate.
+
+**Deleting a pass** is refused while it holds measurements — the app tells you to exclude it instead, which keeps the evidence. An empty pass deletes without argument, and a study always keeps at least one.
+
+**Report for this pass**, from the row menu, opens the full §8 report for that pass alone: summary tiles, timeline, the lot. A single pass *is* a time study. This is how you explain an outlier — what ran alongside it, where it paused — **before** deciding to exclude it, rather than after.
+
+---
+
+## 12. The sampling report
+
+The toolbar report button on a Sampling Study opens this instead of §8. It answers two questions: *what is the time*, and *have I measured enough*.
+
+It is aggregate only. There is deliberately **no timeline, no total elapsed, no simultaneous and no unattributed** here — those describe one run of the clock, and averaging them across passes produces figures that do not describe anything. They live in each pass's own report (§11).
+
+### The verdict
+
+At the top, in words:
+
+| What you see | What it means |
+|---|---|
+| **Adequate — 6 needed** | You have taken enough passes for the precision you asked for |
+| **Not adequate — 4 more passes** | You are short, by that many |
+| **Not enough passes to judge yet** | Some operation has fewer than two readings, so there is no spread to extrapolate from |
+| **Nothing timed yet** | No operation has a reading in any pass |
+
+Beside it: your criteria (*95 % confidence · ±5 %*), how many passes you have taken, and — when you are short — **Governed by: _operation_**.
+
+**That last line is the point.** Passes are taken through the whole sequence; you cannot add passes for one operation alone. So the operation needing the most passes decides the answer for the study, and naming it turns the verdict into an instruction — *four more passes, and Inspect is what needs them* — instead of a grade.
+
+**Never timed: _operations_** is listed separately, because incomplete is not the same as inadequate. An operation nobody has timed yet is missing coverage, not failing a precision test.
+
+Set the criteria per study on the edit screen: **Confidence level** and **Precision (± % of the mean)**. They default to the usual 95 % and ±5 %.
+
+### Per-operation statistics
+
+One row per operation:
+
+| Column | Meaning |
+|---|---|
+| **n** | How many readings are in the average |
+| **Mean** | The representative time |
+| **Range** | Largest reading minus smallest |
+| **Std dev** | Spread of the readings |
+| **CV** | Standard deviation as a percentage of the mean — comparable between a 5-second and a 5-minute operation |
+| **Needed** | Passes required for your criteria |
+
+A high **CV** is the number to watch. It says the operation is inconsistent, which is usually more interesting than its mean — an inconsistent operation is one you can improve by making it repeatable, before trying to make it faster.
+
+Above the table, **Work content (mean pass)** and the aggregate **Efficiency** describe the average pass as a whole.
+
+### The readings matrix
+
+Operations down, passes across, so you can see the actual numbers behind every mean and spot the odd one out by eye.
+
+- An excluded reading is struck through and stays visible — it is evidence, not a mistake.
+- A reading that was **entered by hand** rather than measured is marked, and the count of them is stated with the statistics. Typed times do count toward the mean: a study transcribed from paper would otherwise have no statistics at all. But a standard deviation over typed numbers means very little, and you can only know that if you are told.
+- A blank means that pass never timed that operation. Not a zero — a zero would be a measurement.
+
+Tap a reading to exclude it or put it back.
+
+---
+
+## 13. Comparing studies
+
+Did the change work? Open a project and press **Compare studies** in the toolbar, tick two or more studies, and Chronus lines them up.
+
+Studies are matched **by the catalog operations they share**. An operation you created on the spot inside one study has nothing to match against, which is why building the sequence from the catalog (§5) is what makes a comparison possible later.
+
+**Time Studies and Sampling Studies mix freely.** A Time Study contributes its single reading; a Sampling Study contributes its mean.
+
+### What you get
+
+A **side-by-side table** — one column per study, oldest to newest, plus a **Change** column — and a **trend** chart per operation over time.
+
+Every figure carries the things that decide whether it can be trusted:
+
+| Marker | Meaning |
+|---|---|
+| **n = 6** | How many readings stand behind the figure |
+| **○** | A single reading, not a mean |
+| **x4 in the sequence** | The figure is the total of four occurrences of that operation in one pass |
+| *blank* | That study never timed this operation |
+
+**Why n is on every cell.** "Weld seam improved 6 % since March" reads as a finding until you notice March was one press of a stopwatch. A mean over six passes and a single reading are otherwise the same number in the same column.
+
+**Why occurrences are summed, not averaged.** A boring cycle that inspects after every tool pass has four inspections in one pass. The cell shows the *inspection content of a pass* — all four added up — because that is the figure that changes when the process improves. Averaging them instead would report **no change** when a process went from inspecting four times to twice, which is precisely the improvement you opened this screen to see. The count is shown so a repeated operation is never mistaken for a slow one.
+
+The operation's name and reference standard come from the **newest** study in the comparison: names are snapshotted per study and legitimately differ, and "are we meeting it" means the standard in force now.
+
+### What was left out
+
+Below the table, a stated count: **_n_ operations not compared — no catalog link**, and their names.
+
+This is deliberately loud. A comparison that quietly omitted a third of the work content would be worse than one that admits it — and this is the artifact most likely to be read by somebody who ran neither study. Only operations that were actually timed are listed; one that nobody timed contributes nothing either way.
+
+If nothing can be matched at all, Chronus says so rather than showing an empty table.
+
+---
+
+## 14. Notes and photos
 
 Both attach to an individual operation, from the row menu (**13**).
 
@@ -300,13 +466,17 @@ Photos are downscaled on import. They are documentation, not archival captures, 
 
 ---
 
-## 12. Exporting
+## 15. Exporting
 
-From the report screen, button **1**. Two formats, two jobs.
+From any report screen. Two formats, two jobs — the PDF is what you hand to someone, the XLSX is what you work on.
 
-**PDF — the presentation artifact.** Study header, summary tiles, category breakdown, the timeline, the waste Pareto, the operations table, and any attached photos. One fixed layout. This is what you hand to someone.
+Durations are written as decimal seconds so they behave as numbers in a spreadsheet. Sheet names stay in English regardless of app language, so formulas built on top of an export survive a language change. On Windows, export opens a save dialog.
 
-**XLSX — the analysis artifact.** Multiple sheets of numbers, not pictures:
+### A time study, or a single pass
+
+**PDF.** Study header, summary tiles, category breakdown, the timeline, the waste Pareto, the operations table, and any attached photos. One fixed layout.
+
+**XLSX:**
 
 | Sheet | Contents |
 |---|---|
@@ -316,13 +486,40 @@ From the report screen, button **1**. Two formats, two jobs.
 
 The **Segments** sheet is the one to reach for when somebody challenges a result. It contains exactly the intervals the timeline draws and that Simultaneous is calculated from, so the overlap can be recomputed independently and cross-checked against machine logs. Hand-entered time is deliberately absent from it — a typed number is not a measurement.
 
-Durations are written as decimal seconds so they behave as numbers in a spreadsheet. Sheet names stay in English regardless of app language, so formulas built on top of an export survive a language change.
+### A sampling study
 
-On Windows, export opens a save dialog.
+**One workbook for the whole study**, every pass included, one row per fact:
+
+| Sheet | Contents |
+|---|---|
+| Summary | Header, your criteria, the verdict, the governing operation |
+| Statistics | One row per operation — n, mean, min, max, range, std dev, CV, passes needed |
+| Observations | One row per **pass × operation** — the reading, and whether it was excluded or entered by hand |
+| Segments | As above, with a leading **Pass** column |
+
+**Observations is what makes the mean checkable.** Filter it to `Excluded = 0`, average the seconds column, and you will land on the number the app reports. The flags are written as `1` and `0`, not as words, so the column filters and sums. There is a test in Chronus that performs exactly that check, because the guarantee would otherwise rot silently.
+
+Two details worth knowing:
+
+- A pass that never timed an operation contributes **no row at all**. A zero would be a measurement and a blank would be a reading; absence is the only honest encoding of "not timed here".
+- An **excluded pass still contributes its Segments rows**. Exclusion is a statement about the average, not about whether the clock ran.
+
+The **Statistics** sheet also carries the `t` value and degrees of freedom, so you can put them back into the sample-size formula by hand and land on the same answer.
+
+The **PDF** leads with the aggregate sections and follows with **Passes in detail** — an appendix carrying each pass's summary and timeline. One file to hand over, rather than eleven for a ten-pass study.
+
+### A comparison
+
+From the comparison screen (§13). The formats split by job here too:
+
+- **PDF** — the side-by-side matrix, in landscape, with `n` and the occurrence count on every figure.
+- **XLSX** — flat, one row per operation × study, with an **Occurrences** column. The operations left out get their own **Unmatched** sheet rather than a note at the bottom, because a note at the bottom of a sheet is the first thing lost to a filter.
+
+The file is named for the **project** and dated today, not after any study in it — it is a reading of several studies taken at a moment, and dating it by one of them would misattribute it.
 
 ---
 
-## 13. Settings, backup and restore
+## 16. Settings, backup and restore
 
 ![Settings screen](manual/images/settings-en.png)
 
@@ -331,11 +528,37 @@ On Windows, export opens a save dialog.
 - **Time unit** — seconds, or decimal minutes.
 - **Alert sounds** — the pace cues described in §6. On by default; the amber/red colours stay even with sound off.
 
+### Two safety nets, for two different failures
+
+They are not alternatives — they protect against different things, and only one of them needs you to remember anything.
+
+| | **Back up** (`.chronus`) | **Automatic copies** |
+|---|---|---|
+| Protects against | losing the machine | a bug or a bad upgrade in Chronus |
+| Contains | studies **and photos** | studies only |
+| Happens | when you press the button | on its own, once a day at launch |
+| Leaves this PC | yes — that is the point | no |
+
 ### Backing up
 
 **Back up** writes a single `.chronus` file containing your entire database and every photo. Put it somewhere that is not this PC — a network share, a USB stick, a OneDrive folder.
 
-There is no automatic backup and no sync. If the PC dies and you have no `.chronus` file, the studies are gone. On a shared shop-floor machine, back up at the end of every study.
+There is no sync. If the PC dies and you have no `.chronus` file anywhere else, the studies are gone — the automatic copies live on the same disk and will not save you from that. On a shared shop-floor machine, back up at the end of every study.
+
+### Automatic copies
+
+Chronus copies its database **once a day, on its own**, and keeps the last three. No prompt, no nagging, and it can never delay or fail a launch. They are listed under **Settings → Data** with the date each was taken, and restoring one asks for confirmation the same way a backup restore does.
+
+**Photos are not included, and are never touched by restoring one.** Photos are written once and never modified, so they are not at risk from the failure this guards against — and keeping three copies of the photo library would cost enormously more disk to protect something that was never in danger. What that means in practice: roll back to yesterday and a photo you added today becomes an unused file on disk, while one you deleted today shows as a broken thumbnail. Both are better than losing the library.
+
+### Version and diagnostics
+
+Also under **Settings → Data**:
+
+- **Version** — the build label, e.g. `2026-07-29`. Quote this when you report anything; it is what identifies your copy.
+- **Save diagnostics** — writes a text file with the app's recent history: launches, whether the database was upgraded, whether the daily copy was made, and any errors. Send it along with a problem report and most questions can be answered without a guessing game.
+- **Send feedback** — note what got in the way, in your own words. It is stored locally and travels with the diagnostics file; nothing is transmitted anywhere on its own.
+- **Open data folder** — opens `%APPDATA%\com.matheussancha\chronus`, where the database, the photos and the automatic copies live.
 
 ### Restoring
 
@@ -349,20 +572,20 @@ The same file is how you move data between machines: back up on one PC, copy the
 
 ---
 
-## 14. Not built yet
+## 17. Not built yet
 
 This is an internal preview. These are designed but not yet available:
 
-- **Sampling Study** — repeating a study N times and aggregating statistically (mean, range, standard deviation, sample-size adequacy)
-- **Cross-study comparison** — comparing studies side by side and trending an operation over time
 - **Video attachments** — photos work; video does not
+- **Cross-project comparison** — comparing studies works within one project (§13), not across projects
+- **Confidence bands on the comparison trend** — the trend shows the means; it does not yet draw the interval around them, so "did this actually get faster" is still eyeballed rather than answered
 - **iPhone / iPad version**
 
-Times, categories, reports and exports are complete and safe to rely on.
+Times, categories, passes, statistics, reports, comparisons and exports are complete and safe to rely on.
 
 ---
 
-## 15. Troubleshooting
+## 18. Troubleshooting
 
 **"Windows protected your PC" when starting.** Expected — the program is not code-signed. **More info → Run anyway**.
 
@@ -376,4 +599,16 @@ Times, categories, reports and exports are complete and safe to rely on.
 
 **Unattributed time is large.** Somebody forgot to press start, or the study ran with long stretches that were never attributed to any operation. Check the timeline for wide gaps.
 
-**I reset an operation by accident.** The measurement is gone — reset discards it. Restore from your most recent backup, or re-enter the time by hand.
+**I reset an operation by accident.** The measurement is gone — reset discards it. Restore from your most recent backup or from yesterday's automatic copy (§16), or re-enter the time by hand.
+
+**Space does nothing.** Either two or more operations are running at once — pick a row and press **Enter** or **S** instead (§6) — or every operation already has a time.
+
+**The sampling report says "Not enough passes to judge yet".** Some operation has only one reading, and one reading has no spread to extrapolate from. Take another pass.
+
+**The sampling report has no timeline.** Correct — a timeline describes one run of the clock, so it lives in each pass's own report. Open a pass from the list and use **Report for this pass** (§11).
+
+**A study is missing from the comparison, or an operation is.** Studies are matched by the catalog operations they share (§13). An operation created on the spot inside one study has nothing to match against — it will be listed under *not compared*. Build sequences from the catalog to keep comparisons possible.
+
+**The comparison shows a much larger time than I measured.** Check for **x_n_ in the sequence** under the figure: it is the total of that many occurrences of the operation in one pass, not one of them.
+
+**My studies vanished after an upgrade.** Settings → Data → **Automatic copies**, and restore yesterday's. Then **Save diagnostics** and send it on — that is the failure the copies exist for, and the log says whether the database was upgraded at launch.

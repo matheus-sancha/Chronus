@@ -7,6 +7,8 @@ import '../features/diagnostics/application/diagnostics.dart';
 import '../features/projects/presentation/project_detail_screen.dart';
 import '../features/projects/presentation/projects_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/analysis/presentation/comparison_screen.dart';
+import '../features/analysis/presentation/sampling_report_screen.dart';
 import '../features/analysis/presentation/time_study_report_screen.dart';
 import '../features/studies/presentation/study_detail_screen.dart';
 import '../features/studies/presentation/study_edit_screen.dart';
@@ -40,6 +42,13 @@ GoRouter router(Ref ref) {
                       projectId: state.pathParameters['projectId']!,
                     ),
                     routes: [
+                      // Cross-study comparison, scoped to the project (§4).
+                      GoRoute(
+                        path: 'compare',
+                        builder: (context, state) => ComparisonScreen(
+                          projectId: state.pathParameters['projectId']!,
+                        ),
+                      ),
                       GoRoute(
                         path: 'studies/:studyId',
                         builder: (context, state) => StudyDetailScreen(
@@ -60,6 +69,46 @@ GoRouter router(Ref ref) {
                               projectId: state.pathParameters['projectId']!,
                               studyId: state.pathParameters['studyId']!,
                             ),
+                          ),
+                          // The aggregate report of a Sampling Study. A separate
+                          // route from `report` rather than a branch inside it,
+                          // because they are different reports over different
+                          // grains (DESIGN.md §11.6).
+                          GoRoute(
+                            path: 'sampling-report',
+                            builder: (context, state) => SamplingReportScreen(
+                              projectId: state.pathParameters['projectId']!,
+                              studyId: state.pathParameters['studyId']!,
+                            ),
+                          ),
+                          // One pass of a Sampling Study. The pass is a route
+                          // parameter rather than screen state (DESIGN.md
+                          // §11.1), so the workspace never has to ask which
+                          // one it is timing.
+                          GoRoute(
+                            path: 'passes/:observationId',
+                            builder: (context, state) => PassWorkspaceScreen(
+                              projectId: state.pathParameters['projectId']!,
+                              studyId: state.pathParameters['studyId']!,
+                              observationId:
+                                  state.pathParameters['observationId']!,
+                            ),
+                            routes: [
+                              // One pass IS a time study (§11.6), so its report
+                              // is the Time Study report screen with the pass
+                              // named — not a parallel implementation.
+                              GoRoute(
+                                path: 'report',
+                                builder: (context, state) =>
+                                    TimeStudyReportScreen(
+                                  projectId:
+                                      state.pathParameters['projectId']!,
+                                  studyId: state.pathParameters['studyId']!,
+                                  observationId:
+                                      state.pathParameters['observationId']!,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

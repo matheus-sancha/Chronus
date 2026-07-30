@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is in progress ahead of the first handout, then desktop ergonomics, then Phase 7 (Sampling).
-**Last updated:** 2026-07-26
+**Status:** in implementation — Phases 1–8 built (Foundations, Structure, Core, Analysis, Export, Windows operation, Sampling, Cross-study comparison). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete**. Phases 7 and 8 are specified in §11 and shipped together (§11.11) in the `2026-07-29b` drop. **Phase 9 (Polish) is all that remains** before the full v1 that §8.3 gates the first public release on.
+**Last updated:** 2026-07-29
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -104,7 +104,7 @@ _Alternative rejected:_ three study modes (direct / standard-vs-actual / samplin
 - **First-class entity:** an ordered list of catalog-operation references + the default study type. **No measured data, ever.**
 - Instantiating a template **snapshots** the sequence into a new study.
 - **"Save as template from study"** strips measurements, keeps sequence + settings.
-- No built-in starter templates in v1.
+- No built-in starter **templates** — but the **catalog is seeded** (§9, 2026-07-28). The first person to build a real sequence turns it into a template with "save as template from study", which is a better template than any we could guess.
 
 ### 3.8 Notes & media
 
@@ -215,10 +215,10 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
-6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete**, bar the optional backup folder in §10.8.
-7. **Sampling Study** — repeat engine + statistics + sample-size adequacy.
-8. **Cross-study comparison.**
-9. **Polish** — video, iPad layouts, finalize pt/en/es.
+6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete.**
+7. **Sampling Study** — repeat engine + statistics + sample-size adequacy. Decisions in **§11**. **Complete.**
+8. **Cross-study comparison.** Decisions in **§11**; ships in the same drop as 7 (§11.11). **Complete.**
+9. **Polish** — video, iPad layouts, finalize pt/en/es, **the optional backup folder (§10.8)**.
 
 **Why 6b comes before 7.** Sampling Study is "run the Time Study K times" (§3.2) — it is built directly on the study workspace and reuses its timing engine. Real use had not touched that workspace when this order was written, so building Sampling first risks building it twice: any interaction change that the first real studies force would then land in two places instead of one. Hardening the workspace, and being able to *hear* about it, comes first. _Continuing straight to Phase 7 was rejected_ for that reason, not for lack of demand — Sampling is the most-asked-for missing feature.
 
@@ -232,7 +232,23 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 ## 9. Open items (deferred, not blocking)
 
 - ~~Windows licensing mechanism~~ — **closed by dropping it** (§6). Windows is internal-only.
-- Whether to ship starter/built-in templates once real usage is observed. (The catalog is **empty on first run** — only the 7 wastes and the Process Type picklist are seeded — so a new user must author every operation before timing anything.)
+- ~~Whether to ship starter/built-in templates~~ — **closed 2026-07-28 by seeding the catalog instead.**
+
+  The item blamed templates for a problem the **catalog** caused: you cannot time anything without operations, and templates are a convenience on top. Conflating the two is why it stayed open.
+
+  §3.7's "ship nothing" was right for the App Store, where generic starter content is noise to an unknown audience. §6 made Windows internal-only — one known company — so the content can be *exactly* right rather than merely plausible, which is the same reasoning that already put _Cladding_ and _Bending_ in the Process Type picklist rather than a generic list of industries.
+
+  - **The list lives in one file** (`starter_catalog.dart`) and is the only part of Chronus specific to the people using it. Kept short on purpose: the job is getting someone from a cold install to a running stopwatch, not modelling the whole shop.
+  - **No reference standards are seeded.** A benchmark nobody measured would flow into efficiency figures and pace alerts (§3.6) as though it meant something, and a wrong standard is worse than none.
+  - **Subtypes are matched by name, not id** — the 7 wastes carry generated ids, and on an upgrade they already exist with ids no constant could know. An unmatched name yields a null subtype, which still rolls up by category and only costs the Pareto bar.
+  - **The subtypes the list needs are seeded alongside it** _(2026-07-29)_. The real cycle the catalog came from spends most of its unproductive time on **tool changes** and **inspection**, and neither is one of the 7 wastes — so every one of those operations landed with a null subtype and the waste Pareto, the report they exist to feed, came out empty of exactly the two bars worth looking at. §3.4 allows custom subtypes inside the fixed categories, which is the mechanism; this is the starter content using it.
+
+    Both sit under `unproductive`, which is a claim worth stating: neither changes the part, so neither is value-added — inspection proves the work was right rather than doing it, and a tool change is the machine not cutting.
+
+    They are seeded **not built-in**: §3.4 reserves that flag for the 7 wastes, and it also leaves these deletable, as content we offer rather than taxonomy we impose. And they are seeded **only where no subtype of that name exists** — a colleague may already have authored "Inspection" themselves, and a second one would split their waste Pareto in two.
+  - **The catalog is deduplicated; the repeats belong to a sequence.** A cycle that inspects after every tool pass holds one `Inspection` in the catalog and references it four times — the ordering and the repeats are a property of the study, not of the definition. What that costs is paid in §11.9: a comparison has to sum those four occurrences rather than pick one.
+  - **Seeded when the catalog is empty, on create *and* on upgrade**, deliberately outside the version guards: the colleagues already running Chronus are precisely the ones with an empty catalog, and gating on a schema version would reach only future installs.
+  - **Two guards, both needed.** The catalog must be empty, so nobody who has authored their own is handed a pile of ours; and `AppSettings.starterCatalogSeededAt` must be null, which is what makes a deliberate "I emptied this" survive the next drop. The empty check alone would refill it every time. The flag records that the offer was *made*, not that the rows still exist — so it is set even when seeding is skipped.
 - Audio/voice notes (v2).
 - Cross-project comparison (post-v1).
 - Cloud sync / accounts (explicitly out; revisit only if demanded).
@@ -331,6 +347,193 @@ The on-floor premise is **eyes on the machine, not on the screen**. An analyst w
 - **The workspace autofocuses**, so keys work on arrival — an analyst should not have to click into the table first. Clicking a row also picks it, so mouse and keyboard agree on what "the picked row" means.
 - **`F1` only, no `?`.** Typing `?` needs Shift plus a key that moves between layouts — on a Brazilian ABNT2 keyboard it is not where a US layout puts it — and a shortcut that silently does nothing on the keyboards these users actually have is worse than none. The **keyboard icon in the app bar** is what makes the sheet discoverable, and the sheet explains *why* Space goes inert under concurrency, since that behaviour reads as a bug until you know it is a refusal.
 
-### 10.8 Planned next (not yet built)
+### 10.8 Optional backup folder (deferred to Phase 9)
 
-- **Optional backup folder.** Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.
+Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.
+
+**Scheduled in Phase 9, not as a 6b leftover** _(moved 2026-07-29)_. It was written here because the failure is a Windows one, and the reasoning still belongs beside the snapshots it completes — but leaving it as the one thing outstanding in an otherwise-finished phase read as unfinished work rather than a choice. It waited on purpose: automatic snapshots were the same protection at a fraction of the cost, needing no path to configure and no folder that can go missing, so they went first and this became the remaining gap rather than the urgent one.
+
+The rationale stays in §10 rather than moving to §8.2, which carries the order and not the arguments.
+
+---
+
+## 11. Sampling Study & cross-study comparison
+
+_Added 2026-07-27, from the design review that preceded implementation of Phases 7 and 8._
+
+§3.2 and §4 say what a Sampling Study **is**; `sampling_statistics.dart` computes what it **means**. This section is the part in between — the decisions that turn "run the Time Study K times" into a thing that can be built, and cross-study comparison into a thing that can be trusted.
+
+> The statistics layer shipped ahead of this section and cites **"§10.9"** in two places (`tables.dart`, `sampling_statistics.dart`). That section never existed; the references are to this one, and are corrected.
+
+### 11.1 The pass
+
+A Sampling Study opens on a **list of passes**, not on the timing workspace. Each row is one observation — index, time, how many operations it timed, whether it is excluded — and opening one pushes the **existing workspace, unchanged**.
+
+- **The workspace is not modified by Phase 7 at all.** It knows about one observation and does not know that others exist: no pass switcher, no rollover, no new keyboard semantics, and `lapActionFor`'s three outcomes (§10.7) keep their current meanings. This is the whole reason the pass lives on its own screen — the workspace is the one screen with real use behind it, and the riskiest step of this phase (§11.10) becomes a mechanical re-key with no behaviour change.
+- _Rejected: an active-pass switcher inside the workspace._ It is the smaller number of taps and the worse blast radius; it puts pass state into the screen that must not regress.
+- _Rejected: `Space` rolling over into the next pass._ It reads as the purest form of §10.7 — the entire study as one repeated keypress — but it converts `NothingToStart`, a defined no-op, into a row-creating mutation, so a stray press at the end of a run silently opens an empty pass.
+- **The cost is accepted and named:** a pass boundary is a back-navigation and a tap, at the moment the analyst has least attention to spare, on the screen §10.7 exists to keep them off. It is **two interactions × K passes**. This is pure UI with no schema behind it, so a "finish pass & start next" action stays cheap to add if real use asks for it — which is why the decision was deferred rather than taken now.
+
+**An observation is created with the study, never lazily.** The invariant is that **a study always has at least one pass**: a Time Study has exactly one forever, a Sampling Study grows more.
+
+- Everything downstream loses its nullable-observation branch — workspace, report, Gantt, export. `_ensureObservation` disappears rather than being generalised.
+- `discardRun` changes from **deleting the observation** to **clearing its instances and segments**. Better regardless: `sequenceIndex` survives, so throwing away a bad run does not renumber anything.
+- Existing observations are inserted at **`sequenceIndex: 0`**, so the v6 backfill uses 0 and the label is `sequenceIndex + 1`. Getting this wrong would collide with the `{studyId, sequenceIndex}` unique key on the next pass created.
+
+### 11.2 Sequence edits across passes
+
+`StudyOperations` is per-study and shared by every pass (by design — `tables.dart`). Editing it mid-study therefore reaches backwards into passes already timed.
+
+- **It stays editable.** §3.5 is explicit that the operation list *is* the live workspace and that an unplanned operation can be inserted mid-study; a ten-pass run across a shift will certainly hit one. _Freezing the sequence after pass 1 was rejected_ for that reason: an interruption in pass 6 would then have nowhere to be recorded, and its time would land in `unattributed` where §3.5 says attributed dead time belongs.
+- **A hole is just a smaller n.** `statisticsFor` already takes whatever times exist, so an operation added at pass 4 has n=2 while its neighbours have n=5. The report **shows n per operation** so partial coverage is visible rather than inferred — the same disclosure §3.5 makes with "5 of 7 ops" on the Expected tile.
+- **Deleting an operation warns with the number of passes that lose measurements.** `remove` hard-deletes and cascades through every observation, so during pass 5 it destroys passes 1–4's evidence for that row. Silent is not acceptable for that.
+- **An operation flagged `isUnplanned` is shown with statistics but excluded from the study-level verdict** (§11.5). An interruption timed once would otherwise pin the study at "not adequate" forever, for a row that is not part of the standard sequence.
+- _Rejected: a per-pass sequence._ It matches the mental model of independent passes and contradicts the schema. It also makes matching rows across passes a problem with no good key — `catalogOperationId` is null for custom and unplanned operations, `name` is editable, `orderIndex` shifts.
+
+### 11.3 Exclusion — readings and passes
+
+Cronoanálise discards anomalous readings before computing a mean, and nothing in the app could express that. Two levels now can, on one principle: **exclusion is non-destructive, reversible, attributed, and never automatic.**
+
+- **A reading** (an `OperationInstance`) carries an exclusion stamp and an optional reason. **A pass** (an `Observation`) carries the same, and excludes all of its readings at once — that is what an analyst actually decides when a whole run was rubbish because the line was starved, and it is cheaper than looping the reading-level flag over every row.
+- Excluded readings stay in the database, stay in **that pass's own Time Study report** (the pass really did take that long), and stay in the **XLSX Segments sheet** — they are real evidence. They are out of the aggregate mean, deviation, CV and sample-size verdict, and **both counts are always stated** ("n 5 of 6").
+- **The app may flag, it may not act.** Readings beyond ±3s can be surfaced as candidates; the exclusion is always the analyst's. This is §10.4's reasoning exactly — only the analyst knows whether a long cycle was legitimate.
+- _Rejected: automatic ±3s trimming_, the classic textbook rule. At these sample sizes it does not work: a single outlier inflates the deviation enough to bring itself back inside the bound, so with n=5 the rule most often excludes nothing, and when it does fire it silently changes numbers the analyst never agreed to.
+- _Rejected: no exclusion in v1._ The workarounds are both worse than the problem — deleting a pass throws away every other operation's good reading in it, and a manual override invents a number, which §5 and §10.4 both go out of their way to refuse.
+- **Passes are excluded, not deleted.** Hard delete is available only for a pass with **no timing at all** — one opened by mistake, and never the study's last, since §11.1's invariant is what lets everything downstream drop its null branch. Both guards live in the repository rather than in the menu, so a second caller cannot route around them; the menu shows the action **disabled rather than hidden**, because "where did delete go?" is worse than being told that a pass with measurements is excluded instead.
+- `sequenceIndex` is never renumbered and never reused, so "Pass 4" in an exported file or a written note means the same pass forever (§3.3's historical integrity, applied to passes). A gap in the list is labelled, not silent. The next index therefore comes from a **counter on the study** (`nextPassIndex`), not from `MAX(sequenceIndex) + 1` — that would hand a deleted pass's number straight back to the next one, which is the same rule failing in the one case it exists for.
+
+### 11.4 Manual overrides in the statistics
+
+**An overridden time counts, and is marked.**
+
+§5 keeps fabricated time out of the **Segments sheet** because that sheet answers *what intervals were measured*. Statistics answer a different question — *what was the reported time* — and `observedMs` has been override-or-sum everywhere since Phase 4 (`timing_model.dart`). Excluding overrides would give a study transcribed from paper **no statistics at all**, killing the use case §3.5 names explicitly.
+
+The obligation that comes with counting them is disclosure: each overridden reading is marked and the count is stated, exactly as §4 hatches unmeasured Gantt blocks so an overlap reads as unverified rather than observed. _Rejected: counting them silently_ — a report handed to someone else could then not tell a measured mean from a typed one, and a standard deviation over typed numbers is meaningless in a way the reader has no way to detect.
+
+### 11.5 Sample-size adequacy at study level
+
+Criteria are per-study (§10.9 → here; `Studies.confidenceLevel` / `relativePrecision`, schema v5); `requiredPasses` returns a verdict per operation. The study-level answer is that **the worst included operation governs, and is named.**
+
+Passes are taken through the whole sequence — you cannot add passes for one operation alone — so the binding constraint is the maximum required across operations. Naming it turns the verdict into an instruction ("four more passes; Inspect is what needs them") rather than a grade.
+
+Three cases are kept distinct because they mean different things:
+
+| Case | Reported as |
+|---|---|
+| Included operation short of its required n | **not adequate**, with the shortfall |
+| Included operation with n < 2 | **not yet determinable** — no spread to extrapolate from |
+| Operation never timed in any pass | **coverage**, not failure — incomplete ≠ inadequate |
+| Operation flagged `isUnplanned` | excluded from the verdict (§11.2) |
+
+- _Rejected: no study-level verdict._ "Is this study done?" is the question the report is opened to answer, and every reader would take the maximum in their head anyway.
+- _Rejected: a count ("6 of 7 adequate")._ It reads as partial credit for something that is not partial — at ±5 %, an operation short of its n has a mean that is not trustworthy to ±5 %, and averaging that into a percentage hides precisely the operation the analyst needs to go re-time.
+
+### 11.6 Reports
+
+**The study's report is aggregate only.** Criteria and verdict, per-operation statistics, the readings matrix (operations × passes, carrying the excluded and manual marks), mean vs reference standard and efficiency, and category roll-up + waste Pareto computed **on means**.
+
+**It has no Gantt, no elapsed, no simultaneous and no unattributed** — those are per-pass measurements of one run, and summing or averaging them across passes produces figures that do not describe anything. §4's reconciliation `elapsed = covered + unattributed` holds within a pass and nowhere else.
+
+**Each pass row in the list opens `time_study_report_screen` verbatim**, because a single pass *is* a time study. One screen per concept, no tabs, no duplicated navigation — and the per-pass Gantt is how an analyst explains an outlier (what ran alongside it, where it paused) **before** deciding to exclude it under §11.3.
+
+- _Rejected: one tabbed report, Summary plus a tab per pass._ It duplicates navigation the pass list already provides, and a ten-pass study is eleven tabs.
+- _Rejected: aggregate only, with no per-pass report._ The data is there and already renders, and it is the evidence behind every exclusion decision.
+
+### 11.7 Export
+
+**One workbook, flat — one row per fact.** Sheet names stay fixed identifiers (§5), and the study-level export carries every pass:
+
+| Sheet | Grain |
+|---|---|
+| `Summary` | study header, criteria, verdict, governing operation |
+| `Statistics` | one row per operation — n, mean, min, max, range, s, CV, required n |
+| `Observations` | one row per **pass × operation** — reading, excluded flag, manual flag |
+| `Segments` | as §5, gaining a leading **Pass** column |
+
+Carrying the excluded and manual flags into `Observations` is what extends §5's guarantee to the aggregate: the reported overlap was already recomputable downstream, and now **the reported mean is too** — a spreadsheet can filter out the excluded rows and arrive at our number.
+
+The PDF leads with the aggregate sections and follows with a **per-pass appendix** — each pass's summary and Gantt, reusing Phase 5's chunked-row renderer.
+
+- _Rejected: aggregate only, with per-pass export left as a separate action._ A ten-pass study is then eleven files to hand to anyone, and the raw segments never sit alongside the statistics they support.
+- _Rejected: sheets per pass_ (`Operations_P1`, `Segments_P1`, …). Twenty-two sheets for ten passes, and every formula written against one pass has to be rewritten for each of the others.
+
+**Implementation notes (Phase 7d):**
+- **The excluded and manual flags are written as `1`/`0`, not as words**, so the column filters and sums. There is a test that filters `Observations` to `Excluded = 0`, averages the seconds column, and asserts it equals the mean the app reports — that assertion *is* the guarantee, and it would silently rot without it.
+- **A pass that never timed an operation contributes no `Observations` row at all.** A zero would be a measurement and a blank row would be a reading; absence is the only honest encoding of "not timed here".
+- **An excluded pass still contributes its `Segments` rows.** Exclusion is a statement about the average, not about whether the clock ran, and §5's promise that the sheet holds the raw evidence does not bend for it.
+- **The `Statistics` sheet carries `t` and `df`.** §11.5's whole reason for surfacing them on screen applies harder to the artifact: an analyst checking by hand needs to be able to put that `t` back into `n = (t·s/(E·x̄))²` and land on the same `n`.
+- **Nothing reaches a PDF table cell without `pdfSafeText`.** `_text` sanitises, but `TableHelper.fromTextArray` bypasses it — so an em dash used as a "no value" placeholder is silently *undrawable* by the built-in fonts and vanishes from the page. This was caught by the PDF tests emitting "Unable to find a font" warnings, not by reading. §5's Latin-1 warning applies to every string an exporter builds, not only to text the user typed; the placeholder is an ASCII hyphen.
+
+### 11.8 The catalog link
+
+Cross-study matching is by `catalogOperationId` (§4), and §3.3 promises that "the hidden id still enables cross-study grouping". It did not: the column is a foreign key with `onDelete: setNull`, and `delete` in the catalog repository is a hard delete — so **tidying the catalog silently unmatched every past study**, with nothing said and no way to notice.
+
+**The id becomes a snapshot value: plain text, no foreign key.**
+
+§3.3 already snapshots name, category and reference standard onto `StudyOperations` precisely so later catalog edits cannot mutate history. The id was the one field left as a live reference, and that was the inconsistency. As a value the grouping key is immutable, and comparison groups by it directly; the join to the catalog was only ever needed for a display name, which is already snapshotted.
+
+**This lands in v6 with the rest, not at Phase 8** — every study created in between would otherwise accumulate the live foreign key.
+
+- _Rejected: soft-deleting the catalog (an archived flag)._ It keeps the join and adds an archived state to every catalog query and screen, while protecting only studies made after the change; anything that does delete a row still nulls history.
+- _Rejected: refusing deletion when referenced._ The database enforces the guarantee, and the catalog becomes append-only in practice — a typo created and used once can never be cleaned up.
+
+### 11.9 Cross-study comparison
+
+§4 settles the shape (matched by catalog id, side-by-side table + per-operation trend, mixed types allowed, within one project). Two things it left implicit, both resolved the same way — **disclose, do not silently normalise**:
+
+- **Every representative time carries its n**, and the trend chart marks a single reading distinctly from a mean. A Sampling mean over six passes and one press of a stopwatch are otherwise the same number in the same column, and "Weld seam improved 6 % since March" reads as a finding when March was one reading.
+- **"Unmatched excluded" becomes a stated count**, naming the operations dropped for having no catalog link (custom or unplanned). A comparison that quietly omits a third of the work content is worse than one that admits it — and this is the artifact most likely to be read by someone who ran neither study.
+
+_Deferred, not rejected: a t-based confidence band on the trend._ The machinery exists — statistics give s and n, `studentT` is already tabulated — and it would make "did this actually get faster" answerable rather than eyeballed, since two means whose intervals overlap have not been shown to differ. It costs a second render path in the PDF vector chart builder, and is worth revisiting once the comparison is in real use.
+
+**Implementation notes (Phase 8):**
+- **Both study types come in as a `SamplingReport`.** A Time Study is a study with one pass, so its representative time is that pass's reading and its n is 1 — which the sampling builder already produces. One code path means the two types cannot drift, and §11.9's n disclosure falls out rather than being a special case someone has to remember to write.
+- **Rows are keyed by `catalogOperationId`, and the newest study decides the label and the standard.** Names are snapshotted per study (§3.3) and legitimately differ between them; the catalog cannot be consulted for a canonical one because §11.8 deliberately dropped that link. "Are we meeting it" means the standard in force now, so the newest is the one to compare against.
+- **A study that did not time an operation contributes a blank, never a zero** — on screen, and no row at all in the flat sheet. Same rule as §11.7's `Observations`.
+- **An unmatched operation is only named if it was actually timed.** One that was never timed contributes nothing to any comparison, matched or not, and listing it would be noise in the one place that has to stay readable.
+- **The comparison loads through a future, not a stream** — the only read path in the app that does. Nothing on the screen is being timed, so there is nothing to keep live, and the alternative is four streams per study recombining on every keystroke of an unrelated run.
+- **The formats split as §5 says.** The PDF carries the side-by-side matrix (landscape — a column per study plus the change column runs out of width in portrait at four studies); the XLSX goes flat, one row per operation × study. `Unmatched` is a **sheet**, not a footnote: a note at the bottom of a sheet is the first thing lost to a filter.
+- **The comparison file is named for the project and dated today**, not after any study. It is a reading of several studies taken at a moment, and dating it by one of them would misattribute it.
+
+**An operation that repeats in one sequence** _(added 2026-07-29, found against the real boring cycle in §9's catalog — it inspects after every pass of the tool, so four rows carry one catalog id)._
+
+The first implementation took the **first** appearance and dropped the rest. That is the silent omission this section exists to prevent, arriving through the back door: three measured operations vanished from the comparison with nothing said.
+
+**Occurrences are summed, and the count is disclosed.** The figure in the cell is the operation's *content in one pass* — the inspection time of a cycle, not the time of an inspection.
+
+- _Rejected: averaging the occurrences._ A process that went from inspecting four times to twice would report **no change**, which is precisely the improvement a comparison exists to show. Summing reports it as the halving it is.
+- _Rejected: one row per occurrence._ There is no stable identity to match them on across studies — occurrence #2 in March is not occurrence #2 in July when a pass was removed between them — so the rows would pair up arbitrarily and the trend would be noise.
+
+Three consequences follow, each the same disclose-don't-normalise rule as the rest of §11.9:
+
+- **The occurrence count rides beside the time**, on screen (shown only when > 1) and as its own `Occurrences` column in the flat sheet. A figure summed over four occurrences and one measured once are otherwise the same number.
+- **The weakest occurrence governs n.** A sum is only as trustworthy as the least-measured thing in it, so `readingCount` is the minimum across the occurrences, not their total or their mean.
+- **Efficiency is Σ reference ÷ Σ observed**, per §3.6 — and the row's reference standard is likewise summed over the *newest study's* occurrences. One occurrence's standard against the summed time would call a process that inspects four times **four times over its standard**, which is not a finding, it is an arithmetic error with a red badge on it.
+
+  Each cell sums the references of **the occurrences it actually measured**, so the ratio is like against like. Where a study left one of four occurrences untimed, that makes the cell's denominator narrower than the reference shown on the row — the same split the row already carries, since the displayed standard is the *newest* study's while each cell's efficiency uses its own snapshot (§3.3). The disclosure is the `occurrences` count sitting in the cell: a row whose sequence has four and a cell that says three is telling the reader exactly that.
+
+### 11.10 Schema v6
+
+One migration, carrying five changes:
+
+1. **`Observations`** gains an exclusion stamp + reason (§11.3).
+2. **`OperationInstances`** gains an exclusion stamp + reason (§11.3).
+3. **`Studies`** gains `nextPassIndex`, the pass counter (§11.3).
+4. **`StudyOperations` is rebuilt** to drop the foreign key on `catalogOperationId` (§11.8).
+5. **Backfill** one observation at `sequenceIndex: 0` for every study that has none (§11.1), then seed every study's counter past whatever it now has.
+
+The fourth makes this the **riskiest migration so far** — the first that rebuilds a table rather than adding to one. §2's warning applies directly: columns are copied **explicitly, never `SELECT *`**, because a table rebuilt by a migration can have a different column order than a freshly created one. Drift's `alterTable` does that, and also holds `legacy_alter_table` across the rename — without which SQLite rewrites `OperationInstances`' own foreign key to follow the table being renamed out of the way, leaving it pointing at something about to be dropped. There is a test that asserts `PRAGMA foreign_key_check` is clean afterwards.
+
+The ordering is deliberate: additive steps first, so a failure in the rebuild leaves the least behind, and the backfill last, so it runs against final tables — and the counter is seeded after the backfill, or a study that gained pass 0 there would hand out `0` again on the first **New pass**.
+
+**The `operation_instances` columns are added only `from >= 3`.** The 2→3 step rebuilds that table with `m.createTable`, which builds it from the *current* Dart definition — so on a v1/v2 database it already arrives carrying them, and adding them again fails the whole upgrade. This applies to any future column on `OperationInstances` or `OperationTimeSegments`; `Observations` needs no such guard, because no migration step creates it. This was found by the v1→v6 test, not by reading.
+
+§10.5's automatic snapshots are the net, and the diagnostics `db` line already records whether a launch upgraded the schema, so a report arriving in words can still be diagnosed.
+
+### 11.11 Build order
+
+**7a** re-key the timing layer from `studyId` to `observationId` · **7b** pass list + v6 · **7c** sampling report · **7d** sampling export · **8** cross-study comparison.
+
+7a is mechanical and touches everything; it stays its own step, with no behaviour change to justify, which §11.1's decision is what makes possible.
+
+**One drop, after both phases.** Comparison is arguably what makes sampling worth doing — the point of a settled mean is having something to compare it against — so the two ship as one coherent release rather than handing colleagues an intermediate build. _The cost is named:_ the v6 migration then arrives alongside whatever Phase 8 adds, so a fault in either is harder to attribute, which is why the migration test above is not optional. _Rejected: dropping 7a+7b early_ to expose the migration on its own — it would hand colleagues a build where a sampling study can be run in passes and still not be reported on, which is the dead end that exists today.

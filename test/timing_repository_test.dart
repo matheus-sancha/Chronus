@@ -174,6 +174,7 @@ void main() {
     late StudyOperationRepository sequence;
     late TimingRepository timing;
     late String studyId;
+    late String obsId;
     late String opA, opB, opC;
 
     setUp(() async {
@@ -198,33 +199,44 @@ void main() {
       opA = ops[0].id;
       opB = ops[1].id;
       opC = ops[2].id;
+      // Every action below is scoped to a pass (DESIGN.md §11.1); the caller
+      // resolves it once, which is exactly what the workspace does.
+      obsId = await timing.ensureObservationId(studyId);
     });
     tearDown(() => db.close());
 
     Future<OperationTiming> timingOf(String studyOperationId) async {
-      final obs = await timing.watchObservation(studyId).first;
-      if (obs == null) {
-        return OperationTiming(instance: null, segments: const []);
-      }
-      final instances = await timing.watchInstances(obs.id).first;
-      final segments = await timing.watchSegments(obs.id).first;
+      final instances = await timing.watchInstances(obsId).first;
+      final segments = await timing.watchSegments(obsId).first;
       return timingByOperation(instances: instances, segments: segments)[
               studyOperationId] ??
           OperationTiming(instance: null, segments: const []);
     }
 
-    test('start opens a running segment (lazy observation + instance)',
+    test('ensureObservationId creates one pass and then only reads it',
         () async {
-      expect(await timing.watchObservation(studyId).first, isNull);
-      await timing.start(studyId: studyId, studyOperationId: opA);
+      // Called once per workspace, not once per action — so it has to be
+      // idempotent, or a second press would collide on {studyId, sequenceIndex}.
+      final again = await timing.ensureObservationId(studyId);
+      expect(again, obsId);
 
-      expect(await timing.watchObservation(studyId).first, isNotNull);
+      final all = await db.select(db.observations).get();
+      expect(all.length, 1);
+      expect(all.single.sequenceIndex, 0);
+    });
+
+    test('start opens a running segment, creating the instance lazily',
+        () async {
+      expect((await timing.watchInstances(obsId).first), isEmpty);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+
+      expect((await timing.watchInstances(obsId).first).length, 1);
       expect((await timingOf(opA)).state, OperationTimingState.running);
     });
 
     test('pause preserves elapsed and stays resumable', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.pause(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.pause(observationId: obsId, studyOperationId: opA);
 
       final t = await timingOf(opA);
       expect(t.state, OperationTimingState.paused);
@@ -233,9 +245,9 @@ void main() {
     });
 
     test('resume opens a second segment; time is the sum', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.pause(studyId: studyId, studyOperationId: opA);
-      await timing.start(studyId: studyId, studyOperationId: opA); // resume
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.pause(observationId: obsId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA); // resume
 
       final t = await timingOf(opA);
       expect(t.state, OperationTimingState.running);
@@ -244,8 +256,8 @@ void main() {
     });
 
     test('stop marks the operation complete', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.stop(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stop(observationId: obsId, studyOperationId: opA);
 
       final t = await timingOf(opA);
       expect(t.state, OperationTimingState.done);
@@ -254,9 +266,9 @@ void main() {
     });
 
     test('reset zeroes segments and clears completion', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.stop(studyId: studyId, studyOperationId: opA);
-      await timing.reset(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stop(observationId: obsId, studyOperationId: opA);
+      await timing.reset(observationId: obsId, studyOperationId: opA);
 
       final t = await timingOf(opA);
       expect(t.segments, isEmpty);
@@ -264,21 +276,20 @@ void main() {
     });
 
     test('two operations can run at the same time', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.start(studyId: studyId, studyOperationId: opB);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opB);
 
       expect((await timingOf(opA)).state, OperationTimingState.running);
       expect((await timingOf(opB)).state, OperationTimingState.running);
 
-      final obs = await timing.watchObservation(studyId).first;
-      final segments = await timing.watchSegments(obs!.id).first;
+      final segments = await timing.watchSegments(obsId).first;
       expect(segments.length, 2);
       expect(totalWallClockMs(segments), greaterThanOrEqualTo(0));
     });
 
     test('stopAndStartNext completes current and starts next, gapless', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.stopAndStartNext(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stopAndStartNext(observationId: obsId, studyOperationId: opA);
 
       expect((await timingOf(opA)).state, OperationTimingState.done);
       expect((await timingOf(opB)).state, OperationTimingState.running);
@@ -290,38 +301,37 @@ void main() {
     });
 
     test('stopAndStartNext on the last operation just stops', () async {
-      await timing.start(studyId: studyId, studyOperationId: opC);
-      await timing.stopAndStartNext(studyId: studyId, studyOperationId: opC);
+      await timing.start(observationId: obsId, studyOperationId: opC);
+      await timing.stopAndStartNext(observationId: obsId, studyOperationId: opC);
 
       expect((await timingOf(opC)).state, OperationTimingState.done);
-      final obs = await timing.watchObservation(studyId).first;
-      final segments = await timing.watchSegments(obs!.id).first;
+      final segments = await timing.watchSegments(obsId).first;
       expect(segments.where((s) => s.endAtMs == null), isEmpty); // nothing running
     });
 
     test('stopAndStartNext skips already-timed operations', () async {
       // B already done; advancing from A should land on C, not B.
-      await timing.start(studyId: studyId, studyOperationId: opB);
-      await timing.stop(studyId: studyId, studyOperationId: opB);
+      await timing.start(observationId: obsId, studyOperationId: opB);
+      await timing.stop(observationId: obsId, studyOperationId: opB);
 
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.stopAndStartNext(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stopAndStartNext(observationId: obsId, studyOperationId: opA);
 
       expect((await timingOf(opC)).state, OperationTimingState.running);
     });
 
     test('manual override shadows measured time without deleting segments',
         () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.stop(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stop(observationId: obsId, studyOperationId: opA);
       await timing.setManualActual(
-          studyId: studyId, studyOperationId: opA, milliseconds: 12345);
+          observationId: obsId, studyOperationId: opA, milliseconds: 12345);
 
       var t = await timingOf(opA);
       expect(t.actualMs(), 12345); // override in effect
       expect(t.segments, isNotEmpty); // segments preserved
 
-      await timing.clearManualActual(studyId: studyId, studyOperationId: opA);
+      await timing.clearManualActual(observationId: obsId, studyOperationId: opA);
       t = await timingOf(opA);
       expect(t.manualActualMs, isNull); // falls back to measured
     });
@@ -329,7 +339,7 @@ void main() {
     test('manual entry works with no live timing (paper transcription)',
         () async {
       await timing.setManualActual(
-          studyId: studyId, studyOperationId: opC, milliseconds: 5000);
+          observationId: obsId, studyOperationId: opC, milliseconds: 5000);
       final t = await timingOf(opC);
       expect(t.actualMs(), 5000);
       expect(t.segments, isEmpty);
@@ -339,11 +349,52 @@ void main() {
     test('setNote stores a note (lazily) and blank clears it', () async {
       // Note on an operation that was never timed.
       await timing.setNote(
-          studyId: studyId, studyOperationId: opA, note: '  chattering tool  ');
+          observationId: obsId, studyOperationId: opA, note: '  chattering tool  ');
       expect((await timingOf(opA)).instance!.notes, 'chattering tool'); // trimmed
 
-      await timing.setNote(studyId: studyId, studyOperationId: opA, note: '   ');
+      await timing.setNote(observationId: obsId, studyOperationId: opA, note: '   ');
       expect((await timingOf(opA)).instance!.notes, null); // blank clears
+    });
+
+    test('excluding a reading is non-destructive and reversible', () async {
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stop(observationId: obsId, studyOperationId: opA);
+      final measured = (await timingOf(opA)).measuredMs();
+
+      await timing.setReadingExcluded(
+        observationId: obsId,
+        studyOperationId: opA,
+        excluded: true,
+        reason: '  wire feed jam  ',
+      );
+
+      var instance = (await timingOf(opA)).instance!;
+      expect(instance.excludedAt, isNotNull);
+      expect(instance.exclusionReason, 'wire feed jam'); // trimmed
+      // §11.3: the measurement stays. It is out of the aggregate, not gone —
+      // this pass's own report and the Segments sheet still carry it.
+      expect((await timingOf(opA)).measuredMs(), measured);
+      expect((await timing.watchSegments(obsId).first), isNotEmpty);
+
+      await timing.setReadingExcluded(
+        observationId: obsId,
+        studyOperationId: opA,
+        excluded: false,
+      );
+      instance = (await timingOf(opA)).instance!;
+      expect(instance.excludedAt, isNull);
+      expect(instance.exclusionReason, isNull);
+    });
+
+    test('excluding a reading that was never timed does nothing', () async {
+      // No instance exists yet, and one must not be conjured to hold a flag
+      // about a measurement that does not exist.
+      await timing.setReadingExcluded(
+        observationId: obsId,
+        studyOperationId: opC,
+        excluded: true,
+      );
+      expect((await timingOf(opC)).instance, isNull);
     });
 
     test('insertUnplannedAfter places the op between its neighbours', () async {
@@ -358,9 +409,9 @@ void main() {
       expect(ins.orderIndex, lessThan(2.0)); // between A(1) and B(2)
     });
 
-    test('discardRun removes the run and its unplanned ops, keeps planned',
+    test('discardRun clears the measurements but keeps the pass itself',
         () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
       await sequence.insertUnplannedAfter(
         studyId: studyId,
         afterStudyOperationId: opA,
@@ -368,9 +419,17 @@ void main() {
         category: OperationCategory.unproductive,
       );
 
-      await timing.discardRun(studyId);
+      await timing.discardRun(obsId);
 
-      expect(await timing.watchObservation(studyId).first, isNull);
+      // The pass survives with its sequenceIndex intact (DESIGN.md §11.1):
+      // throwing away a run is not un-taking the pass, and renumbering would
+      // make "Pass 4" in an exported file point somewhere else.
+      final obs = await timing.watchObservation(studyId).first;
+      expect(obs, isNotNull);
+      expect(obs!.id, obsId);
+      expect(await timing.watchInstances(obsId).first, isEmpty);
+      expect(await timing.watchSegments(obsId).first, isEmpty);
+
       final ops = await sequence.watchByStudy(studyId).first;
       expect(ops.where((o) => o.isUnplanned), isEmpty);
       expect(ops.map((o) => o.name), ['A', 'B', 'C']);
@@ -382,20 +441,20 @@ void main() {
 
     test('orphanedTiming reports nothing when every segment is closed',
         () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.stop(studyId: studyId, studyOperationId: opA);
-      await timing.start(studyId: studyId, studyOperationId: opB);
-      await timing.pause(studyId: studyId, studyOperationId: opB);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.stop(observationId: obsId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opB);
+      await timing.pause(observationId: obsId, studyOperationId: opB);
 
       expect(await timing.orphanedTiming(), isNull);
     });
 
     test('orphanedTiming counts operations, not segments, and dates the oldest',
         () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.pause(studyId: studyId, studyOperationId: opA);
-      await timing.start(studyId: studyId, studyOperationId: opA); // 2nd open
-      await timing.start(studyId: studyId, studyOperationId: opB);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.pause(observationId: obsId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA); // 2nd open
+      await timing.start(observationId: obsId, studyOperationId: opB);
 
       final orphaned = await timing.orphanedTiming();
       expect(orphaned, isNotNull);
@@ -410,12 +469,12 @@ void main() {
     test('discarding drops only open segments, keeping what was measured',
         () async {
       // A: one measured interval, then resumed and abandoned.
-      await timing.start(studyId: studyId, studyOperationId: opA);
-      await timing.pause(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
+      await timing.pause(observationId: obsId, studyOperationId: opA);
       final measuredA = (await timingOf(opA)).measuredMs();
-      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
       // B: never stopped at all, and nothing else to fall back on.
-      await timing.start(studyId: studyId, studyOperationId: opB);
+      await timing.start(observationId: obsId, studyOperationId: opB);
 
       await timing.discardOrphanedTiming();
 
@@ -431,9 +490,9 @@ void main() {
     });
 
     test('discarding leaves a manual override untouched', () async {
-      await timing.start(studyId: studyId, studyOperationId: opA);
+      await timing.start(observationId: obsId, studyOperationId: opA);
       await timing.setManualActual(
-        studyId: studyId,
+        observationId: obsId,
         studyOperationId: opA,
         milliseconds: 42000,
       );

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../data/database/database.dart';
 import '../../../data/database/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../analysis/application/sampling_statistics.dart';
 import '../application/studies_providers.dart';
 
 /// Full study header-metadata form. Loads the study, edits every v1 field, and
@@ -39,6 +40,11 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
   final _notes = TextEditingController();
 
   StudyType _type = StudyType.timeStudy;
+
+  /// Sample-size criteria, per study rather than a global preference (§11.5):
+  /// a global one would silently re-judge every past study when changed.
+  double _confidenceLevel = 0.95;
+  double _relativePrecision = 0.05;
   DateTime _performedAt = DateTime.now();
   String? _processType;
   bool _initialized = false;
@@ -76,6 +82,8 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
     _type = study.type;
     _performedAt = study.performedAt;
     _processType = study.processType;
+    _confidenceLevel = study.confidenceLevel;
+    _relativePrecision = study.relativePrecision;
     _initialized = true;
   }
 
@@ -120,6 +128,8 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
       workOrderNumber: Value(_nullIfBlank(_workOrder.text)),
       processType: Value(_processType),
       notes: Value(_nullIfBlank(_notes.text)),
+      confidenceLevel: Value(_confidenceLevel),
+      relativePrecision: Value(_relativePrecision),
     );
     await ref.read(studyRepositoryProvider).update(widget.studyId, changes);
     if (mounted) context.pop();
@@ -173,6 +183,46 @@ class _StudyEditScreenState extends ConsumerState<StudyEditScreen> {
                   selected: {_type},
                   onSelectionChanged: (s) => setState(() => _type = s.first),
                 ),
+                // Only a Sampling Study has a sample size to be adequate for;
+                // the columns exist on every study and are simply unused by a
+                // Time Study (§11.5).
+                if (_type == StudyType.samplingStudy) ...[
+                  const SizedBox(height: 16),
+                  Text(l10n.studyCriteriaSection,
+                      style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<double>(
+                    initialValue: _confidenceLevel,
+                    decoration:
+                        InputDecoration(labelText: l10n.studyConfidenceLevel),
+                    // The three levels the t table holds. A free-text field
+                    // would allow a value with no tabulated t behind it.
+                    items: [
+                      for (final level in supportedConfidenceLevels)
+                        DropdownMenuItem(
+                          value: level,
+                          child: Text('${(level * 100).round()}%'),
+                        ),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _confidenceLevel = v ?? 0.95),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<double>(
+                    initialValue: _relativePrecision,
+                    decoration:
+                        InputDecoration(labelText: l10n.studyRelativePrecision),
+                    items: [
+                      for (final precision in const [0.01, 0.02, 0.05, 0.10])
+                        DropdownMenuItem(
+                          value: precision,
+                          child: Text('± ${(precision * 100).round()}%'),
+                        ),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _relativePrecision = v ?? 0.05),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,

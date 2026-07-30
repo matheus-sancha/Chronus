@@ -1420,6 +1420,18 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         requiredDuringInsert: false,
         defaultValue: const Constant(0.05),
       );
+  static const VerificationMeta _nextPassIndexMeta = const VerificationMeta(
+    'nextPassIndex',
+  );
+  @override
+  late final GeneratedColumn<int> nextPassIndex = GeneratedColumn<int>(
+    'next_pass_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1461,6 +1473,7 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
     notes,
     confidenceLevel,
     relativePrecision,
+    nextPassIndex,
     createdAt,
     updatedAt,
   ];
@@ -1604,6 +1617,15 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         ),
       );
     }
+    if (data.containsKey('next_pass_index')) {
+      context.handle(
+        _nextPassIndexMeta,
+        nextPassIndex.isAcceptableOrUnknown(
+          data['next_pass_index']!,
+          _nextPassIndexMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1699,6 +1721,10 @@ class $StudiesTable extends Studies with TableInfo<$StudiesTable, Study> {
         DriftSqlType.double,
         data['${effectivePrefix}relative_precision'],
       )!,
+      nextPassIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_pass_index'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1740,7 +1766,7 @@ class Study extends DataClass implements Insertable<Study> {
   final String? notes;
 
   /// Sample-size criteria for a Sampling Study, **stored per study rather than
-  /// as a global preference** (DESIGN.md §10.9).
+  /// as a global preference** (DESIGN.md §11.5).
   ///
   /// Same reasoning as snapshotting reference standards (§3.3): the criteria a
   /// study was judged against belong to that study. A global setting would
@@ -1753,6 +1779,16 @@ class Study extends DataClass implements Insertable<Study> {
   /// Study and simply unused there.
   final double confidenceLevel;
   final double relativePrecision;
+
+  /// The sequence index the next pass will take — a counter, not a count
+  /// (DESIGN.md §11.3).
+  ///
+  /// Pass numbers are never reused, and `MAX(sequenceIndex) + 1` cannot deliver
+  /// that: deleting the highest pass would hand its number straight back to the
+  /// next one. Only a value that does not depend on which rows still exist can,
+  /// so it lives here and only ever goes up. Starts at 1 because creating a
+  /// study also creates pass 0 (§11.1).
+  final int nextPassIndex;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Study({
@@ -1773,6 +1809,7 @@ class Study extends DataClass implements Insertable<Study> {
     this.notes,
     required this.confidenceLevel,
     required this.relativePrecision,
+    required this.nextPassIndex,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1818,6 +1855,7 @@ class Study extends DataClass implements Insertable<Study> {
     }
     map['confidence_level'] = Variable<double>(confidenceLevel);
     map['relative_precision'] = Variable<double>(relativePrecision);
+    map['next_pass_index'] = Variable<int>(nextPassIndex);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1862,6 +1900,7 @@ class Study extends DataClass implements Insertable<Study> {
           : Value(notes),
       confidenceLevel: Value(confidenceLevel),
       relativePrecision: Value(relativePrecision),
+      nextPassIndex: Value(nextPassIndex),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1894,6 +1933,7 @@ class Study extends DataClass implements Insertable<Study> {
       notes: serializer.fromJson<String?>(json['notes']),
       confidenceLevel: serializer.fromJson<double>(json['confidenceLevel']),
       relativePrecision: serializer.fromJson<double>(json['relativePrecision']),
+      nextPassIndex: serializer.fromJson<int>(json['nextPassIndex']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1921,6 +1961,7 @@ class Study extends DataClass implements Insertable<Study> {
       'notes': serializer.toJson<String?>(notes),
       'confidenceLevel': serializer.toJson<double>(confidenceLevel),
       'relativePrecision': serializer.toJson<double>(relativePrecision),
+      'nextPassIndex': serializer.toJson<int>(nextPassIndex),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1944,6 +1985,7 @@ class Study extends DataClass implements Insertable<Study> {
     Value<String?> notes = const Value.absent(),
     double? confidenceLevel,
     double? relativePrecision,
+    int? nextPassIndex,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Study(
@@ -1970,6 +2012,7 @@ class Study extends DataClass implements Insertable<Study> {
     notes: notes.present ? notes.value : this.notes,
     confidenceLevel: confidenceLevel ?? this.confidenceLevel,
     relativePrecision: relativePrecision ?? this.relativePrecision,
+    nextPassIndex: nextPassIndex ?? this.nextPassIndex,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -2010,6 +2053,9 @@ class Study extends DataClass implements Insertable<Study> {
       relativePrecision: data.relativePrecision.present
           ? data.relativePrecision.value
           : this.relativePrecision,
+      nextPassIndex: data.nextPassIndex.present
+          ? data.nextPassIndex.value
+          : this.nextPassIndex,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -2035,6 +2081,7 @@ class Study extends DataClass implements Insertable<Study> {
           ..write('notes: $notes, ')
           ..write('confidenceLevel: $confidenceLevel, ')
           ..write('relativePrecision: $relativePrecision, ')
+          ..write('nextPassIndex: $nextPassIndex, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2060,6 +2107,7 @@ class Study extends DataClass implements Insertable<Study> {
     notes,
     confidenceLevel,
     relativePrecision,
+    nextPassIndex,
     createdAt,
     updatedAt,
   );
@@ -2084,6 +2132,7 @@ class Study extends DataClass implements Insertable<Study> {
           other.notes == this.notes &&
           other.confidenceLevel == this.confidenceLevel &&
           other.relativePrecision == this.relativePrecision &&
+          other.nextPassIndex == this.nextPassIndex &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -2106,6 +2155,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
   final Value<String?> notes;
   final Value<double> confidenceLevel;
   final Value<double> relativePrecision;
+  final Value<int> nextPassIndex;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -2127,6 +2177,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     this.notes = const Value.absent(),
     this.confidenceLevel = const Value.absent(),
     this.relativePrecision = const Value.absent(),
+    this.nextPassIndex = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2149,6 +2200,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     this.notes = const Value.absent(),
     this.confidenceLevel = const Value.absent(),
     this.relativePrecision = const Value.absent(),
+    this.nextPassIndex = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -2177,6 +2229,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     Expression<String>? notes,
     Expression<double>? confidenceLevel,
     Expression<double>? relativePrecision,
+    Expression<int>? nextPassIndex,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -2199,6 +2252,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
       if (notes != null) 'notes': notes,
       if (confidenceLevel != null) 'confidence_level': confidenceLevel,
       if (relativePrecision != null) 'relative_precision': relativePrecision,
+      if (nextPassIndex != null) 'next_pass_index': nextPassIndex,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2223,6 +2277,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     Value<String?>? notes,
     Value<double>? confidenceLevel,
     Value<double>? relativePrecision,
+    Value<int>? nextPassIndex,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -2245,6 +2300,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
       notes: notes ?? this.notes,
       confidenceLevel: confidenceLevel ?? this.confidenceLevel,
       relativePrecision: relativePrecision ?? this.relativePrecision,
+      nextPassIndex: nextPassIndex ?? this.nextPassIndex,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -2307,6 +2363,9 @@ class StudiesCompanion extends UpdateCompanion<Study> {
     if (relativePrecision.present) {
       map['relative_precision'] = Variable<double>(relativePrecision.value);
     }
+    if (nextPassIndex.present) {
+      map['next_pass_index'] = Variable<int>(nextPassIndex.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2339,6 +2398,7 @@ class StudiesCompanion extends UpdateCompanion<Study> {
           ..write('notes: $notes, ')
           ..write('confidenceLevel: $confidenceLevel, ')
           ..write('relativePrecision: $relativePrecision, ')
+          ..write('nextPassIndex: $nextPassIndex, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2386,9 +2446,6 @@ class $StudyOperationsTable extends StudyOperations
         true,
         type: DriftSqlType.string,
         requiredDuringInsert: false,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES catalog_operations (id) ON DELETE SET NULL',
-        ),
       );
   static const VerificationMeta _orderIndexMeta = const VerificationMeta(
     'orderIndex',
@@ -2636,6 +2693,17 @@ class $StudyOperationsTable extends StudyOperations
 class StudyOperation extends DataClass implements Insertable<StudyOperation> {
   final String id;
   final String studyId;
+
+  /// The catalog operation this was snapshotted from — **a value, not a
+  /// reference** (DESIGN.md §11.8). Deliberately carries no foreign key.
+  ///
+  /// It is the key cross-study comparison groups by, and §3.3 promises it keeps
+  /// working. As a foreign key with `setNull` it did not: deleting a catalog
+  /// operation silently unmatched every study that had ever used it, with
+  /// nothing said. Every other field here is already a snapshot for exactly this
+  /// reason — the id was the one left live. Null means the operation was never
+  /// from the catalog (added custom, or unplanned), which is the only reason it
+  /// can be null now.
   final String? catalogOperationId;
 
   /// Fractional, so an unplanned op can be inserted between two existing ones
@@ -3066,6 +3134,28 @@ class $ObservationsTable extends Observations
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _excludedAtMeta = const VerificationMeta(
+    'excludedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> excludedAt = GeneratedColumn<DateTime>(
+    'excluded_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _exclusionReasonMeta = const VerificationMeta(
+    'exclusionReason',
+  );
+  @override
+  late final GeneratedColumn<String> exclusionReason = GeneratedColumn<String>(
+    'exclusion_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3084,6 +3174,8 @@ class $ObservationsTable extends Observations
     sequenceIndex,
     performedAt,
     notes,
+    excludedAt,
+    exclusionReason,
     createdAt,
   ];
   @override
@@ -3139,6 +3231,21 @@ class $ObservationsTable extends Observations
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('excluded_at')) {
+      context.handle(
+        _excludedAtMeta,
+        excludedAt.isAcceptableOrUnknown(data['excluded_at']!, _excludedAtMeta),
+      );
+    }
+    if (data.containsKey('exclusion_reason')) {
+      context.handle(
+        _exclusionReasonMeta,
+        exclusionReason.isAcceptableOrUnknown(
+          data['exclusion_reason']!,
+          _exclusionReasonMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3180,6 +3287,14 @@ class $ObservationsTable extends Observations
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      excludedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}excluded_at'],
+      ),
+      exclusionReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exclusion_reason'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3196,9 +3311,25 @@ class $ObservationsTable extends Observations
 class Observation extends DataClass implements Insertable<Observation> {
   final String id;
   final String studyId;
+
+  /// Position in the study, from 0. **Never renumbered and never reused**
+  /// (DESIGN.md §11.3): "Pass 4" in an exported file or a written note has to
+  /// mean the same pass forever, so a removed pass leaves a labelled gap rather
+  /// than shifting the ones after it. Displayed as `sequenceIndex + 1`.
   final int sequenceIndex;
   final DateTime performedAt;
   final String? notes;
+
+  /// When this whole pass was excluded from the statistics, or null if it counts
+  /// (DESIGN.md §11.3).
+  ///
+  /// Excluding is **not** deleting: the pass keeps its measurements, its own
+  /// report and its rows in the Segments sheet — it is only out of the aggregate
+  /// mean, deviation, CV and sample-size verdict. Reversible, and the reason is
+  /// recorded next to it, because "the line was starved" is the difference
+  /// between a discarded pass and a suspicious one.
+  final DateTime? excludedAt;
+  final String? exclusionReason;
   final DateTime createdAt;
   const Observation({
     required this.id,
@@ -3206,6 +3337,8 @@ class Observation extends DataClass implements Insertable<Observation> {
     required this.sequenceIndex,
     required this.performedAt,
     this.notes,
+    this.excludedAt,
+    this.exclusionReason,
     required this.createdAt,
   });
   @override
@@ -3217,6 +3350,12 @@ class Observation extends DataClass implements Insertable<Observation> {
     map['performed_at'] = Variable<DateTime>(performedAt);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || excludedAt != null) {
+      map['excluded_at'] = Variable<DateTime>(excludedAt);
+    }
+    if (!nullToAbsent || exclusionReason != null) {
+      map['exclusion_reason'] = Variable<String>(exclusionReason);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -3231,6 +3370,12 @@ class Observation extends DataClass implements Insertable<Observation> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      excludedAt: excludedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(excludedAt),
+      exclusionReason: exclusionReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(exclusionReason),
       createdAt: Value(createdAt),
     );
   }
@@ -3246,6 +3391,8 @@ class Observation extends DataClass implements Insertable<Observation> {
       sequenceIndex: serializer.fromJson<int>(json['sequenceIndex']),
       performedAt: serializer.fromJson<DateTime>(json['performedAt']),
       notes: serializer.fromJson<String?>(json['notes']),
+      excludedAt: serializer.fromJson<DateTime?>(json['excludedAt']),
+      exclusionReason: serializer.fromJson<String?>(json['exclusionReason']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3258,6 +3405,8 @@ class Observation extends DataClass implements Insertable<Observation> {
       'sequenceIndex': serializer.toJson<int>(sequenceIndex),
       'performedAt': serializer.toJson<DateTime>(performedAt),
       'notes': serializer.toJson<String?>(notes),
+      'excludedAt': serializer.toJson<DateTime?>(excludedAt),
+      'exclusionReason': serializer.toJson<String?>(exclusionReason),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -3268,6 +3417,8 @@ class Observation extends DataClass implements Insertable<Observation> {
     int? sequenceIndex,
     DateTime? performedAt,
     Value<String?> notes = const Value.absent(),
+    Value<DateTime?> excludedAt = const Value.absent(),
+    Value<String?> exclusionReason = const Value.absent(),
     DateTime? createdAt,
   }) => Observation(
     id: id ?? this.id,
@@ -3275,6 +3426,10 @@ class Observation extends DataClass implements Insertable<Observation> {
     sequenceIndex: sequenceIndex ?? this.sequenceIndex,
     performedAt: performedAt ?? this.performedAt,
     notes: notes.present ? notes.value : this.notes,
+    excludedAt: excludedAt.present ? excludedAt.value : this.excludedAt,
+    exclusionReason: exclusionReason.present
+        ? exclusionReason.value
+        : this.exclusionReason,
     createdAt: createdAt ?? this.createdAt,
   );
   Observation copyWithCompanion(ObservationsCompanion data) {
@@ -3288,6 +3443,12 @@ class Observation extends DataClass implements Insertable<Observation> {
           ? data.performedAt.value
           : this.performedAt,
       notes: data.notes.present ? data.notes.value : this.notes,
+      excludedAt: data.excludedAt.present
+          ? data.excludedAt.value
+          : this.excludedAt,
+      exclusionReason: data.exclusionReason.present
+          ? data.exclusionReason.value
+          : this.exclusionReason,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -3300,14 +3461,24 @@ class Observation extends DataClass implements Insertable<Observation> {
           ..write('sequenceIndex: $sequenceIndex, ')
           ..write('performedAt: $performedAt, ')
           ..write('notes: $notes, ')
+          ..write('excludedAt: $excludedAt, ')
+          ..write('exclusionReason: $exclusionReason, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, studyId, sequenceIndex, performedAt, notes, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    studyId,
+    sequenceIndex,
+    performedAt,
+    notes,
+    excludedAt,
+    exclusionReason,
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3317,6 +3488,8 @@ class Observation extends DataClass implements Insertable<Observation> {
           other.sequenceIndex == this.sequenceIndex &&
           other.performedAt == this.performedAt &&
           other.notes == this.notes &&
+          other.excludedAt == this.excludedAt &&
+          other.exclusionReason == this.exclusionReason &&
           other.createdAt == this.createdAt);
 }
 
@@ -3326,6 +3499,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
   final Value<int> sequenceIndex;
   final Value<DateTime> performedAt;
   final Value<String?> notes;
+  final Value<DateTime?> excludedAt;
+  final Value<String?> exclusionReason;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ObservationsCompanion({
@@ -3334,6 +3509,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
     this.sequenceIndex = const Value.absent(),
     this.performedAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.excludedAt = const Value.absent(),
+    this.exclusionReason = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -3343,6 +3520,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
     required int sequenceIndex,
     required DateTime performedAt,
     this.notes = const Value.absent(),
+    this.excludedAt = const Value.absent(),
+    this.exclusionReason = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -3356,6 +3535,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
     Expression<int>? sequenceIndex,
     Expression<DateTime>? performedAt,
     Expression<String>? notes,
+    Expression<DateTime>? excludedAt,
+    Expression<String>? exclusionReason,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -3365,6 +3546,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
       if (sequenceIndex != null) 'sequence_index': sequenceIndex,
       if (performedAt != null) 'performed_at': performedAt,
       if (notes != null) 'notes': notes,
+      if (excludedAt != null) 'excluded_at': excludedAt,
+      if (exclusionReason != null) 'exclusion_reason': exclusionReason,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -3376,6 +3559,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
     Value<int>? sequenceIndex,
     Value<DateTime>? performedAt,
     Value<String?>? notes,
+    Value<DateTime?>? excludedAt,
+    Value<String?>? exclusionReason,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -3385,6 +3570,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
       sequenceIndex: sequenceIndex ?? this.sequenceIndex,
       performedAt: performedAt ?? this.performedAt,
       notes: notes ?? this.notes,
+      excludedAt: excludedAt ?? this.excludedAt,
+      exclusionReason: exclusionReason ?? this.exclusionReason,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -3408,6 +3595,12 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (excludedAt.present) {
+      map['excluded_at'] = Variable<DateTime>(excludedAt.value);
+    }
+    if (exclusionReason.present) {
+      map['exclusion_reason'] = Variable<String>(exclusionReason.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3425,6 +3618,8 @@ class ObservationsCompanion extends UpdateCompanion<Observation> {
           ..write('sequenceIndex: $sequenceIndex, ')
           ..write('performedAt: $performedAt, ')
           ..write('notes: $notes, ')
+          ..write('excludedAt: $excludedAt, ')
+          ..write('exclusionReason: $exclusionReason, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3506,6 +3701,28 @@ class $OperationInstancesTable extends OperationInstances
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _excludedAtMeta = const VerificationMeta(
+    'excludedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> excludedAt = GeneratedColumn<DateTime>(
+    'excluded_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _exclusionReasonMeta = const VerificationMeta(
+    'exclusionReason',
+  );
+  @override
+  late final GeneratedColumn<String> exclusionReason = GeneratedColumn<String>(
+    'exclusion_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3525,6 +3742,8 @@ class $OperationInstancesTable extends OperationInstances
     manualActualMs,
     completedAt,
     notes,
+    excludedAt,
+    exclusionReason,
     createdAt,
   ];
   @override
@@ -3590,6 +3809,21 @@ class $OperationInstancesTable extends OperationInstances
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('excluded_at')) {
+      context.handle(
+        _excludedAtMeta,
+        excludedAt.isAcceptableOrUnknown(data['excluded_at']!, _excludedAtMeta),
+      );
+    }
+    if (data.containsKey('exclusion_reason')) {
+      context.handle(
+        _exclusionReasonMeta,
+        exclusionReason.isAcceptableOrUnknown(
+          data['exclusion_reason']!,
+          _exclusionReasonMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3635,6 +3869,14 @@ class $OperationInstancesTable extends OperationInstances
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      excludedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}excluded_at'],
+      ),
+      exclusionReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exclusion_reason'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3664,6 +3906,21 @@ class OperationInstance extends DataClass
   /// segment. Cleared if timing resumes.
   final DateTime? completedAt;
   final String? notes;
+
+  /// When this single reading was excluded from the statistics, or null if it
+  /// counts (DESIGN.md §11.3).
+  ///
+  /// The finer grain of the pass-level flag above, for the ordinary case: one
+  /// operation went wrong in an otherwise good pass. Cronoanálise discards
+  /// anomalous readings before computing a mean, and without this the only ways
+  /// to do that were to delete the whole pass — losing every other operation's
+  /// good reading in it — or to type an override, inventing a number.
+  ///
+  /// The app may **flag** candidates (a reading beyond ±3s) and must never act
+  /// on them: only the analyst knows whether a long cycle was legitimate, which
+  /// is §10.4's reasoning about abandoned segments applied to a measured one.
+  final DateTime? excludedAt;
+  final String? exclusionReason;
   final DateTime createdAt;
   const OperationInstance({
     required this.id,
@@ -3672,6 +3929,8 @@ class OperationInstance extends DataClass
     this.manualActualMs,
     this.completedAt,
     this.notes,
+    this.excludedAt,
+    this.exclusionReason,
     required this.createdAt,
   });
   @override
@@ -3688,6 +3947,12 @@ class OperationInstance extends DataClass
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || excludedAt != null) {
+      map['excluded_at'] = Variable<DateTime>(excludedAt);
+    }
+    if (!nullToAbsent || exclusionReason != null) {
+      map['exclusion_reason'] = Variable<String>(exclusionReason);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -3707,6 +3972,12 @@ class OperationInstance extends DataClass
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      excludedAt: excludedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(excludedAt),
+      exclusionReason: exclusionReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(exclusionReason),
       createdAt: Value(createdAt),
     );
   }
@@ -3723,6 +3994,8 @@ class OperationInstance extends DataClass
       manualActualMs: serializer.fromJson<int?>(json['manualActualMs']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       notes: serializer.fromJson<String?>(json['notes']),
+      excludedAt: serializer.fromJson<DateTime?>(json['excludedAt']),
+      exclusionReason: serializer.fromJson<String?>(json['exclusionReason']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3736,6 +4009,8 @@ class OperationInstance extends DataClass
       'manualActualMs': serializer.toJson<int?>(manualActualMs),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
       'notes': serializer.toJson<String?>(notes),
+      'excludedAt': serializer.toJson<DateTime?>(excludedAt),
+      'exclusionReason': serializer.toJson<String?>(exclusionReason),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -3747,6 +4022,8 @@ class OperationInstance extends DataClass
     Value<int?> manualActualMs = const Value.absent(),
     Value<DateTime?> completedAt = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<DateTime?> excludedAt = const Value.absent(),
+    Value<String?> exclusionReason = const Value.absent(),
     DateTime? createdAt,
   }) => OperationInstance(
     id: id ?? this.id,
@@ -3757,6 +4034,10 @@ class OperationInstance extends DataClass
         : this.manualActualMs,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
     notes: notes.present ? notes.value : this.notes,
+    excludedAt: excludedAt.present ? excludedAt.value : this.excludedAt,
+    exclusionReason: exclusionReason.present
+        ? exclusionReason.value
+        : this.exclusionReason,
     createdAt: createdAt ?? this.createdAt,
   );
   OperationInstance copyWithCompanion(OperationInstancesCompanion data) {
@@ -3775,6 +4056,12 @@ class OperationInstance extends DataClass
           ? data.completedAt.value
           : this.completedAt,
       notes: data.notes.present ? data.notes.value : this.notes,
+      excludedAt: data.excludedAt.present
+          ? data.excludedAt.value
+          : this.excludedAt,
+      exclusionReason: data.exclusionReason.present
+          ? data.exclusionReason.value
+          : this.exclusionReason,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -3788,6 +4075,8 @@ class OperationInstance extends DataClass
           ..write('manualActualMs: $manualActualMs, ')
           ..write('completedAt: $completedAt, ')
           ..write('notes: $notes, ')
+          ..write('excludedAt: $excludedAt, ')
+          ..write('exclusionReason: $exclusionReason, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3801,6 +4090,8 @@ class OperationInstance extends DataClass
     manualActualMs,
     completedAt,
     notes,
+    excludedAt,
+    exclusionReason,
     createdAt,
   );
   @override
@@ -3813,6 +4104,8 @@ class OperationInstance extends DataClass
           other.manualActualMs == this.manualActualMs &&
           other.completedAt == this.completedAt &&
           other.notes == this.notes &&
+          other.excludedAt == this.excludedAt &&
+          other.exclusionReason == this.exclusionReason &&
           other.createdAt == this.createdAt);
 }
 
@@ -3823,6 +4116,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
   final Value<int?> manualActualMs;
   final Value<DateTime?> completedAt;
   final Value<String?> notes;
+  final Value<DateTime?> excludedAt;
+  final Value<String?> exclusionReason;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const OperationInstancesCompanion({
@@ -3832,6 +4127,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     this.manualActualMs = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.excludedAt = const Value.absent(),
+    this.exclusionReason = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -3842,6 +4139,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     this.manualActualMs = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.notes = const Value.absent(),
+    this.excludedAt = const Value.absent(),
+    this.exclusionReason = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -3855,6 +4154,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     Expression<int>? manualActualMs,
     Expression<DateTime>? completedAt,
     Expression<String>? notes,
+    Expression<DateTime>? excludedAt,
+    Expression<String>? exclusionReason,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -3865,6 +4166,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
       if (manualActualMs != null) 'manual_actual_ms': manualActualMs,
       if (completedAt != null) 'completed_at': completedAt,
       if (notes != null) 'notes': notes,
+      if (excludedAt != null) 'excluded_at': excludedAt,
+      if (exclusionReason != null) 'exclusion_reason': exclusionReason,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -3877,6 +4180,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     Value<int?>? manualActualMs,
     Value<DateTime?>? completedAt,
     Value<String?>? notes,
+    Value<DateTime?>? excludedAt,
+    Value<String?>? exclusionReason,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -3887,6 +4192,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
       manualActualMs: manualActualMs ?? this.manualActualMs,
       completedAt: completedAt ?? this.completedAt,
       notes: notes ?? this.notes,
+      excludedAt: excludedAt ?? this.excludedAt,
+      exclusionReason: exclusionReason ?? this.exclusionReason,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -3913,6 +4220,12 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (excludedAt.present) {
+      map['excluded_at'] = Variable<DateTime>(excludedAt.value);
+    }
+    if (exclusionReason.present) {
+      map['exclusion_reason'] = Variable<String>(exclusionReason.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3931,6 +4244,8 @@ class OperationInstancesCompanion extends UpdateCompanion<OperationInstance> {
           ..write('manualActualMs: $manualActualMs, ')
           ..write('completedAt: $completedAt, ')
           ..write('notes: $notes, ')
+          ..write('excludedAt: $excludedAt, ')
+          ..write('exclusionReason: $exclusionReason, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -6207,6 +6522,17 @@ class $AppSettingsTable extends AppSettings
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _starterCatalogSeededAtMeta =
+      const VerificationMeta('starterCatalogSeededAt');
+  @override
+  late final GeneratedColumn<DateTime> starterCatalogSeededAt =
+      GeneratedColumn<DateTime>(
+        'starter_catalog_seeded_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -6225,6 +6551,7 @@ class $AppSettingsTable extends AppSettings
     defaultAnalyst,
     timeUnit,
     alertSoundsEnabled,
+    starterCatalogSeededAt,
     updatedAt,
   ];
   @override
@@ -6263,6 +6590,15 @@ class $AppSettingsTable extends AppSettings
         alertSoundsEnabled.isAcceptableOrUnknown(
           data['alert_sounds_enabled']!,
           _alertSoundsEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('starter_catalog_seeded_at')) {
+      context.handle(
+        _starterCatalogSeededAtMeta,
+        starterCatalogSeededAt.isAcceptableOrUnknown(
+          data['starter_catalog_seeded_at']!,
+          _starterCatalogSeededAtMeta,
         ),
       );
     }
@@ -6305,6 +6641,10 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.bool,
         data['${effectivePrefix}alert_sounds_enabled'],
       )!,
+      starterCatalogSeededAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}starter_catalog_seeded_at'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -6333,6 +6673,14 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
 
   /// Sound when an operation nears or passes its reference standard (§3.6).
   final bool alertSoundsEnabled;
+
+  /// When the starter catalog was seeded, or null if it never was (§9).
+  ///
+  /// A record that the offer was *made*, not that the rows still exist. Seeding
+  /// is guarded on an empty catalog, which alone would refill it for someone who
+  /// deliberately emptied theirs — this is what makes "no thanks" stick across
+  /// the next drop.
+  final DateTime? starterCatalogSeededAt;
   final DateTime updatedAt;
   const AppSetting({
     required this.id,
@@ -6340,6 +6688,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     this.defaultAnalyst,
     required this.timeUnit,
     required this.alertSoundsEnabled,
+    this.starterCatalogSeededAt,
     required this.updatedAt,
   });
   @override
@@ -6358,6 +6707,11 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       );
     }
     map['alert_sounds_enabled'] = Variable<bool>(alertSoundsEnabled);
+    if (!nullToAbsent || starterCatalogSeededAt != null) {
+      map['starter_catalog_seeded_at'] = Variable<DateTime>(
+        starterCatalogSeededAt,
+      );
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -6373,6 +6727,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           : Value(defaultAnalyst),
       timeUnit: Value(timeUnit),
       alertSoundsEnabled: Value(alertSoundsEnabled),
+      starterCatalogSeededAt: starterCatalogSeededAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(starterCatalogSeededAt),
       updatedAt: Value(updatedAt),
     );
   }
@@ -6390,6 +6747,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         serializer.fromJson<String>(json['timeUnit']),
       ),
       alertSoundsEnabled: serializer.fromJson<bool>(json['alertSoundsEnabled']),
+      starterCatalogSeededAt: serializer.fromJson<DateTime?>(
+        json['starterCatalogSeededAt'],
+      ),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -6404,6 +6764,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         $AppSettingsTable.$convertertimeUnit.toJson(timeUnit),
       ),
       'alertSoundsEnabled': serializer.toJson<bool>(alertSoundsEnabled),
+      'starterCatalogSeededAt': serializer.toJson<DateTime?>(
+        starterCatalogSeededAt,
+      ),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -6414,6 +6777,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     Value<String?> defaultAnalyst = const Value.absent(),
     TimeUnit? timeUnit,
     bool? alertSoundsEnabled,
+    Value<DateTime?> starterCatalogSeededAt = const Value.absent(),
     DateTime? updatedAt,
   }) => AppSetting(
     id: id ?? this.id,
@@ -6423,6 +6787,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         : this.defaultAnalyst,
     timeUnit: timeUnit ?? this.timeUnit,
     alertSoundsEnabled: alertSoundsEnabled ?? this.alertSoundsEnabled,
+    starterCatalogSeededAt: starterCatalogSeededAt.present
+        ? starterCatalogSeededAt.value
+        : this.starterCatalogSeededAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   AppSetting copyWithCompanion(AppSettingsCompanion data) {
@@ -6438,6 +6805,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       alertSoundsEnabled: data.alertSoundsEnabled.present
           ? data.alertSoundsEnabled.value
           : this.alertSoundsEnabled,
+      starterCatalogSeededAt: data.starterCatalogSeededAt.present
+          ? data.starterCatalogSeededAt.value
+          : this.starterCatalogSeededAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -6450,6 +6820,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('defaultAnalyst: $defaultAnalyst, ')
           ..write('timeUnit: $timeUnit, ')
           ..write('alertSoundsEnabled: $alertSoundsEnabled, ')
+          ..write('starterCatalogSeededAt: $starterCatalogSeededAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -6462,6 +6833,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     defaultAnalyst,
     timeUnit,
     alertSoundsEnabled,
+    starterCatalogSeededAt,
     updatedAt,
   );
   @override
@@ -6473,6 +6845,7 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.defaultAnalyst == this.defaultAnalyst &&
           other.timeUnit == this.timeUnit &&
           other.alertSoundsEnabled == this.alertSoundsEnabled &&
+          other.starterCatalogSeededAt == this.starterCatalogSeededAt &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -6482,6 +6855,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<String?> defaultAnalyst;
   final Value<TimeUnit> timeUnit;
   final Value<bool> alertSoundsEnabled;
+  final Value<DateTime?> starterCatalogSeededAt;
   final Value<DateTime> updatedAt;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
@@ -6489,6 +6863,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.defaultAnalyst = const Value.absent(),
     this.timeUnit = const Value.absent(),
     this.alertSoundsEnabled = const Value.absent(),
+    this.starterCatalogSeededAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   AppSettingsCompanion.insert({
@@ -6497,6 +6872,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.defaultAnalyst = const Value.absent(),
     required TimeUnit timeUnit,
     this.alertSoundsEnabled = const Value.absent(),
+    this.starterCatalogSeededAt = const Value.absent(),
     required DateTime updatedAt,
   }) : timeUnit = Value(timeUnit),
        updatedAt = Value(updatedAt);
@@ -6506,6 +6882,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Expression<String>? defaultAnalyst,
     Expression<String>? timeUnit,
     Expression<bool>? alertSoundsEnabled,
+    Expression<DateTime>? starterCatalogSeededAt,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -6515,6 +6892,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       if (timeUnit != null) 'time_unit': timeUnit,
       if (alertSoundsEnabled != null)
         'alert_sounds_enabled': alertSoundsEnabled,
+      if (starterCatalogSeededAt != null)
+        'starter_catalog_seeded_at': starterCatalogSeededAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -6525,6 +6904,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Value<String?>? defaultAnalyst,
     Value<TimeUnit>? timeUnit,
     Value<bool>? alertSoundsEnabled,
+    Value<DateTime?>? starterCatalogSeededAt,
     Value<DateTime>? updatedAt,
   }) {
     return AppSettingsCompanion(
@@ -6533,6 +6913,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       defaultAnalyst: defaultAnalyst ?? this.defaultAnalyst,
       timeUnit: timeUnit ?? this.timeUnit,
       alertSoundsEnabled: alertSoundsEnabled ?? this.alertSoundsEnabled,
+      starterCatalogSeededAt:
+          starterCatalogSeededAt ?? this.starterCatalogSeededAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -6557,6 +6939,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     if (alertSoundsEnabled.present) {
       map['alert_sounds_enabled'] = Variable<bool>(alertSoundsEnabled.value);
     }
+    if (starterCatalogSeededAt.present) {
+      map['starter_catalog_seeded_at'] = Variable<DateTime>(
+        starterCatalogSeededAt.value,
+      );
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -6571,6 +6958,7 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('defaultAnalyst: $defaultAnalyst, ')
           ..write('timeUnit: $timeUnit, ')
           ..write('alertSoundsEnabled: $alertSoundsEnabled, ')
+          ..write('starterCatalogSeededAt: $starterCatalogSeededAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -6644,13 +7032,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('study_operations', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'catalog_operations',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('study_operations', kind: UpdateKind.update)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -7582,26 +7963,6 @@ final class $$CatalogOperationsTableReferences
     );
   }
 
-  static MultiTypedResultKey<$StudyOperationsTable, List<StudyOperation>>
-  _studyOperationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.studyOperations,
-    aliasName: 'catalog_operations__id__study_operations__catalog_operation_id',
-  );
-
-  $$StudyOperationsTableProcessedTableManager get studyOperationsRefs {
-    final manager =
-        $$StudyOperationsTableTableManager($_db, $_db.studyOperations).filter(
-          (f) => f.catalogOperationId.id.sqlEquals($_itemColumn<String>('id')!),
-        );
-
-    final cache = $_typedResult.readTableOrNull(
-      _studyOperationsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<$TemplateOperationsTable, List<TemplateOperation>>
   _templateOperationsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
@@ -7689,31 +8050,6 @@ class $$CatalogOperationsTableFilterComposer
           ),
     );
     return composer;
-  }
-
-  Expression<bool> studyOperationsRefs(
-    Expression<bool> Function($$StudyOperationsTableFilterComposer f) f,
-  ) {
-    final $$StudyOperationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.studyOperations,
-      getReferencedColumn: (t) => t.catalogOperationId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudyOperationsTableFilterComposer(
-            $db: $db,
-            $table: $db.studyOperations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
   }
 
   Expression<bool> templateOperationsRefs(
@@ -7858,31 +8194,6 @@ class $$CatalogOperationsTableAnnotationComposer
     return composer;
   }
 
-  Expression<T> studyOperationsRefs<T extends Object>(
-    Expression<T> Function($$StudyOperationsTableAnnotationComposer a) f,
-  ) {
-    final $$StudyOperationsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.studyOperations,
-      getReferencedColumn: (t) => t.catalogOperationId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudyOperationsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.studyOperations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> templateOperationsRefs<T extends Object>(
     Expression<T> Function($$TemplateOperationsTableAnnotationComposer a) f,
   ) {
@@ -7923,11 +8234,7 @@ class $$CatalogOperationsTableTableManager
           $$CatalogOperationsTableUpdateCompanionBuilder,
           (CatalogOperation, $$CatalogOperationsTableReferences),
           CatalogOperation,
-          PrefetchHooks Function({
-            bool subtypeId,
-            bool studyOperationsRefs,
-            bool templateOperationsRefs,
-          })
+          PrefetchHooks Function({bool subtypeId, bool templateOperationsRefs})
         > {
   $$CatalogOperationsTableTableManager(
     _$AppDatabase db,
@@ -7994,15 +8301,10 @@ class $$CatalogOperationsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                subtypeId = false,
-                studyOperationsRefs = false,
-                templateOperationsRefs = false,
-              }) {
+              ({subtypeId = false, templateOperationsRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (studyOperationsRefs) db.studyOperations,
                     if (templateOperationsRefs) db.templateOperations,
                   ],
                   addJoins:
@@ -8041,27 +8343,6 @@ class $$CatalogOperationsTableTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (studyOperationsRefs)
-                        await $_getPrefetchedData<
-                          CatalogOperation,
-                          $CatalogOperationsTable,
-                          StudyOperation
-                        >(
-                          currentTable: table,
-                          referencedTable: $$CatalogOperationsTableReferences
-                              ._studyOperationsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$CatalogOperationsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).studyOperationsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.catalogOperationId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (templateOperationsRefs)
                         await $_getPrefetchedData<
                           CatalogOperation,
@@ -8103,11 +8384,7 @@ typedef $$CatalogOperationsTableProcessedTableManager =
       $$CatalogOperationsTableUpdateCompanionBuilder,
       (CatalogOperation, $$CatalogOperationsTableReferences),
       CatalogOperation,
-      PrefetchHooks Function({
-        bool subtypeId,
-        bool studyOperationsRefs,
-        bool templateOperationsRefs,
-      })
+      PrefetchHooks Function({bool subtypeId, bool templateOperationsRefs})
     >;
 typedef $$StudiesTableCreateCompanionBuilder =
     StudiesCompanion Function({
@@ -8128,6 +8405,7 @@ typedef $$StudiesTableCreateCompanionBuilder =
       Value<String?> notes,
       Value<double> confidenceLevel,
       Value<double> relativePrecision,
+      Value<int> nextPassIndex,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -8151,6 +8429,7 @@ typedef $$StudiesTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<double> confidenceLevel,
       Value<double> relativePrecision,
+      Value<int> nextPassIndex,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -8303,6 +8582,11 @@ class $$StudiesTableFilterComposer
 
   ColumnFilters<double> get relativePrecision => $composableBuilder(
     column: $table.relativePrecision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextPassIndex => $composableBuilder(
+    column: $table.nextPassIndex,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8479,6 +8763,11 @@ class $$StudiesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get nextPassIndex => $composableBuilder(
+    column: $table.nextPassIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8585,6 +8874,11 @@ class $$StudiesTableAnnotationComposer
 
   GeneratedColumn<double> get relativePrecision => $composableBuilder(
     column: $table.relativePrecision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get nextPassIndex => $composableBuilder(
+    column: $table.nextPassIndex,
     builder: (column) => column,
   );
 
@@ -8717,6 +9011,7 @@ class $$StudiesTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<double> confidenceLevel = const Value.absent(),
                 Value<double> relativePrecision = const Value.absent(),
+                Value<int> nextPassIndex = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -8738,6 +9033,7 @@ class $$StudiesTableTableManager
                 notes: notes,
                 confidenceLevel: confidenceLevel,
                 relativePrecision: relativePrecision,
+                nextPassIndex: nextPassIndex,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -8761,6 +9057,7 @@ class $$StudiesTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<double> confidenceLevel = const Value.absent(),
                 Value<double> relativePrecision = const Value.absent(),
+                Value<int> nextPassIndex = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -8782,6 +9079,7 @@ class $$StudiesTableTableManager
                 notes: notes,
                 confidenceLevel: confidenceLevel,
                 relativePrecision: relativePrecision,
+                nextPassIndex: nextPassIndex,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -8963,25 +9261,6 @@ final class $$StudyOperationsTableReferences
     );
   }
 
-  static $CatalogOperationsTable _catalogOperationIdTable(_$AppDatabase db) =>
-      db.catalogOperations.createAlias(
-        'study_operations__catalog_operation_id__catalog_operations__id',
-      );
-
-  $$CatalogOperationsTableProcessedTableManager? get catalogOperationId {
-    final $_column = $_itemColumn<String>('catalog_operation_id');
-    if ($_column == null) return null;
-    final manager = $$CatalogOperationsTableTableManager(
-      $_db,
-      $_db.catalogOperations,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_catalogOperationIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
   static $OperationSubtypesTable _subtypeIdTable(_$AppDatabase db) => db
       .operationSubtypes
       .createAlias('study_operations__subtype_id__operation_subtypes__id');
@@ -9040,6 +9319,11 @@ class $$StudyOperationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get catalogOperationId => $composableBuilder(
+    column: $table.catalogOperationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get orderIndex => $composableBuilder(
     column: $table.orderIndex,
     builder: (column) => ColumnFilters(column),
@@ -9085,29 +9369,6 @@ class $$StudyOperationsTableFilterComposer
           }) => $$StudiesTableFilterComposer(
             $db: $db,
             $table: $db.studies,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$CatalogOperationsTableFilterComposer get catalogOperationId {
-    final $$CatalogOperationsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.catalogOperationId,
-      referencedTable: $db.catalogOperations,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CatalogOperationsTableFilterComposer(
-            $db: $db,
-            $table: $db.catalogOperations,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -9180,6 +9441,11 @@ class $$StudyOperationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get catalogOperationId => $composableBuilder(
+    column: $table.catalogOperationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get orderIndex => $composableBuilder(
     column: $table.orderIndex,
     builder: (column) => ColumnOrderings(column),
@@ -9233,29 +9499,6 @@ class $$StudyOperationsTableOrderingComposer
     return composer;
   }
 
-  $$CatalogOperationsTableOrderingComposer get catalogOperationId {
-    final $$CatalogOperationsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.catalogOperationId,
-      referencedTable: $db.catalogOperations,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CatalogOperationsTableOrderingComposer(
-            $db: $db,
-            $table: $db.catalogOperations,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   $$OperationSubtypesTableOrderingComposer get subtypeId {
     final $$OperationSubtypesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -9291,6 +9534,11 @@ class $$StudyOperationsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get catalogOperationId => $composableBuilder(
+    column: $table.catalogOperationId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<double> get orderIndex => $composableBuilder(
     column: $table.orderIndex,
@@ -9336,30 +9584,6 @@ class $$StudyOperationsTableAnnotationComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
-    return composer;
-  }
-
-  $$CatalogOperationsTableAnnotationComposer get catalogOperationId {
-    final $$CatalogOperationsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.catalogOperationId,
-          referencedTable: $db.catalogOperations,
-          getReferencedColumn: (t) => t.id,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$CatalogOperationsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.catalogOperations,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
     return composer;
   }
 
@@ -9429,7 +9653,6 @@ class $$StudyOperationsTableTableManager
           StudyOperation,
           PrefetchHooks Function({
             bool studyId,
-            bool catalogOperationId,
             bool subtypeId,
             bool operationInstancesRefs,
           })
@@ -9510,7 +9733,6 @@ class $$StudyOperationsTableTableManager
           prefetchHooksCallback:
               ({
                 studyId = false,
-                catalogOperationId = false,
                 subtypeId = false,
                 operationInstancesRefs = false,
               }) {
@@ -9546,21 +9768,6 @@ class $$StudyOperationsTableTableManager
                                     referencedColumn:
                                         $$StudyOperationsTableReferences
                                             ._studyIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
-                        if (catalogOperationId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.catalogOperationId,
-                                    referencedTable:
-                                        $$StudyOperationsTableReferences
-                                            ._catalogOperationIdTable(db),
-                                    referencedColumn:
-                                        $$StudyOperationsTableReferences
-                                            ._catalogOperationIdTable(db)
                                             .id,
                                   )
                                   as T;
@@ -9628,7 +9835,6 @@ typedef $$StudyOperationsTableProcessedTableManager =
       StudyOperation,
       PrefetchHooks Function({
         bool studyId,
-        bool catalogOperationId,
         bool subtypeId,
         bool operationInstancesRefs,
       })
@@ -9640,6 +9846,8 @@ typedef $$ObservationsTableCreateCompanionBuilder =
       required int sequenceIndex,
       required DateTime performedAt,
       Value<String?> notes,
+      Value<DateTime?> excludedAt,
+      Value<String?> exclusionReason,
       required DateTime createdAt,
       Value<int> rowid,
     });
@@ -9650,6 +9858,8 @@ typedef $$ObservationsTableUpdateCompanionBuilder =
       Value<int> sequenceIndex,
       Value<DateTime> performedAt,
       Value<String?> notes,
+      Value<DateTime?> excludedAt,
+      Value<String?> exclusionReason,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -9723,6 +9933,16 @@ class $$ObservationsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get excludedAt => $composableBuilder(
+    column: $table.excludedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get exclusionReason => $composableBuilder(
+    column: $table.exclusionReason,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9809,6 +10029,16 @@ class $$ObservationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get excludedAt => $composableBuilder(
+    column: $table.excludedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get exclusionReason => $composableBuilder(
+    column: $table.exclusionReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -9862,6 +10092,16 @@ class $$ObservationsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get excludedAt => $composableBuilder(
+    column: $table.excludedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get exclusionReason => $composableBuilder(
+    column: $table.exclusionReason,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -9949,6 +10189,8 @@ class $$ObservationsTableTableManager
                 Value<int> sequenceIndex = const Value.absent(),
                 Value<DateTime> performedAt = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime?> excludedAt = const Value.absent(),
+                Value<String?> exclusionReason = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ObservationsCompanion(
@@ -9957,6 +10199,8 @@ class $$ObservationsTableTableManager
                 sequenceIndex: sequenceIndex,
                 performedAt: performedAt,
                 notes: notes,
+                excludedAt: excludedAt,
+                exclusionReason: exclusionReason,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -9967,6 +10211,8 @@ class $$ObservationsTableTableManager
                 required int sequenceIndex,
                 required DateTime performedAt,
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime?> excludedAt = const Value.absent(),
+                Value<String?> exclusionReason = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => ObservationsCompanion.insert(
@@ -9975,6 +10221,8 @@ class $$ObservationsTableTableManager
                 sequenceIndex: sequenceIndex,
                 performedAt: performedAt,
                 notes: notes,
+                excludedAt: excludedAt,
+                exclusionReason: exclusionReason,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -10080,6 +10328,8 @@ typedef $$OperationInstancesTableCreateCompanionBuilder =
       Value<int?> manualActualMs,
       Value<DateTime?> completedAt,
       Value<String?> notes,
+      Value<DateTime?> excludedAt,
+      Value<String?> exclusionReason,
       required DateTime createdAt,
       Value<int> rowid,
     });
@@ -10091,6 +10341,8 @@ typedef $$OperationInstancesTableUpdateCompanionBuilder =
       Value<int?> manualActualMs,
       Value<DateTime?> completedAt,
       Value<String?> notes,
+      Value<DateTime?> excludedAt,
+      Value<String?> exclusionReason,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -10206,6 +10458,16 @@ class $$OperationInstancesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get excludedAt => $composableBuilder(
+    column: $table.excludedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get exclusionReason => $composableBuilder(
+    column: $table.exclusionReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -10313,6 +10575,16 @@ class $$OperationInstancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get excludedAt => $composableBuilder(
+    column: $table.excludedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get exclusionReason => $composableBuilder(
+    column: $table.exclusionReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -10389,6 +10661,16 @@ class $$OperationInstancesTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get excludedAt => $composableBuilder(
+    column: $table.excludedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get exclusionReason => $composableBuilder(
+    column: $table.exclusionReason,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -10509,6 +10791,8 @@ class $$OperationInstancesTableTableManager
                 Value<int?> manualActualMs = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime?> excludedAt = const Value.absent(),
+                Value<String?> exclusionReason = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OperationInstancesCompanion(
@@ -10518,6 +10802,8 @@ class $$OperationInstancesTableTableManager
                 manualActualMs: manualActualMs,
                 completedAt: completedAt,
                 notes: notes,
+                excludedAt: excludedAt,
+                exclusionReason: exclusionReason,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -10529,6 +10815,8 @@ class $$OperationInstancesTableTableManager
                 Value<int?> manualActualMs = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime?> excludedAt = const Value.absent(),
+                Value<String?> exclusionReason = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => OperationInstancesCompanion.insert(
@@ -10538,6 +10826,8 @@ class $$OperationInstancesTableTableManager
                 manualActualMs: manualActualMs,
                 completedAt: completedAt,
                 notes: notes,
+                excludedAt: excludedAt,
+                exclusionReason: exclusionReason,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -12388,6 +12678,7 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<String?> defaultAnalyst,
       required TimeUnit timeUnit,
       Value<bool> alertSoundsEnabled,
+      Value<DateTime?> starterCatalogSeededAt,
       required DateTime updatedAt,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
@@ -12397,6 +12688,7 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<String?> defaultAnalyst,
       Value<TimeUnit> timeUnit,
       Value<bool> alertSoundsEnabled,
+      Value<DateTime?> starterCatalogSeededAt,
       Value<DateTime> updatedAt,
     });
 
@@ -12432,6 +12724,11 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<bool> get alertSoundsEnabled => $composableBuilder(
     column: $table.alertSoundsEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get starterCatalogSeededAt => $composableBuilder(
+    column: $table.starterCatalogSeededAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12475,6 +12772,11 @@ class $$AppSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get starterCatalogSeededAt => $composableBuilder(
+    column: $table.starterCatalogSeededAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -12508,6 +12810,11 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get alertSoundsEnabled => $composableBuilder(
     column: $table.alertSoundsEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get starterCatalogSeededAt => $composableBuilder(
+    column: $table.starterCatalogSeededAt,
     builder: (column) => column,
   );
 
@@ -12551,6 +12858,7 @@ class $$AppSettingsTableTableManager
                 Value<String?> defaultAnalyst = const Value.absent(),
                 Value<TimeUnit> timeUnit = const Value.absent(),
                 Value<bool> alertSoundsEnabled = const Value.absent(),
+                Value<DateTime?> starterCatalogSeededAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
@@ -12558,6 +12866,7 @@ class $$AppSettingsTableTableManager
                 defaultAnalyst: defaultAnalyst,
                 timeUnit: timeUnit,
                 alertSoundsEnabled: alertSoundsEnabled,
+                starterCatalogSeededAt: starterCatalogSeededAt,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
@@ -12567,6 +12876,7 @@ class $$AppSettingsTableTableManager
                 Value<String?> defaultAnalyst = const Value.absent(),
                 required TimeUnit timeUnit,
                 Value<bool> alertSoundsEnabled = const Value.absent(),
+                Value<DateTime?> starterCatalogSeededAt = const Value.absent(),
                 required DateTime updatedAt,
               }) => AppSettingsCompanion.insert(
                 id: id,
@@ -12574,6 +12884,7 @@ class $$AppSettingsTableTableManager
                 defaultAnalyst: defaultAnalyst,
                 timeUnit: timeUnit,
                 alertSoundsEnabled: alertSoundsEnabled,
+                starterCatalogSeededAt: starterCatalogSeededAt,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0

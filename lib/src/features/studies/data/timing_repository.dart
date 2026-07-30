@@ -11,8 +11,12 @@ import '../../diagnostics/application/diagnostics.dart';
 /// (re)start opens a new one. The database is the single source of truth, so a
 /// run survives backgrounding and resumes on reopen.
 ///
-/// Timing lives inside one [Observation] per study (created lazily on the first
-/// action). The Sampling Study — many observations — reuses this same engine.
+/// **Every operation here is scoped to one [Observation] — one timed pass.** A
+/// Time Study has exactly one; a Sampling Study has many, and reuses this engine
+/// unchanged (DESIGN.md §11.1). Callers resolve the pass once, via
+/// [ensureObservationId], and hand its id to each action — rather than the
+/// engine re-deriving "the study's pass" on every keystroke, which is what made
+/// it structurally single-pass.
 ///
 /// Derived state (pending / running / paused / done, observed time, wall-clock
 /// total) lives in `timing_model.dart` as pure functions over the rows these
@@ -25,7 +29,11 @@ class TimingRepository {
 
   // --- streams --------------------------------------------------------------
 
-  /// The single Time Study observation for [studyId], or null before any timing.
+  /// The study's first pass, or null if it has none yet.
+  ///
+  /// Still the way a Time Study finds its single observation. §11.1 makes an
+  /// observation exist from study creation, at which point this becomes a plain
+  /// read and the null case disappears.
   Stream<Observation?> watchObservation(String studyId) {
     return (_db.select(_db.observations)
           ..where((t) => t.studyId.equals(studyId))
@@ -52,16 +60,71 @@ class TimingRepository {
     return query.watch().map((rows) => rows.map((r) => r.readTable(seg)).toList());
   }
 
+  /// Every operation instance in a study, across all of its passes.
+  ///
+  /// One query rather than one per pass: the sampling report needs all of them
+  /// at once, and a per-pass query would be N+1 of them re-running on every
+  /// keystroke of a live run.
+  Stream<List<OperationInstance>> watchInstancesForStudy(String studyId) {
+    final inst = _db.operationInstances;
+    final obs = _db.observations;
+    final query = _db.select(inst).join([
+      innerJoin(obs, obs.id.equalsExp(inst.observationId)),
+    ])
+      ..where(obs.studyId.equals(studyId));
+    return query.watch().map((rows) => rows.map((r) => r.readTable(inst)).toList());
+  }
+
+  /// Every timed segment in a study, across all of its passes.
+  Stream<List<OperationTimeSegment>> watchSegmentsForStudy(String studyId) {
+    final seg = _db.operationTimeSegments;
+    final inst = _db.operationInstances;
+    final obs = _db.observations;
+    final query = _db.select(seg).join([
+      innerJoin(inst, inst.id.equalsExp(seg.operationInstanceId)),
+      innerJoin(obs, obs.id.equalsExp(inst.observationId)),
+    ])
+      ..where(obs.studyId.equals(studyId));
+    return query.watch().map((rows) => rows.map((r) => r.readTable(seg)).toList());
+  }
+
+  /// Takes a single reading out of the statistics, or puts it back (§11.3).
+  ///
+  /// The finer grain of the pass-level flag: one operation went wrong in an
+  /// otherwise good pass. Non-destructive — the measurement stays, appears in
+  /// that pass's own report and in the Segments sheet, and is only out of the
+  /// aggregate.
+  Future<void> setReadingExcluded({
+    required String observationId,
+    required String studyOperationId,
+    required bool excluded,
+    String? reason,
+  }) async {
+    final trimmed = reason?.trim();
+    await _withInstance(observationId, studyOperationId, (instanceId) async {
+      await (_db.update(_db.operationInstances)
+            ..where((t) => t.id.equals(instanceId)))
+          .write(OperationInstancesCompanion(
+        excludedAt: Value(excluded ? DateTime.now() : null),
+        exclusionReason: Value(
+            excluded && trimmed != null && trimmed.isNotEmpty ? trimmed : null),
+      ));
+    });
+    // Worth a breadcrumb for the same reason as `timer.reset`: it changes what
+    // the report says without changing what was measured.
+    Diag.event('reading.excluded',
+        'op=${Diag.shortId(studyOperationId)} excluded=$excluded');
+  }
+
   // --- per-operation controls ----------------------------------------------
 
   /// Start or resume timing an operation: opens a new segment. Idempotent while
   /// already running. Resuming a previously-stopped operation reopens it.
   Future<void> start({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
     await _db.transaction(() async {
-      final observationId = await _ensureObservation(studyId);
       final instanceId = await _ensureInstance(observationId, studyOperationId);
       if (await _openSegment(instanceId) != null) return; // already running
       final now = DateTime.now();
@@ -86,10 +149,10 @@ class TimingRepository {
   /// Pause: close the open segment. Elapsed is preserved; the operation stays
   /// resumable (not marked complete).
   Future<void> pause({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
-    await _withInstance(studyId, studyOperationId, (instanceId) async {
+    await _withInstance(observationId, studyOperationId, (instanceId) async {
       await _closeOpenSegment(instanceId);
     });
     Diag.event('timer.pause', 'op=${Diag.shortId(studyOperationId)}');
@@ -97,11 +160,10 @@ class TimingRepository {
 
   /// Stop: close the open segment and mark the operation complete.
   Future<void> stop({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
     await _db.transaction(() async {
-      final observationId = await _ensureObservation(studyId);
       final instanceId = await _ensureInstance(observationId, studyOperationId);
       await _closeOpenSegment(instanceId);
       await (_db.update(_db.operationInstances)
@@ -117,12 +179,13 @@ class TimingRepository {
   /// instant — so a straight run is gapless, like a lap. If nothing pending
   /// remains, it just stops. Operations already running/paused/done are skipped.
   Future<void> stopAndStartNext({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
     String? startedNext;
     await _db.transaction(() async {
-      final observationId = await _ensureObservation(studyId);
+      final studyId = await _studyIdOf(observationId);
+      if (studyId == null) return;
       final currentId = await _ensureInstance(observationId, studyOperationId);
       final nowMs = DateTime.now().millisecondsSinceEpoch;
 
@@ -164,10 +227,10 @@ class TimingRepository {
   /// Reset: zero & discard the operation's measured segments and clear its
   /// completion. The manual override (if any) is left untouched.
   Future<void> reset({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
-    await _withInstance(studyId, studyOperationId, (instanceId) async {
+    await _withInstance(observationId, studyOperationId, (instanceId) async {
       await (_db.delete(_db.operationTimeSegments)
             ..where((t) => t.operationInstanceId.equals(instanceId)))
           .go();
@@ -185,12 +248,11 @@ class TimingRepository {
   /// Non-destructively override the actual time (segments are preserved and
   /// keep counting for audit; the override just shadows their sum).
   Future<void> setManualActual({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
     required int milliseconds,
   }) async {
     await _db.transaction(() async {
-      final observationId = await _ensureObservation(studyId);
       final instanceId = await _ensureInstance(observationId, studyOperationId);
       await (_db.update(_db.operationInstances)
             ..where((t) => t.id.equals(instanceId)))
@@ -206,26 +268,23 @@ class TimingRepository {
   /// callers (e.g. attaching photos) have a stable owner id even before the
   /// operation has been timed.
   Future<String> ensureInstanceId({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
-    return _db.transaction(() async {
-      final observationId = await _ensureObservation(studyId);
-      return _ensureInstance(observationId, studyOperationId);
-    });
+    return _db.transaction(
+        () => _ensureInstance(observationId, studyOperationId));
   }
 
   /// Set (or clear, with a null/blank value) a free-form note about the
   /// operation. Lazily creates the instance so a note can be added to an
   /// operation that has never been timed.
   Future<void> setNote({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
     required String? note,
   }) async {
     final value = (note == null || note.trim().isEmpty) ? null : note.trim();
     await _db.transaction(() async {
-      final observationId = await _ensureObservation(studyId);
       final instanceId = await _ensureInstance(observationId, studyOperationId);
       await (_db.update(_db.operationInstances)
             ..where((t) => t.id.equals(instanceId)))
@@ -235,10 +294,10 @@ class TimingRepository {
 
   /// Remove the override, falling back to the measured segment sum.
   Future<void> clearManualActual({
-    required String studyId,
+    required String observationId,
     required String studyOperationId,
   }) async {
-    await _withInstance(studyId, studyOperationId, (instanceId) async {
+    await _withInstance(observationId, studyOperationId, (instanceId) async {
       await (_db.update(_db.operationInstances)
             ..where((t) => t.id.equals(instanceId)))
           .write(const OperationInstancesCompanion(
@@ -246,16 +305,25 @@ class TimingRepository {
     });
   }
 
-  /// Throw the whole run away: delete the observation (instances + segments
-  /// cascade) and the unplanned operations that only existed for it.
-  Future<void> discardRun(String studyId) async {
+  /// Throw the pass's measurements away: delete its instances (segments cascade)
+  /// and the unplanned operations that only existed for it.
+  ///
+  /// **The observation row itself survives** (DESIGN.md §11.1). Discarding a run
+  /// is not un-taking the pass, and keeping the row keeps [Observation.sequenceIndex]
+  /// stable — so "Pass 4" in an exported file or a written note still means the
+  /// same pass afterwards.
+  ///
+  /// Deleting the study's unplanned operations is correct while a study has one
+  /// pass and will not be once it has several: they are per-study rows shared by
+  /// every pass (§11.2), so discarding pass 4 would reach back into passes 1–3.
+  /// §11.2's delete-warning work is where that is resolved.
+  Future<void> discardRun(String observationId) async {
     await _db.transaction(() async {
-      final observationId = await _observationId(studyId);
-      if (observationId != null) {
-        await (_db.delete(_db.observations)
-              ..where((t) => t.id.equals(observationId)))
-            .go();
-      }
+      final studyId = await _studyIdOf(observationId);
+      if (studyId == null) return;
+      await (_db.delete(_db.operationInstances)
+            ..where((t) => t.observationId.equals(observationId)))
+          .go();
       await (_db.delete(_db.studyOperations)
             ..where(
                 (t) => t.studyId.equals(studyId) & t.isUnplanned.equals(true)))
@@ -312,17 +380,22 @@ class TimingRepository {
   // --- internals ------------------------------------------------------------
 
   Future<void> _withInstance(
-    String studyId,
+    String observationId,
     String studyOperationId,
     Future<void> Function(String instanceId) action,
   ) async {
     await _db.transaction(() async {
-      final observationId = await _observationId(studyId);
-      if (observationId == null) return;
       final instance = await _instance(observationId, studyOperationId);
       if (instance == null) return;
       await action(instance.id);
     });
+  }
+
+  Future<String?> _studyIdOf(String observationId) async {
+    final obs = await (_db.select(_db.observations)
+          ..where((t) => t.id.equals(observationId)))
+        .getSingleOrNull();
+    return obs?.studyId;
   }
 
   /// The next operation after [afterStudyOperationId] (by order) that is still
@@ -381,7 +454,16 @@ class TimingRepository {
     return obs?.id;
   }
 
-  Future<String> _ensureObservation(String studyId) async {
+  /// The study's first pass, creating it if it has none — the id every action
+  /// below is scoped to.
+  ///
+  /// Resolved **once, by the caller**, rather than on every action: two actions
+  /// racing to create the first pass would both find none and both insert
+  /// `sequenceIndex: 0`, which the `{studyId, sequenceIndex}` unique key rejects.
+  /// One resolve on entry cannot race with itself.
+  ///
+  /// §11.1 moves creation to study creation, after which this only ever reads.
+  Future<String> ensureObservationId(String studyId) async {
     final existing = await _observationId(studyId);
     if (existing != null) return existing;
     final now = DateTime.now();

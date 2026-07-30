@@ -1401,6 +1401,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Noted. It goes along when you save diagnostics.'**
   String get feedbackSaved;
+
+  /// No description provided for @passesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Passes'**
+  String get passesTitle;
+
+  /// No description provided for @passLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass {number}'**
+  String passLabel(int number);
+
+  /// No description provided for @passAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'New pass'**
+  String get passAdd;
+
+  /// No description provided for @passTimedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{timed} of {total} timed'**
+  String passTimedCount(int timed, int total);
+
+  /// No description provided for @passNothingTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing timed yet'**
+  String get passNothingTimed;
+
+  /// No description provided for @passExcludedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded'**
+  String get passExcludedBadge;
+
+  /// No description provided for @passExclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude from statistics'**
+  String get passExclude;
+
+  /// No description provided for @passInclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Put back in the statistics'**
+  String get passInclude;
+
+  /// No description provided for @passExcludeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude {pass}?'**
+  String passExcludeTitle(String pass);
+
+  /// No description provided for @passExcludeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It keeps its measurements and its own report — it is only left out of the averages. You can put it back at any time.'**
+  String get passExcludeMessage;
+
+  /// No description provided for @passExcludeReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why? (e.g. line starved)'**
+  String get passExcludeReasonHint;
+
+  /// No description provided for @passDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete pass'**
+  String get passDelete;
+
+  /// No description provided for @passDeleteBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This pass has measurements. Exclude it instead — that keeps the evidence.'**
+  String get passDeleteBlocked;
+
+  /// No description provided for @passDeleteLastBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'A study keeps at least one pass.'**
+  String get passDeleteLastBlocked;
+
+  /// No description provided for @passDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {pass}?'**
+  String passDeleteConfirmTitle(String pass);
+
+  /// No description provided for @passDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was timed in it. The number is not used again.'**
+  String get passDeleteConfirmMessage;
+
+  /// No description provided for @passReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report for this pass'**
+  String get passReport;
+
+  /// No description provided for @samplingReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampling report'**
+  String get samplingReportTitle;
+
+  /// No description provided for @samplingReportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Time an operation in at least one pass to see the report.'**
+  String get samplingReportEmpty;
+
+  /// No description provided for @samplingCriteria.
+  ///
+  /// In en, this message translates to:
+  /// **'{confidence}% confidence · ±{precision}%'**
+  String samplingCriteria(String confidence, String precision);
+
+  /// No description provided for @samplingPassesTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'{taken} passes taken'**
+  String samplingPassesTaken(int taken);
+
+  /// No description provided for @samplingAdequate.
+  ///
+  /// In en, this message translates to:
+  /// **'Adequate — {required} needed'**
+  String samplingAdequate(int required);
+
+  /// No description provided for @samplingNotAdequate.
+  ///
+  /// In en, this message translates to:
+  /// **'Not adequate — {shortfall} more passes'**
+  String samplingNotAdequate(int shortfall);
+
+  /// No description provided for @samplingNotDeterminable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough passes to judge yet'**
+  String get samplingNotDeterminable;
+
+  /// No description provided for @samplingNothingTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing timed yet'**
+  String get samplingNothingTimed;
+
+  /// No description provided for @samplingGovernedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Governed by: {operation}'**
+  String samplingGovernedBy(String operation);
+
+  /// No description provided for @samplingNeverTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Never timed: {operations}'**
+  String samplingNeverTimed(String operations);
+
+  /// No description provided for @samplingStatisticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-operation statistics'**
+  String get samplingStatisticsTitle;
+
+  /// No description provided for @samplingReadingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Readings'**
+  String get samplingReadingsTitle;
+
+  /// No description provided for @samplingMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean'**
+  String get samplingMean;
+
+  /// No description provided for @samplingRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get samplingRange;
+
+  /// No description provided for @samplingStdDev.
+  ///
+  /// In en, this message translates to:
+  /// **'Std dev'**
+  String get samplingStdDev;
+
+  /// No description provided for @samplingCv.
+  ///
+  /// In en, this message translates to:
+  /// **'CV'**
+  String get samplingCv;
+
+  /// No description provided for @samplingRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed'**
+  String get samplingRequired;
+
+  /// No description provided for @samplingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'n'**
+  String get samplingCount;
+
+  /// No description provided for @samplingUnplannedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Unplanned — shown, but not part of the verdict'**
+  String get samplingUnplannedNote;
+
+  /// No description provided for @samplingExcludedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} readings excluded'**
+  String samplingExcludedNote(int count);
+
+  /// No description provided for @samplingManualNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} entered by hand'**
+  String samplingManualNote(int count);
+
+  /// No description provided for @samplingMeanWorkContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Work content (mean pass)'**
+  String get samplingMeanWorkContent;
+
+  /// No description provided for @readingExclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude this reading'**
+  String get readingExclude;
+
+  /// No description provided for @readingInclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Put this reading back'**
+  String get readingInclude;
+
+  /// No description provided for @readingExcludeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude {operation}, pass {pass}?'**
+  String readingExcludeTitle(String operation, int pass);
+
+  /// No description provided for @readingExcludeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The measurement stays, and still appears in that pass\'s own report. It is only left out of the averages.'**
+  String get readingExcludeMessage;
+
+  /// No description provided for @readingExcludedByPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded with the whole pass.'**
+  String get readingExcludedByPass;
+
+  /// No description provided for @studyCriteriaSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample size'**
+  String get studyCriteriaSection;
+
+  /// No description provided for @studyConfidenceLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence level'**
+  String get studyConfidenceLevel;
+
+  /// No description provided for @studyRelativePrecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Precision (± % of the mean)'**
+  String get studyRelativePrecision;
+
+  /// No description provided for @colMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get colMin;
+
+  /// No description provided for @colMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get colMax;
+
+  /// No description provided for @samplingAppendixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Passes in detail'**
+  String get samplingAppendixTitle;
+
+  /// No description provided for @compareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare studies'**
+  String get compareAction;
+
+  /// No description provided for @compareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison'**
+  String get compareTitle;
+
+  /// No description provided for @compareEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick two or more studies to compare.'**
+  String get compareEmpty;
+
+  /// No description provided for @compareNoStudies.
+  ///
+  /// In en, this message translates to:
+  /// **'This project has no studies to compare yet.'**
+  String get compareNoStudies;
+
+  /// No description provided for @compareNothingMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations could be matched. Studies are compared by the catalog operations they share, and these have none in common.'**
+  String get compareNothingMatched;
+
+  /// No description provided for @comparePickStudies.
+  ///
+  /// In en, this message translates to:
+  /// **'Studies'**
+  String get comparePickStudies;
+
+  /// No description provided for @compareSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String compareSelected(int count);
+
+  /// No description provided for @compareReadings.
+  ///
+  /// In en, this message translates to:
+  /// **'n = {count}'**
+  String compareReadings(int count);
+
+  /// No description provided for @compareSingleReadingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'○ = a single reading, not a mean'**
+  String get compareSingleReadingNote;
+
+  /// No description provided for @compareUnmatchedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} operations not compared — no catalog link: {names}'**
+  String compareUnmatchedNote(int count, String names);
+
+  /// No description provided for @compareTrendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Over time'**
+  String get compareTrendTitle;
+
+  /// No description provided for @compareChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get compareChange;
+
+  /// No description provided for @compareRowSingleStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one study timed this'**
+  String get compareRowSingleStudy;
+
+  /// No description provided for @compareOccurrences.
+  ///
+  /// In en, this message translates to:
+  /// **'x{count} in the sequence'**
+  String compareOccurrences(int count);
+
+  /// No description provided for @compareOccurrencesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Occurrences'**
+  String get compareOccurrencesHeader;
 }
 
 class _AppLocalizationsDelegate

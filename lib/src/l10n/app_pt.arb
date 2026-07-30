@@ -270,5 +270,142 @@
   "feedbackAction": "Enviar feedback",
   "feedbackSubtitle": "Anote o que atrapalhou; vai junto com o diagnóstico",
   "feedbackHint": "O que aconteceu?",
-  "feedbackSaved": "Anotado. Vai junto quando você salvar o diagnóstico."
+  "feedbackSaved": "Anotado. Vai junto quando você salvar o diagnóstico.",
+  "passesTitle": "Tomadas",
+  "passLabel": "Tomada {number}",
+  "@passLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "passAdd": "Nova tomada",
+  "passTimedCount": "{timed} de {total} cronometradas",
+  "@passTimedCount": {
+    "placeholders": {
+      "timed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "passNothingTimed": "Nada cronometrado ainda",
+  "passExcludedBadge": "Excluída",
+  "passExclude": "Excluir das estatísticas",
+  "passInclude": "Voltar para as estatísticas",
+  "passExcludeTitle": "Excluir a {pass}?",
+  "@passExcludeTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passExcludeMessage": "Ela mantém as medições e o relatório próprio — só fica de fora das médias. Você pode voltar atrás quando quiser.",
+  "passExcludeReasonHint": "Por quê? (ex.: linha parada por falta de material)",
+  "passDelete": "Excluir tomada",
+  "passDeleteBlocked": "Esta tomada tem medições. Prefira excluí-la das estatísticas — assim a evidência fica registrada.",
+  "passDeleteLastBlocked": "Um estudo mantém pelo menos uma tomada.",
+  "passDeleteConfirmTitle": "Apagar a {pass}?",
+  "@passDeleteConfirmTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passDeleteConfirmMessage": "Nada foi cronometrado nela. O número não será reaproveitado.",
+  "passReport": "Relatório desta tomada",
+  "samplingReportTitle": "Relatório de amostragem",
+  "samplingReportEmpty": "Cronometre uma operação em ao menos uma tomada para ver o relatório.",
+  "samplingCriteria": "{confidence}% de confiança · ±{precision}%",
+  "@samplingCriteria": {
+    "placeholders": {
+      "confidence": { "type": "String" },
+      "precision": { "type": "String" }
+    }
+  },
+  "samplingPassesTaken": "{taken} tomadas realizadas",
+  "@samplingPassesTaken": {
+    "placeholders": {
+      "taken": { "type": "int" }
+    }
+  },
+  "samplingAdequate": "Adequado — {required} necessárias",
+  "@samplingAdequate": {
+    "placeholders": {
+      "required": { "type": "int" }
+    }
+  },
+  "samplingNotAdequate": "Não adequado — faltam {shortfall} tomadas",
+  "@samplingNotAdequate": {
+    "placeholders": {
+      "shortfall": { "type": "int" }
+    }
+  },
+  "samplingNotDeterminable": "Ainda não há tomadas suficientes para julgar",
+  "samplingNothingTimed": "Nada cronometrado ainda",
+  "samplingGovernedBy": "Determinado por: {operation}",
+  "@samplingGovernedBy": {
+    "placeholders": {
+      "operation": { "type": "String" }
+    }
+  },
+  "samplingNeverTimed": "Nunca cronometradas: {operations}",
+  "@samplingNeverTimed": {
+    "placeholders": {
+      "operations": { "type": "String" }
+    }
+  },
+  "samplingStatisticsTitle": "Estatísticas por operação",
+  "samplingReadingsTitle": "Leituras",
+  "samplingMean": "Média",
+  "samplingRange": "Amplitude",
+  "samplingStdDev": "Desvio padrão",
+  "samplingCv": "CV",
+  "samplingRequired": "Necessárias",
+  "samplingCount": "n",
+  "samplingUnplannedNote": "Não planejada — aparece, mas não entra no veredito",
+  "samplingExcludedNote": "{count} leituras excluídas",
+  "@samplingExcludedNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingManualNote": "{count} digitadas",
+  "@samplingManualNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingMeanWorkContent": "Conteúdo de trabalho (tomada média)",
+  "readingExclude": "Excluir esta leitura",
+  "readingInclude": "Voltar com esta leitura",
+  "readingExcludeTitle": "Excluir {operation}, tomada {pass}?",
+  "@readingExcludeTitle": {
+    "placeholders": {
+      "operation": { "type": "String" },
+      "pass": { "type": "int" }
+    }
+  },
+  "readingExcludeMessage": "A medição continua registrada e ainda aparece no relatório da própria tomada. Ela só fica de fora das médias.",
+  "readingExcludedByPass": "Excluída junto com a tomada inteira.",
+  "studyCriteriaSection": "Tamanho da amostra",
+  "studyConfidenceLevel": "Nível de confiança",
+  "studyRelativePrecision": "Precisão (± % da média)",
+  "colMin": "Mín",
+  "colMax": "Máx",
+  "samplingAppendixTitle": "Tomadas em detalhe",
+  "compareAction": "Comparar estudos",
+  "compareTitle": "Comparação",
+  "compareEmpty": "Escolha dois ou mais estudos para comparar.",
+  "compareNoStudies": "Este projeto ainda não tem estudos para comparar.",
+  "compareNothingMatched": "Nenhuma operação pôde ser relacionada. Os estudos são comparados pelas operações de catálogo que têm em comum, e estes não têm nenhuma.",
+  "comparePickStudies": "Estudos",
+  "compareSelected": "{count} selecionados",
+  "@compareSelected": {"placeholders": {"count": {"type": "int"}}},
+  "compareReadings": "n = {count}",
+  "@compareReadings": {"placeholders": {"count": {"type": "int"}}},
+  "compareSingleReadingNote": "○ = leitura única, não é média",
+  "compareUnmatchedNote": "{count} operações fora da comparação — sem vínculo com o catálogo: {names}",
+  "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
+  "compareTrendTitle": "Ao longo do tempo",
+  "compareChange": "Variação",
+  "compareRowSingleStudy": "Só um estudo cronometrou esta operação",
+  "compareOccurrences": "x{count} na sequência",
+  "@compareOccurrences": {"placeholders": {"count": {"type": "int"}}},
+  "compareOccurrencesHeader": "Ocorrências"
 }

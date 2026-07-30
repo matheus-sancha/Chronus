@@ -26,24 +26,34 @@ class TimeStudyReportScreen extends ConsumerWidget {
     super.key,
     required this.projectId,
     required this.studyId,
+    this.observationId,
   });
 
   final String projectId;
   final String studyId;
+
+  /// The pass to report on. Null means the study's first — which for a Time
+  /// Study is its only one.
+  ///
+  /// A single pass **is** a time study (DESIGN.md §11.6), so a Sampling Study's
+  /// per-pass report is this same screen with the pass named, rather than a
+  /// parallel implementation that could drift from it.
+  final String? observationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final operations = ref.watch(studyOperationsProvider(studyId)).value ??
         const <StudyOperation>[];
-    final observation = ref.watch(observationProvider(studyId)).value;
-    final instances = observation == null
+    final resolvedId = observationId ??
+        ref.watch(observationProvider(studyId)).value?.id;
+    final instances = resolvedId == null
         ? const <OperationInstance>[]
-        : (ref.watch(operationInstancesProvider(observation.id)).value ??
+        : (ref.watch(operationInstancesProvider(resolvedId)).value ??
             const <OperationInstance>[]);
-    final segments = observation == null
+    final segments = resolvedId == null
         ? const <OperationTimeSegment>[]
-        : (ref.watch(operationSegmentsProvider(observation.id)).value ??
+        : (ref.watch(operationSegmentsProvider(resolvedId)).value ??
             const <OperationTimeSegment>[]);
     final study = ref.watch(studyByIdProvider(studyId)).value;
     final subtypes = ref.watch(subtypesProvider).value ?? const [];
@@ -58,9 +68,16 @@ class TimeStudyReportScreen extends ConsumerWidget {
       segments: segments,
     );
 
+    final pass = observationId == null
+        ? null
+        : ref.watch(passProvider(observationId!)).value;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.reportTitle),
+        title: Text(pass == null
+            ? l10n.reportTitle
+            : '${l10n.reportTitle} · '
+                '${l10n.passLabel(pass.sequenceIndex + 1)}'),
         actions: [
           // Same gate as the body: nothing timed, nothing worth exporting.
           if (study != null && report.totalWorkContentMs > 0)
@@ -262,10 +279,11 @@ class TimeStudyReportScreen extends ConsumerWidget {
 
   Future<void> _openPhotos(
       BuildContext context, WidgetRef ref, StudyOperation op) async {
-    final instanceId = await ref.read(timingRepositoryProvider).ensureInstanceId(
-          studyId: studyId,
-          studyOperationId: op.id,
-        );
+    final timing = ref.read(timingRepositoryProvider);
+    final instanceId = await timing.ensureInstanceId(
+      observationId: observationId ?? await timing.ensureObservationId(studyId),
+      studyOperationId: op.id,
+    );
     if (!context.mounted) return;
     await showMediaGallery(
       context,

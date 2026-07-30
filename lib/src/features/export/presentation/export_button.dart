@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/database/database.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../analysis/application/sampling_report.dart';
 import '../../analysis/application/time_study_report.dart';
 import '../../media/application/media_providers.dart';
 import '../../studies/application/timing_model.dart';
@@ -32,16 +33,34 @@ enum ReportFormat {
 ///
 /// Building happens off the report data already in hand, so the export always
 /// matches exactly what the analyst is looking at.
+///
+/// Either a Time Study report or a Sampling one — the menu, the busy state and
+/// the delivery are identical, and only the two builders differ. Keeping one
+/// widget is what stops the sampling path from quietly losing the share-popover
+/// anchoring and locale plumbing the other one already got right.
 class ExportButton extends ConsumerStatefulWidget {
   const ExportButton({
     super.key,
     required this.study,
     required this.report,
     required this.timing,
-  });
+  })  : sampling = null,
+        passes = const [];
+
+  const ExportButton.sampling({
+    super.key,
+    required this.study,
+    required SamplingReport this.sampling,
+    required this.passes,
+    required this.timing,
+  }) : report = null;
 
   final Study study;
-  final TimeStudyReport report;
+  final TimeStudyReport? report;
+  final SamplingReport? sampling;
+  final List<PassExport> passes;
+
+  /// Used only to resolve the photos to embed, so it is the same either way.
   final Map<String, OperationTiming> timing;
 
   @override
@@ -107,15 +126,33 @@ class _ExportButtonState extends ConsumerState<ExportButton> {
         media: ref.read(mediaRepositoryProvider),
         timing: widget.timing,
       );
-      final payload = StudyExportPayload(
-        study: widget.study,
-        report: widget.report,
-        photosByStudyOperationId: photos,
-      );
-      final Uint8List bytes = switch (format) {
-        ReportFormat.pdf => await buildStudyPdf(payload, l10n, localeName: locale),
-        ReportFormat.xlsx => buildStudyXlsx(payload, l10n, localeName: locale),
-      };
+      final sampling = widget.sampling;
+      final Uint8List bytes;
+      if (sampling != null) {
+        final payload = SamplingExportPayload(
+          study: widget.study,
+          report: sampling,
+          passes: widget.passes,
+          photosByStudyOperationId: photos,
+        );
+        bytes = switch (format) {
+          ReportFormat.pdf =>
+            await buildSamplingPdf(payload, l10n, localeName: locale),
+          ReportFormat.xlsx =>
+            buildSamplingXlsx(payload, l10n, localeName: locale),
+        };
+      } else {
+        final payload = StudyExportPayload(
+          study: widget.study,
+          report: widget.report!,
+          photosByStudyOperationId: photos,
+        );
+        bytes = switch (format) {
+          ReportFormat.pdf =>
+            await buildStudyPdf(payload, l10n, localeName: locale),
+          ReportFormat.xlsx => buildStudyXlsx(payload, l10n, localeName: locale),
+        };
+      }
 
       final result = await ref.read(exportDeliveryProvider).deliver(
             bytes: bytes,

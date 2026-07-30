@@ -318,5 +318,142 @@
   "feedbackAction": "Send feedback",
   "feedbackSubtitle": "Note what got in the way; it travels with the diagnostics",
   "feedbackHint": "What happened?",
-  "feedbackSaved": "Noted. It goes along when you save diagnostics."
+  "feedbackSaved": "Noted. It goes along when you save diagnostics.",
+  "passesTitle": "Passes",
+  "passLabel": "Pass {number}",
+  "@passLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "passAdd": "New pass",
+  "passTimedCount": "{timed} of {total} timed",
+  "@passTimedCount": {
+    "placeholders": {
+      "timed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "passNothingTimed": "Nothing timed yet",
+  "passExcludedBadge": "Excluded",
+  "passExclude": "Exclude from statistics",
+  "passInclude": "Put back in the statistics",
+  "passExcludeTitle": "Exclude {pass}?",
+  "@passExcludeTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passExcludeMessage": "It keeps its measurements and its own report — it is only left out of the averages. You can put it back at any time.",
+  "passExcludeReasonHint": "Why? (e.g. line starved)",
+  "passDelete": "Delete pass",
+  "passDeleteBlocked": "This pass has measurements. Exclude it instead — that keeps the evidence.",
+  "passDeleteLastBlocked": "A study keeps at least one pass.",
+  "passDeleteConfirmTitle": "Delete {pass}?",
+  "@passDeleteConfirmTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passDeleteConfirmMessage": "Nothing was timed in it. The number is not used again.",
+  "passReport": "Report for this pass",
+  "samplingReportTitle": "Sampling report",
+  "samplingReportEmpty": "Time an operation in at least one pass to see the report.",
+  "samplingCriteria": "{confidence}% confidence · ±{precision}%",
+  "@samplingCriteria": {
+    "placeholders": {
+      "confidence": { "type": "String" },
+      "precision": { "type": "String" }
+    }
+  },
+  "samplingPassesTaken": "{taken} passes taken",
+  "@samplingPassesTaken": {
+    "placeholders": {
+      "taken": { "type": "int" }
+    }
+  },
+  "samplingAdequate": "Adequate — {required} needed",
+  "@samplingAdequate": {
+    "placeholders": {
+      "required": { "type": "int" }
+    }
+  },
+  "samplingNotAdequate": "Not adequate — {shortfall} more passes",
+  "@samplingNotAdequate": {
+    "placeholders": {
+      "shortfall": { "type": "int" }
+    }
+  },
+  "samplingNotDeterminable": "Not enough passes to judge yet",
+  "samplingNothingTimed": "Nothing timed yet",
+  "samplingGovernedBy": "Governed by: {operation}",
+  "@samplingGovernedBy": {
+    "placeholders": {
+      "operation": { "type": "String" }
+    }
+  },
+  "samplingNeverTimed": "Never timed: {operations}",
+  "@samplingNeverTimed": {
+    "placeholders": {
+      "operations": { "type": "String" }
+    }
+  },
+  "samplingStatisticsTitle": "Per-operation statistics",
+  "samplingReadingsTitle": "Readings",
+  "samplingMean": "Mean",
+  "samplingRange": "Range",
+  "samplingStdDev": "Std dev",
+  "samplingCv": "CV",
+  "samplingRequired": "Needed",
+  "samplingCount": "n",
+  "samplingUnplannedNote": "Unplanned — shown, but not part of the verdict",
+  "samplingExcludedNote": "{count} readings excluded",
+  "@samplingExcludedNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingManualNote": "{count} entered by hand",
+  "@samplingManualNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingMeanWorkContent": "Work content (mean pass)",
+  "readingExclude": "Exclude this reading",
+  "readingInclude": "Put this reading back",
+  "readingExcludeTitle": "Exclude {operation}, pass {pass}?",
+  "@readingExcludeTitle": {
+    "placeholders": {
+      "operation": { "type": "String" },
+      "pass": { "type": "int" }
+    }
+  },
+  "readingExcludeMessage": "The measurement stays, and still appears in that pass's own report. It is only left out of the averages.",
+  "readingExcludedByPass": "Excluded with the whole pass.",
+  "studyCriteriaSection": "Sample size",
+  "studyConfidenceLevel": "Confidence level",
+  "studyRelativePrecision": "Precision (± % of the mean)",
+  "colMin": "Min",
+  "colMax": "Max",
+  "samplingAppendixTitle": "Passes in detail",
+  "compareAction": "Compare studies",
+  "compareTitle": "Comparison",
+  "compareEmpty": "Pick two or more studies to compare.",
+  "compareNoStudies": "This project has no studies to compare yet.",
+  "compareNothingMatched": "No operations could be matched. Studies are compared by the catalog operations they share, and these have none in common.",
+  "comparePickStudies": "Studies",
+  "compareSelected": "{count} selected",
+  "@compareSelected": {"placeholders": {"count": {"type": "int"}}},
+  "compareReadings": "n = {count}",
+  "@compareReadings": {"placeholders": {"count": {"type": "int"}}},
+  "compareSingleReadingNote": "○ = a single reading, not a mean",
+  "compareUnmatchedNote": "{count} operations not compared — no catalog link: {names}",
+  "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
+  "compareTrendTitle": "Over time",
+  "compareChange": "Change",
+  "compareRowSingleStudy": "Only one study timed this",
+  "compareOccurrences": "x{count} in the sequence",
+  "@compareOccurrences": {"placeholders": {"count": {"type": "int"}}},
+  "compareOccurrencesHeader": "Occurrences"
 }

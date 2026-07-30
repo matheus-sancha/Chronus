@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../features/diagnostics/application/diagnostics.dart';
 import '../app_directory.dart';
 import 'enums.dart';
+import 'starter_catalog.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -58,13 +59,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openOnDevice());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedReferenceData();
+          await _seedStarterCatalogIfEmpty();
         },
         onUpgrade: (m, from, to) async {
           if (from < 2) {
@@ -113,13 +115,110 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(appSettings, appSettings.alertSoundsEnabled);
           }
           if (from < 5) {
-            // Sampling Study sample-size criteria, per study (DESIGN.md §10.9).
+            // Sampling Study sample-size criteria, per study (DESIGN.md §11.5).
             // Both carry defaults, so existing studies arrive at the conventional
             // 95 % / ±5 % rather than at null — there is no "unset" that the
             // adequacy calculation could meaningfully report on.
             await m.addColumn(studies, studies.confidenceLevel);
             await m.addColumn(studies, studies.relativePrecision);
           }
+          if (from < 6) {
+            // Phase 7 (DESIGN.md §11.10). The first migration that rebuilds a
+            // table rather than adding to one, hence the order below: the
+            // additive steps first, so a failure in the rebuild leaves the least
+            // behind, and the backfill last, so it runs against final tables.
+
+            // Exclusion, at both grains (§11.3). Nullable with no default —
+            // "never excluded" is exactly null, and every existing row is.
+            await m.addColumn(observations, observations.excludedAt);
+            await m.addColumn(observations, observations.exclusionReason);
+            if (from >= 3) {
+              // Only from 3 upwards. The 2 -> 3 step above rebuilds
+              // operation_instances with `m.createTable`, which builds it from
+              // the CURRENT Dart definition — so on a v1/v2 database the table
+              // already arrives here carrying these columns, and adding them
+              // again fails the whole upgrade.
+              //
+              // The same guard is needed by any future column added to
+              // operation_instances or operation_time_segments, for the same
+              // reason. `observations` above needs none: no migration step
+              // creates it, so it is always the shape its own version had.
+              await m.addColumn(
+                  operationInstances, operationInstances.excludedAt);
+              await m.addColumn(
+                  operationInstances, operationInstances.exclusionReason);
+            }
+            await m.addColumn(studies, studies.nextPassIndex);
+
+            // study_operations.catalog_operation_id stops being a foreign key
+            // and becomes a snapshot value (§11.8), so tidying the catalog can
+            // no longer null out the key cross-study comparison matches on.
+            //
+            // alterTable does the rename/create/copy/drop dance BY EXPLICIT
+            // COLUMN NAME — §2's rule, and the reason a hand-written `SELECT *`
+            // would be wrong here: this table has itself been rebuilt before, so
+            // its column order on an upgraded database need not match a freshly
+            // created one. It also holds `legacy_alter_table` during the rename,
+            // without which the rename would rewrite operation_instances' own
+            // foreign key to point at the temporary table.
+            await m.alterTable(TableMigration(studyOperations));
+
+            // Every study owns pass 1 (§11.1). Studies that were opened but
+            // never timed have no observation at all, and the invariant the rest
+            // of Phase 7 is built on is that one always exists.
+            //
+            // sequenceIndex 0, matching what the engine has always inserted —
+            // 1 here would collide with the next pass created for a study that
+            // already had one.
+            //
+            // Written through the typed API rather than as raw SQL, which is
+            // safe *here* specifically: both tables match the current Dart
+            // definitions by this point (observations was just brought up to
+            // date by the addColumns above, and v6 does not touch studies), so
+            // there is no older shape for the mapping to disagree with. It
+            // buys the same ids the engine generates and Drift's own DateTime
+            // encoding, instead of hand-rolling both in SQL.
+            final withoutPass = await select(studies).get();
+            final have =
+                (await select(observations).get()).map((o) => o.studyId).toSet();
+            final now = DateTime.now();
+            await batch((b) {
+              for (final study in withoutPass) {
+                if (have.contains(study.id)) continue;
+                b.insert(
+                  observations,
+                  ObservationsCompanion.insert(
+                    id: _uuid.v4(),
+                    studyId: study.id,
+                    sequenceIndex: 0,
+                    // The study's own date, not today's: a pass backfilled for a
+                    // study run in March did not happen at upgrade time.
+                    performedAt: study.performedAt,
+                    createdAt: now,
+                  ),
+                );
+              }
+            });
+
+            // The never-reused pass counter (§11.3), seeded past whatever each
+            // study already has. Last, so the backfilled passes above are
+            // counted — a study seeded to 0 would hand pass 1's number out
+            // again on the first Add pass.
+            await customStatement(
+              'UPDATE studies SET next_pass_index = COALESCE('
+              '(SELECT MAX(o.sequence_index) + 1 FROM observations o '
+              'WHERE o.study_id = studies.id), 1)',
+            );
+          }
+          if (from < 7) {
+            await m.addColumn(appSettings, appSettings.starterCatalogSeededAt);
+          }
+          // Outside the version guards on purpose (§9): a colleague already
+          // running Chronus with an empty catalog is exactly who this is for,
+          // and gating it on a version number would reach only future installs.
+          // Idempotent by its own two guards, so running it on every upgrade
+          // costs one COUNT.
+          await _seedStarterCatalogIfEmpty();
         },
         beforeOpen: (details) async {
           // SQLite has foreign keys OFF by default; enforce them every open.
@@ -136,6 +235,91 @@ class AppDatabase extends _$AppDatabase {
           );
         },
       );
+
+  /// Puts the starter catalog in place, if it is wanted (DESIGN.md §9).
+  ///
+  /// **Two guards, and both are needed.** The catalog must be empty, so someone
+  /// who has authored their own operations is never handed a pile of ours; and
+  /// [AppSettings.starterCatalogSeededAt] must be null, which is what makes a
+  /// deliberate "I emptied this on purpose" survive the next drop. The empty
+  /// check alone would refill it every upgrade.
+  ///
+  /// Runs on upgrade as well as on create, and that is the point: the people
+  /// who already have Chronus are the ones with an empty catalog right now.
+  Future<void> _seedStarterCatalogIfEmpty() async {
+    final settings =
+        await (select(appSettings)..where((t) => t.id.equals(0)))
+            .getSingleOrNull();
+    // No settings row yet means a database mid-creation; onCreate seeds it
+    // before calling this, so this only trips on something already wrong.
+    if (settings == null || settings.starterCatalogSeededAt != null) return;
+
+    final existing = await (selectOnly(catalogOperations)
+          ..addColumns([catalogOperations.id.count()]))
+        .map((r) => r.read(catalogOperations.id.count()) ?? 0)
+        .getSingle();
+    if (existing > 0) {
+      // Nothing to add, but record that the offer was made — otherwise emptying
+      // the catalog later would be read as "never seeded" and refill it.
+      await (update(appSettings)..where((t) => t.id.equals(0)))
+          .write(AppSettingsCompanion(
+              starterCatalogSeededAt: Value(DateTime.now())));
+      return;
+    }
+
+    final now = DateTime.now();
+
+    // Subtypes the starter operations need that the 7 built-ins do not cover
+    // (§3.4). Seeded only where a subtype of that name is missing: a colleague
+    // may already have authored "Inspection" themselves, and a second one would
+    // split their waste Pareto in two.
+    final existingSubtypes = await select(operationSubtypes).get();
+    final known = {for (final s in existingSubtypes) s.name};
+    final missing =
+        starterSubtypes.where((s) => !known.contains(s.name)).toList();
+    if (missing.isNotEmpty) {
+      await batch((b) {
+        b.insertAll(operationSubtypes, [
+          for (final subtype in missing)
+            OperationSubtypesCompanion.insert(
+              id: _uuid.v4(),
+              category: subtype.category,
+              name: subtype.name,
+              // Not built-in: §3.4 reserves that for the 7 wastes. These are
+              // ours to offer rather than the taxonomy's to impose, which also
+              // leaves them deletable — as they should be.
+              isBuiltIn: const Value(false),
+              createdAt: now,
+            ),
+        ]);
+      });
+    }
+
+    // Re-read, so the ids just inserted are in the map. Matched by NAME
+    // throughout: the built-ins carry generated ids, and on an upgrade they
+    // already exist with ids no constant could know.
+    final subtypes = await select(operationSubtypes).get();
+    final subtypeByName = {for (final s in subtypes) s.name: s.id};
+
+    await batch((b) {
+      b.insertAll(catalogOperations, [
+        for (final op in starterCatalog)
+          CatalogOperationsCompanion.insert(
+            id: _uuid.v4(),
+            name: op.name,
+            category: op.category,
+            subtypeId: Value(
+                op.subtypeName == null ? null : subtypeByName[op.subtypeName]),
+            referenceStandardMs: Value(op.referenceStandardMs),
+            createdAt: now,
+            updatedAt: now,
+          ),
+      ]);
+    });
+    await (update(appSettings)..where((t) => t.id.equals(0)))
+        .write(AppSettingsCompanion(starterCatalogSeededAt: Value(now)));
+    Diag.event('catalog.seeded', 'operations=${starterCatalog.length}');
+  }
 
   Future<void> _seedReferenceData() async {
     final now = DateTime.now();

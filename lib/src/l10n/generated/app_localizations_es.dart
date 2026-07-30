@@ -713,4 +713,244 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get feedbackSaved =>
       'Anotado. Se envía junto al guardar el diagnóstico.';
+
+  @override
+  String get passesTitle => 'Tomas';
+
+  @override
+  String passLabel(int number) {
+    return 'Toma $number';
+  }
+
+  @override
+  String get passAdd => 'Nueva toma';
+
+  @override
+  String passTimedCount(int timed, int total) {
+    return '$timed de $total cronometradas';
+  }
+
+  @override
+  String get passNothingTimed => 'Nada cronometrado aún';
+
+  @override
+  String get passExcludedBadge => 'Excluida';
+
+  @override
+  String get passExclude => 'Excluir de las estadísticas';
+
+  @override
+  String get passInclude => 'Devolver a las estadísticas';
+
+  @override
+  String passExcludeTitle(String pass) {
+    return '¿Excluir la $pass?';
+  }
+
+  @override
+  String get passExcludeMessage =>
+      'Conserva sus mediciones y su propio informe — solo queda fuera de los promedios. Puedes revertirlo cuando quieras.';
+
+  @override
+  String get passExcludeReasonHint => '¿Por qué? (p. ej., línea sin material)';
+
+  @override
+  String get passDelete => 'Eliminar toma';
+
+  @override
+  String get passDeleteBlocked =>
+      'Esta toma tiene mediciones. Mejor exclúyela — así la evidencia se conserva.';
+
+  @override
+  String get passDeleteLastBlocked => 'Un estudio conserva al menos una toma.';
+
+  @override
+  String passDeleteConfirmTitle(String pass) {
+    return '¿Eliminar la $pass?';
+  }
+
+  @override
+  String get passDeleteConfirmMessage =>
+      'No se cronometró nada en ella. El número no se reutiliza.';
+
+  @override
+  String get passReport => 'Informe de esta toma';
+
+  @override
+  String get samplingReportTitle => 'Informe de muestreo';
+
+  @override
+  String get samplingReportEmpty =>
+      'Cronometra una operación en al menos una toma para ver el informe.';
+
+  @override
+  String samplingCriteria(String confidence, String precision) {
+    return '$confidence% de confianza · ±$precision%';
+  }
+
+  @override
+  String samplingPassesTaken(int taken) {
+    return '$taken tomas realizadas';
+  }
+
+  @override
+  String samplingAdequate(int required) {
+    return 'Adecuado — $required necesarias';
+  }
+
+  @override
+  String samplingNotAdequate(int shortfall) {
+    return 'No adecuado — faltan $shortfall tomas';
+  }
+
+  @override
+  String get samplingNotDeterminable =>
+      'Aún no hay tomas suficientes para juzgar';
+
+  @override
+  String get samplingNothingTimed => 'Nada cronometrado aún';
+
+  @override
+  String samplingGovernedBy(String operation) {
+    return 'Determinado por: $operation';
+  }
+
+  @override
+  String samplingNeverTimed(String operations) {
+    return 'Nunca cronometradas: $operations';
+  }
+
+  @override
+  String get samplingStatisticsTitle => 'Estadísticas por operación';
+
+  @override
+  String get samplingReadingsTitle => 'Lecturas';
+
+  @override
+  String get samplingMean => 'Media';
+
+  @override
+  String get samplingRange => 'Rango';
+
+  @override
+  String get samplingStdDev => 'Desv. típica';
+
+  @override
+  String get samplingCv => 'CV';
+
+  @override
+  String get samplingRequired => 'Necesarias';
+
+  @override
+  String get samplingCount => 'n';
+
+  @override
+  String get samplingUnplannedNote =>
+      'No planificada — se muestra, pero no entra en el veredicto';
+
+  @override
+  String samplingExcludedNote(int count) {
+    return '$count lecturas excluidas';
+  }
+
+  @override
+  String samplingManualNote(int count) {
+    return '$count introducidas a mano';
+  }
+
+  @override
+  String get samplingMeanWorkContent => 'Contenido de trabajo (toma media)';
+
+  @override
+  String get readingExclude => 'Excluir esta lectura';
+
+  @override
+  String get readingInclude => 'Devolver esta lectura';
+
+  @override
+  String readingExcludeTitle(String operation, int pass) {
+    return '¿Excluir $operation, toma $pass?';
+  }
+
+  @override
+  String get readingExcludeMessage =>
+      'La medición se conserva y sigue apareciendo en el informe de esa toma. Solo queda fuera de los promedios.';
+
+  @override
+  String get readingExcludedByPass => 'Excluida junto con toda la toma.';
+
+  @override
+  String get studyCriteriaSection => 'Tamaño de la muestra';
+
+  @override
+  String get studyConfidenceLevel => 'Nivel de confianza';
+
+  @override
+  String get studyRelativePrecision => 'Precisión (± % de la media)';
+
+  @override
+  String get colMin => 'Mín';
+
+  @override
+  String get colMax => 'Máx';
+
+  @override
+  String get samplingAppendixTitle => 'Tomas en detalle';
+
+  @override
+  String get compareAction => 'Comparar estudios';
+
+  @override
+  String get compareTitle => 'Comparación';
+
+  @override
+  String get compareEmpty => 'Elige dos o más estudios para comparar.';
+
+  @override
+  String get compareNoStudies =>
+      'Este proyecto aún no tiene estudios que comparar.';
+
+  @override
+  String get compareNothingMatched =>
+      'No se pudo relacionar ninguna operación. Los estudios se comparan por las operaciones de catálogo que comparten, y estos no tienen ninguna en común.';
+
+  @override
+  String get comparePickStudies => 'Estudios';
+
+  @override
+  String compareSelected(int count) {
+    return '$count seleccionados';
+  }
+
+  @override
+  String compareReadings(int count) {
+    return 'n = $count';
+  }
+
+  @override
+  String get compareSingleReadingNote =>
+      '○ = una sola lectura, no es una media';
+
+  @override
+  String compareUnmatchedNote(int count, String names) {
+    return '$count operaciones fuera de la comparación — sin vínculo al catálogo: $names';
+  }
+
+  @override
+  String get compareTrendTitle => 'A lo largo del tiempo';
+
+  @override
+  String get compareChange => 'Variación';
+
+  @override
+  String get compareRowSingleStudy =>
+      'Solo un estudio cronometró esta operación';
+
+  @override
+  String compareOccurrences(int count) {
+    return 'x$count en la secuencia';
+  }
+
+  @override
+  String get compareOccurrencesHeader => 'Ocurrencias';
 }

@@ -13,12 +13,14 @@ void main() {
   tearDown(() => db.close());
 
   test('seeds the 7 wastes and the process-type picklist on create', () async {
-    final subtypes = await db.select(db.operationSubtypes).get();
-    expect(subtypes, hasLength(7));
+    // Scoped to the built-ins: the starter catalog seeds subtypes of its own
+    // alongside these, deliberately not built-in (§3.4, starter_catalog.dart).
+    final builtIn = await (db.select(db.operationSubtypes)
+          ..where((t) => t.isBuiltIn.equals(true)))
+        .get();
+    expect(builtIn, hasLength(7));
     expect(
-      subtypes.every(
-        (s) => s.isBuiltIn && s.category == OperationCategory.unproductive,
-      ),
+      builtIn.every((s) => s.category == OperationCategory.unproductive),
       isTrue,
     );
 

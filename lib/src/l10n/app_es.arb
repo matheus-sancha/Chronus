@@ -270,5 +270,142 @@
   "feedbackAction": "Enviar comentarios",
   "feedbackSubtitle": "Anota qué te estorbó; va junto con el diagnóstico",
   "feedbackHint": "¿Qué pasó?",
-  "feedbackSaved": "Anotado. Se envía junto al guardar el diagnóstico."
+  "feedbackSaved": "Anotado. Se envía junto al guardar el diagnóstico.",
+  "passesTitle": "Tomas",
+  "passLabel": "Toma {number}",
+  "@passLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "passAdd": "Nueva toma",
+  "passTimedCount": "{timed} de {total} cronometradas",
+  "@passTimedCount": {
+    "placeholders": {
+      "timed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "passNothingTimed": "Nada cronometrado aún",
+  "passExcludedBadge": "Excluida",
+  "passExclude": "Excluir de las estadísticas",
+  "passInclude": "Devolver a las estadísticas",
+  "passExcludeTitle": "¿Excluir la {pass}?",
+  "@passExcludeTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passExcludeMessage": "Conserva sus mediciones y su propio informe — solo queda fuera de los promedios. Puedes revertirlo cuando quieras.",
+  "passExcludeReasonHint": "¿Por qué? (p. ej., línea sin material)",
+  "passDelete": "Eliminar toma",
+  "passDeleteBlocked": "Esta toma tiene mediciones. Mejor exclúyela — así la evidencia se conserva.",
+  "passDeleteLastBlocked": "Un estudio conserva al menos una toma.",
+  "passDeleteConfirmTitle": "¿Eliminar la {pass}?",
+  "@passDeleteConfirmTitle": {
+    "placeholders": {
+      "pass": { "type": "String" }
+    }
+  },
+  "passDeleteConfirmMessage": "No se cronometró nada en ella. El número no se reutiliza.",
+  "passReport": "Informe de esta toma",
+  "samplingReportTitle": "Informe de muestreo",
+  "samplingReportEmpty": "Cronometra una operación en al menos una toma para ver el informe.",
+  "samplingCriteria": "{confidence}% de confianza · ±{precision}%",
+  "@samplingCriteria": {
+    "placeholders": {
+      "confidence": { "type": "String" },
+      "precision": { "type": "String" }
+    }
+  },
+  "samplingPassesTaken": "{taken} tomas realizadas",
+  "@samplingPassesTaken": {
+    "placeholders": {
+      "taken": { "type": "int" }
+    }
+  },
+  "samplingAdequate": "Adecuado — {required} necesarias",
+  "@samplingAdequate": {
+    "placeholders": {
+      "required": { "type": "int" }
+    }
+  },
+  "samplingNotAdequate": "No adecuado — faltan {shortfall} tomas",
+  "@samplingNotAdequate": {
+    "placeholders": {
+      "shortfall": { "type": "int" }
+    }
+  },
+  "samplingNotDeterminable": "Aún no hay tomas suficientes para juzgar",
+  "samplingNothingTimed": "Nada cronometrado aún",
+  "samplingGovernedBy": "Determinado por: {operation}",
+  "@samplingGovernedBy": {
+    "placeholders": {
+      "operation": { "type": "String" }
+    }
+  },
+  "samplingNeverTimed": "Nunca cronometradas: {operations}",
+  "@samplingNeverTimed": {
+    "placeholders": {
+      "operations": { "type": "String" }
+    }
+  },
+  "samplingStatisticsTitle": "Estadísticas por operación",
+  "samplingReadingsTitle": "Lecturas",
+  "samplingMean": "Media",
+  "samplingRange": "Rango",
+  "samplingStdDev": "Desv. típica",
+  "samplingCv": "CV",
+  "samplingRequired": "Necesarias",
+  "samplingCount": "n",
+  "samplingUnplannedNote": "No planificada — se muestra, pero no entra en el veredicto",
+  "samplingExcludedNote": "{count} lecturas excluidas",
+  "@samplingExcludedNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingManualNote": "{count} introducidas a mano",
+  "@samplingManualNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "samplingMeanWorkContent": "Contenido de trabajo (toma media)",
+  "readingExclude": "Excluir esta lectura",
+  "readingInclude": "Devolver esta lectura",
+  "readingExcludeTitle": "¿Excluir {operation}, toma {pass}?",
+  "@readingExcludeTitle": {
+    "placeholders": {
+      "operation": { "type": "String" },
+      "pass": { "type": "int" }
+    }
+  },
+  "readingExcludeMessage": "La medición se conserva y sigue apareciendo en el informe de esa toma. Solo queda fuera de los promedios.",
+  "readingExcludedByPass": "Excluida junto con toda la toma.",
+  "studyCriteriaSection": "Tamaño de la muestra",
+  "studyConfidenceLevel": "Nivel de confianza",
+  "studyRelativePrecision": "Precisión (± % de la media)",
+  "colMin": "Mín",
+  "colMax": "Máx",
+  "samplingAppendixTitle": "Tomas en detalle",
+  "compareAction": "Comparar estudios",
+  "compareTitle": "Comparación",
+  "compareEmpty": "Elige dos o más estudios para comparar.",
+  "compareNoStudies": "Este proyecto aún no tiene estudios que comparar.",
+  "compareNothingMatched": "No se pudo relacionar ninguna operación. Los estudios se comparan por las operaciones de catálogo que comparten, y estos no tienen ninguna en común.",
+  "comparePickStudies": "Estudios",
+  "compareSelected": "{count} seleccionados",
+  "@compareSelected": {"placeholders": {"count": {"type": "int"}}},
+  "compareReadings": "n = {count}",
+  "@compareReadings": {"placeholders": {"count": {"type": "int"}}},
+  "compareSingleReadingNote": "○ = una sola lectura, no es una media",
+  "compareUnmatchedNote": "{count} operaciones fuera de la comparación — sin vínculo al catálogo: {names}",
+  "@compareUnmatchedNote": {"placeholders": {"count": {"type": "int"}, "names": {"type": "String"}}},
+  "compareTrendTitle": "A lo largo del tiempo",
+  "compareChange": "Variación",
+  "compareRowSingleStudy": "Solo un estudio cronometró esta operación",
+  "compareOccurrences": "x{count} en la secuencia",
+  "@compareOccurrences": {"placeholders": {"count": {"type": "int"}}},
+  "compareOccurrencesHeader": "Ocurrencias"
 }
