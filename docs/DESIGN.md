@@ -2,8 +2,8 @@
 
 _Cronoanálise (time-study) application for manufacturing engineers and technicians, for on-the-floor process analysis and comparison._
 
-**Status:** in implementation — Phases 1–5 built (Foundations, Structure, Core, Analysis, Export). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete** bar §10.8. **Phases 7 (Sampling) and 8 (Cross-study comparison) are complete** — both specified in §11, and both due in one drop (§11.11). Phase 9 (Polish) is what remains before that drop.
-**Last updated:** 2026-07-28
+**Status:** in implementation — Phases 1–8 built (Foundations, Structure, Core, Analysis, Export, Windows operation, Sampling, Cross-study comparison). Phase 6 (Licensing) is **skipped on Windows** (§6); Windows operation (§10) is **complete**. Phases 7 and 8 are specified in §11 and shipped together (§11.11) in the `2026-07-29b` drop. **Phase 9 (Polish) is all that remains** before the full v1 that §8.3 gates the first public release on.
+**Last updated:** 2026-07-29
 
 This document is the shared-understanding snapshot from the design review. Every decision below was deliberately chosen (alternatives considered and rejected); the "Rationale / alternatives" notes record why so future changes are made with eyes open.
 
@@ -215,10 +215,10 @@ The single most-unvalidated assumption is the **live timing interaction**: **can
 4. **Analysis** — Time Study report: observed-vs-reference, **efficiency**, category roll-up, **timeline**, waste Pareto, incl. elapsed-vs-simultaneous totals from concurrent timers.
 5. **Export** — PDF + XLSX.
 6. ~~**Licensing** — StoreKit IAP + gating + backup bundle.~~ **Skipped on Windows** (§6): the backup bundle shipped early, and the rest is iOS-only work that cannot be done without an Apple Developer account.
-6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete**, bar the optional backup folder in §10.8.
+6b. **Windows operation** (inserted 2026-07-26, §10) — build identity, diagnostics log, feedback channel, abandoned-run recovery, automatic snapshots, window geometry, keyboard timing. **Complete.**
 7. **Sampling Study** — repeat engine + statistics + sample-size adequacy. Decisions in **§11**. **Complete.**
 8. **Cross-study comparison.** Decisions in **§11**; ships in the same drop as 7 (§11.11). **Complete.**
-9. **Polish** — video, iPad layouts, finalize pt/en/es.
+9. **Polish** — video, iPad layouts, finalize pt/en/es, **the optional backup folder (§10.8)**.
 
 **Why 6b comes before 7.** Sampling Study is "run the Time Study K times" (§3.2) — it is built directly on the study workspace and reuses its timing engine. Real use had not touched that workspace when this order was written, so building Sampling first risks building it twice: any interaction change that the first real studies force would then land in two places instead of one. Hardening the workspace, and being able to *hear* about it, comes first. _Continuing straight to Phase 7 was rejected_ for that reason, not for lack of demand — Sampling is the most-asked-for missing feature.
 
@@ -347,9 +347,13 @@ The on-floor premise is **eyes on the machine, not on the screen**. An analyst w
 - **The workspace autofocuses**, so keys work on arrival — an analyst should not have to click into the table first. Clicking a row also picks it, so mouse and keyboard agree on what "the picked row" means.
 - **`F1` only, no `?`.** Typing `?` needs Shift plus a key that moves between layouts — on a Brazilian ABNT2 keyboard it is not where a US layout puts it — and a shortcut that silently does nothing on the keyboards these users actually have is worse than none. The **keyboard icon in the app bar** is what makes the sheet discoverable, and the sheet explains *why* Space goes inert under concurrency, since that behaviour reads as a bug until you know it is a refusal.
 
-### 10.8 Planned next (not yet built)
+### 10.8 Optional backup folder (deferred to Phase 9)
 
-- **Optional backup folder.** Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.
+Snapshots (§10.5) cover our own bugs, but not a dead disk — and nothing yet covers that without the user acting. A path setting (a mapped network drive, or a synced folder) that the `.chronus` bundle is written to automatically would. A *closed* bundle in a synced folder is safe; the OneDrive warning in `app_directory.dart` is about the live database and its `-wal`, not a finished zip.
+
+**Scheduled in Phase 9, not as a 6b leftover** _(moved 2026-07-29)_. It was written here because the failure is a Windows one, and the reasoning still belongs beside the snapshots it completes — but leaving it as the one thing outstanding in an otherwise-finished phase read as unfinished work rather than a choice. It waited on purpose: automatic snapshots were the same protection at a fraction of the cost, needing no path to configure and no folder that can go missing, so they went first and this became the remaining gap rather than the urgent one.
+
+The rationale stays in §10 rather than moving to §8.2, which carries the order and not the arguments.
 
 ---
 

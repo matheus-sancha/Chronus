@@ -24,9 +24,9 @@ window geometry, and keyboard timing. Sampling studies run in passes, with
 statistics, sample-size adequacy and their own exports; studies can be compared
 against each other ([`docs/DESIGN.md`](docs/DESIGN.md) §11).
 
-**Phase 9 (Polish) is next** — video attachments, iPad layouts, and finalizing
-pt/en/es. Also unbuilt: the optional backup folder in
-[`docs/DESIGN.md`](docs/DESIGN.md) §10.8.
+**Phase 9 (Polish) is next, and is all that remains** — video attachments, iPad
+layouts, finalizing pt/en/es, and the optional backup folder
+([`docs/DESIGN.md`](docs/DESIGN.md) §10.8).
 
 Distributed internally as a Windows zip. The first public App Store release is
 deliberately gated on the full v1 — see [`docs/DESIGN.md`](docs/DESIGN.md) §8.3.
